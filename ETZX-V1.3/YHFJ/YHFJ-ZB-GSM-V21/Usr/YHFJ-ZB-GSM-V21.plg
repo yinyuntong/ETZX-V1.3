@@ -1,0 +1,15 @@
+Build target 'Target 1'
+compiling parameter.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_UART_SEND?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?LED0FLASH?SINGLEBUS
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_OSTASKSTKDEL?OS_CPU_C
+Program Size: data=127.1 xdata=354 code=13896
+creating hex file from "YHFJ-ZB-GSM-V21"...
+"YHFJ-ZB-GSM-V21" - 0 Error(s), 3 Warning(s).
+</pre>
+</body>
+</html>

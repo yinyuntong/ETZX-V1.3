@@ -1,0 +1,78 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Project:</h2>
+C:\Users\Administrator\Desktop\GLZJ-CONTRL-7 (中医研究院)-3\下位机软件\usr\GLZJ.uvproj
+Project File Date:  04/10/2017
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling eeprom.c...
+compiling I2C.c...
+compiling main.c...
+MAIN.C(626): error C141: syntax error near 'pSTUartFreq'
+MAIN.C(626): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(632): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(634): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(635): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(636): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(637): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(638): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(639): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(640): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(641): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(642): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(643): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(644): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(645): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(646): error C202: 'pstDataFreq': undefined identifier
+MAIN.C(651): error C202: 'pstDataFreq': undefined identifier
+compiling PCF8563.c...
+compiling SingleBus.c...
+SINGLEBUS.C(2162): error C141: syntax error near 'pSTUartFreq'
+compiling Uart.c...
+UART.C(1200): warning C280: 'SDATA': unreferenced local variable
+UART.C(1215): warning C280: 'SDATA': unreferenced local variable
+compiling Key.c...
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(670): warning C182: pointer to different objects
+compiling SingleBus.c...
+SINGLEBUS.C(2162): error C141: syntax error near 'pSTUartFreq'
+Target not created
+Build target 'Target 1'
+compiling SingleBus.c...
+SINGLEBUS.C(2159): error C141: syntax error near 'pSTUartFreq'
+Target not created
+Build target 'Target 1'
+compiling SingleBus.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_READDATA?I2C
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?P8563_GETTIME?PCF8563
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?P8563_INIT?PCF8563
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DIRADDRCOMPARE?SINGLEBUS
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?STOPVOICEPLAY?SINGLEBUS
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?STARTVOICEPLAY?SINGLEBUS
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_USART1SNDERROR?UART
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_USART1SENDBYTE?UART
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_USART1SNDDATA?UART
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_UART1_SEND_BYTE?UART
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_UART0_SEND_BYTE?UART
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?KEYUP?KEY
+Program Size: data=38.4 xdata=918 code=20994
+creating hex file from "GLZJ-V10"...
+"GLZJ-V10" - 0 Error(s), 12 Warning(s).

@@ -1,0 +1,14 @@
+".\OS_CORE.obj",
+".\OS_MEM.obj",
+".\OS_Q.obj",
+".\OS_SEM.obj",
+".\OS_CPU_A.obj",
+".\OS_CPU_C.obj",
+"IAP.obj",
+"Key.obj",
+"main.obj",
+"SingleBus.obj",
+"IR.obj",
+"Data.obj" 
+TO "WYFJ" 
+RAMSIZE(256) 

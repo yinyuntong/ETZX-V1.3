@@ -1,0 +1,11 @@
+.\DebugInFlash\tm77xx.o: USER_CODE\TM77XX.c
+.\DebugInFlash\tm77xx.o: USER_CODE\type.h
+.\DebugInFlash\tm77xx.o: .\LPC11xx\LPC11xx.h
+.\DebugInFlash\tm77xx.o: .\CM0\core_cm0.h
+.\DebugInFlash\tm77xx.o: C:\Keil\ARM\RV31\INC\stdint.h
+.\DebugInFlash\tm77xx.o: .\LPC11xx\system_LPC11xx.h
+.\DebugInFlash\tm77xx.o: USER_CODE\dataType.h
+.\DebugInFlash\tm77xx.o: USER_CODE\ktkzq.h
+.\DebugInFlash\tm77xx.o: USER_CODE\util.h
+.\DebugInFlash\tm77xx.o: USER_CODE\spi.h
+.\DebugInFlash\tm77xx.o: USER_CODE\TM77XX.h

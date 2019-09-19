@@ -1,0 +1,1037 @@
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #define _IN_MAIN_
+   2          
+   3          #include <config.h>
+   4          
+   5          uint xdata TimerCount10S;        //10S计时器，用于液晶显示屏背光的计时
+   6          
+   7          
+   8          uchar tms;
+   9          uchar SecAddr,RoomAddr,BedAddr;
+  10          
+  11          uchar bdata flag0,flag1,flag2;
+  12          uchar KeyValue;
+  13          
+  14          uchar count,set_count,sum;
+  15          uchar LedFlashTime;
+  16          
+  17          uchar BCD[3];
+  18          
+  19          
+  20          sbit fled               =       flag0^0;
+  21          sbit fKeyUpDown =       flag0^1;
+  22          sbit fKeyCall   =       flag0^2;
+  23          sbit fKey1              =       flag0^3;
+  24          sbit fKey2              =       flag0^4;
+  25          sbit fKey3              =       flag0^5;
+  26          sbit fKey4              =       flag0^6;
+  27          sbit fKey5              =       flag0^7;
+  28          
+  29          
+  30          sbit fKey6              =       flag1^0;
+  31          sbit fKey7              =       flag1^1;
+  32          sbit fKey8              =       flag1^2;
+  33          sbit fKey9              =       flag1^3;
+  34          sbit fKeyEnter  =       flag1^4;
+  35          sbit fKey0              =       flag1^5;
+  36          sbit fKeyEsc    =       flag1^6;
+  37          
+  38          sbit fSecAddr   =       flag2^0;
+  39          sbit fRoomAddr  =   flag2^1;
+  40          sbit fBedAddr   =       flag2^3;
+  41          sbit irflag             =       flag2^4;
+  42          sbit Timer10SFinish_Flag = flag2^5;
+  43          
+  44          
+  45          
+  46          void  KeyScan(void);
+  47          void Delay_1ms(uint ms);
+  48          void  Delay_1us(uint us);
+  49          void delay_nms(unsigned int i);
+  50          void delay_nus(unsigned int i);
+  51          void uart_send(unsigned char *SDATA,unsigned char length);
+  52          void uart_send_byte(unsigned char SDATA);
+  53          void ir_sendbyte(uchar ircode);
+  54          
+  55          
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 2   
+
+  56          
+  57          void Delay_1ms(uint ms)   //延时1mS函数   
+  58          {
+  59   1          uint  i;
+  60   1          while(ms--)
+  61   1           {
+  62   2             for(i=0;i<800;i++)
+  63   2                       _nop_();
+  64   2           }
+  65   1      }
+  66          
+  67           void  Delay_1us(uint us)
+  68          {
+  69   1         while(us--)
+  70   1          {
+  71   2            _nop_();
+  72   2                _nop_();
+  73   2                _nop_();
+  74   2                _nop_();
+  75   2                _nop_();
+  76   2                _nop_();
+  77   2                _nop_();
+  78   2                _nop_();
+  79   2                _nop_();
+  80   2                _nop_();
+  81   2                _nop_();
+  82   2                _nop_();
+  83   2              }
+  84   1      }
+  85          
+  86          
+  87          /**********************************************************
+  88          *函数名称                       :delay_nms      
+  89          *函数描述               :毫秒级延时操作
+  90          *输入参数               :i:延时的ms数
+  91          *返回值                         :       
+  92          *全局变量                       :
+  93          *调用模块                       :
+  94          ***********************************************************
+  95          *创建人                 :尹运同
+  96          *创建日期                       :2008-9-22
+  97          ***********************************************************
+  98          *修改人                         :
+  99          *修改日期               :
+ 100          *注释                   :
+ 101          **********************************************************/
+ 102          void delay_nms(unsigned int i)
+ 103          {
+ 104   1              unsigned int j;
+ 105   1      
+ 106   1              for(;i>0;i--)
+ 107   1              {
+ 108   2                      for(j=900;j>0;j--);
+ 109   2              }
+ 110   1               
+ 111   1      }
+ 112          
+ 113          
+ 114          /**********************************************************
+ 115          *函数名称                       :delay_nus      
+ 116          *函数描述               :纳秒级延时操作
+ 117          *输入参数               :i:延时的us数
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 3   
+
+ 118          *返回值                         :       
+ 119          *全局变量                       :
+ 120          *调用模块                       :
+ 121          ***********************************************************
+ 122          *创建人                 :尹运同
+ 123          *创建日期                       :2008-9-22
+ 124          ***********************************************************
+ 125          *修改人                         :
+ 126          *修改日期               :
+ 127          *注释                   :
+ 128          **********************************************************/
+ 129          void delay_nus(unsigned int i)
+ 130          {
+ 131   1      
+ 132   1              for(;i>0;i--)
+ 133   1              {
+ 134   2                      _nop_();
+ 135   2                      _nop_();
+ 136   2                      _nop_();
+ 137   2                      _nop_();
+ 138   2                      _nop_();
+ 139   2                      _nop_();
+ 140   2                      _nop_();
+ 141   2                      _nop_();
+ 142   2                      _nop_();
+ 143   2                      _nop_();
+ 144   2                      _nop_();
+ 145   2                      _nop_();
+ 146   2      
+ 147   2              }
+ 148   1               
+ 149   1      }
+ 150          
+ 151          
+ 152          
+ 153          void ClearRAM(void)
+ 154          {
+ 155   1      
+ 156   1      }
+ 157           /*---------------------------------------------------------------------------
+ 158          函数原型: void InitiRegister(void)
+ 159          参数说明: 无
+ 160          返 回 值: 无
+ 161          函数功能：初始化硬件
+ 162          ----------------------------------------------------------------------------*/
+ 163          void InitiRegister(void)
+ 164          {
+ 165   1      
+ 166   1          P4SW=0x70;   
+ 167   1              P3M0=0x30;//P3.4,P3.5设置为推挽输出(总线发送端，液晶背光端),P3.3（总线接收端）设置为高阻输入
+ 168   1              P3M1=0x08;
+ 169   1              P4M0=0x42;//P4.1,P4.6设置为推挽输出
+ 170   1              P4M1=0x00;
+ 171   1              P5M0=0x0C;//P5.2,P5.3设置为推挽输出
+ 172   1              P5M1=0x00;
+ 173   1          WDT_CONTR=0x3A; 
+ 174   1      
+ 175   1              fKeyUpDown      =       1;
+ 176   1              fKeyCall        =       1;
+ 177   1              fKey1           =       1;
+ 178   1              fKey2           =       1;
+ 179   1              fKey3           =       1;
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 4   
+
+ 180   1              fKey4           =       1;
+ 181   1              fKey5           =       1;
+ 182   1              
+ 183   1              
+ 184   1              fKey6           =       1;
+ 185   1              fKey7           =       1;
+ 186   1              fKey8           =       1;
+ 187   1              fKey9           =       1;
+ 188   1              fKeyEnter       =       1;
+ 189   1              fKey0           =       1;
+ 190   1              fKeyEsc         =       1;
+ 191   1      
+ 192   1              fSecAddr        =       1;
+ 193   1              fRoomAddr       =       0;
+ 194   1              fBedAddr        =       0;
+ 195   1      
+ 196   1              SecAddr         =0x00;
+ 197   1              RoomAddr        =0x00;
+ 198   1              BedAddr         =0x00;
+ 199   1      
+ 200   1              BCD[0]=0;
+ 201   1              BCD[1]=0;
+ 202   1              BCD[2]=0;
+ 203   1              
+ 204   1              count           =0;
+ 205   1              irflag          =0;
+ 206   1              ir                      =0;
+ 207   1      
+ 208   1              P3M0 |= 0x80;   //ir强推挽输出 
+ 209   1              P3M1 &= 0x7f;
+ 210   1      
+ 211   1              tms=0;
+ 212   1              TimerCount10S=0;
+ 213   1      
+ 214   1              KeyValue =NO_KEY;
+ 215   1          EA=1;
+ 216   1      }
+ 217          
+ 218          
+ 219          void intt0() interrupt 0 
+ 220          { 
+ 221   1      
+ 222   1              EX0 =0;
+ 223   1      
+ 224   1      }
+ 225          
+ 226          
+ 227          void timer0() interrupt 1 
+ 228          {       
+ 229   1              EA=0;
+ 230   1              count++;
+ 231   1              if(irflag==1)   ir=~ir;         //高电平时38K方波
+ 232   1              else ir=0;                                      //低电平为0
+ 233   1              EA=1;
+ 234   1      }
+ 235          
+ 236          
+ 237          
+ 238          void timer1() interrupt 3          //40ms定时
+ 239          {  
+ 240   1              EA=0;
+ 241   1              TR1=0;
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 5   
+
+ 242   1              TH1=0X10;
+ 243   1              TL1=0X00;
+ 244   1              TF1=0;
+ 245   1              TR1=1;
+ 246   1      
+ 247   1              WDT_CONTR=0x3A;
+ 248   1      
+ 249   1              tms++;
+ 250   1              if(     tms >= 25)
+ 251   1              {// 1 秒
+ 252   2                      tms =0;
+ 253   2                      if(TimerCount10S)
+ 254   2                      {
+ 255   3                              if(--TimerCount10S ==0)
+ 256   3                              {
+ 257   4                                      CloseLCDBLK();
+ 258   4                                      clear_screen();
+ 259   4                              }
+ 260   3                      }
+ 261   2      
+ 262   2              }
+ 263   1              EA=1;
+ 264   1      }
+ 265          
+ 266          
+ 267          void  Usart0Int() interrupt  4
+ 268          {
+ 269   1              ES =0;
+ 270   1      }
+ 271          /***********************************************************/
+ 272          
+ 273          void UsartInit(void)
+ 274          {
+ 275   1                SCON=0X50;       //工作方式1
+ 276   1                 
+ 277   1      /*         TMOD&=0X0F;     //TO方式不变
+ 278   1                 TMOD|=0X20;     //;t1 方式2作波特率发生器
+ 279   1              
+ 280   1              
+ 281   1                 TL1 =   0XF6;           //波特率4800  在18.432M晶振的情况下
+ 282   1                 TH1 =   TL1;
+ 283   1                 PCON    &=  ~SMOD;   //      ;波特率倍增选择            smod=0
+ 284   1              // AUXR    &=  0xBf;       //传统12分频速度
+ 285   1                 AUXR |= T1x12;          //1T模式,最后波特率为:4800*12=57.6K
+ 286   1                 TF1=0;
+ 287   1                 TR1=1;
+ 288   1                 
+ 289   1                 RI=0;
+ 290   1                 TI=0;
+ 291   1                 REN=0;
+ 292   1                 ES=0;   
+ 293   1      */
+ 294   1      
+ 295   1               BRT = 246;
+ 296   1               AUXR |= BRTR|BRTx12|S1BRS;
+ 297   1               RI=0;
+ 298   1               TI=0;
+ 299   1               REN=0;
+ 300   1               ES=0;  
+ 301   1      
+ 302   1      
+ 303   1      }
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 6   
+
+ 304          
+ 305          
+ 306          
+ 307          void Timer0Init(void)           //T0用作38K载波
+ 308          {
+ 309   1              TMOD    &=      0xf0;      //T1方式不变
+ 310   1              TMOD    |=      0x02;      //T0 方式2   数据8位
+ 311   1      
+ 312   1      /*      TL0     =   236;                 //13us定时
+ 313   1              TH0     =   TL0;
+ 314   1              AUXR    &= ~T0x12;         //12T模式*/
+ 315   1      
+ 316   1              TL0     =   16;          //13us定时
+ 317   1              TH0     =   TL0;
+ 318   1              AUXR    |= T0x12;          //1T模式
+ 319   1      
+ 320   1              TF0             =0;
+ 321   1              TR0             =0;
+ 322   1              ET0     =1;
+ 323   1      }
+ 324          
+ 325          
+ 326          void Timer1Init(void)
+ 327          {
+ 328   1          TMOD                &=      0x0f;      //T0方式不变
+ 329   1          TMOD                |=      0x10;      //T1 方式1    数据16位
+ 330   1      
+ 331   1      
+ 332   1              TH1             =       0x10;//40ms定时
+ 333   1              TL1             =       0x00;
+ 334   1      
+ 335   1              AUXR    &= ~T1x12;         //12T模式
+ 336   1              
+ 337   1              ET1             =1;
+ 338   1              TF1             =0;
+ 339   1              TR1             =1;
+ 340   1      
+ 341   1      }
+ 342          
+ 343          
+ 344          void uart_send(unsigned char *SDATA,unsigned char length)
+ 345          {
+ 346   1      #if DEBUG==1
+ 347   1              EA=0;
+ 348   1              ES=0;
+ 349   1              TI=0;
+ 350   1              for(;length>0;length--)
+ 351   1              {
+ 352   2                      SBUF=*SDATA;
+ 353   2                      while(!TI);
+ 354   2                      TI=0;
+ 355   2                      SDATA++;
+ 356   2              }
+ 357   1              ES=0;
+ 358   1              EA=1;
+ 359   1      #endif
+ 360   1      }
+ 361          
+ 362          
+ 363          
+ 364          void uart_send_byte(unsigned char SDATA)
+ 365          {
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 7   
+
+ 366   1      #if DEBUG==1
+ 367   1              EA=0;
+ 368   1              ES=0; 
+ 369   1              TI=0;
+ 370   1              SBUF=SDATA;
+ 371   1              while(!TI);
+ 372   1              TI=0; 
+ 373   1              ES=0;
+ 374   1              EA=1;
+ 375   1      #endif
+ 376   1      }
+ 377          
+ 378          
+ 379          void main(void)
+ 380          {
+ 381   1              ClearRAM();
+ 382   1              InitiRegister();
+ 383   1      
+ 384   1              Timer0Init();
+ 385   1              Timer1Init();
+ 386   1      
+ 387   1              UsartInit();
+ 388   1      
+ 389   1      
+ 390   1              InitLCD();
+ 391   1      
+ 392   1              
+ 393   1              OpenLCDBLK();
+ 394   1              delay_nms(2000);
+ 395   1      
+ 396   1              DisplayInputSec();
+ 397   1              DisplayInputNumber();
+ 398   1              TimerCount10S=DISP_ON_TIME;
+ 399   1      
+ 400   1      
+ 401   1         while(1)
+ 402   1         {
+ 403   2                      KeyScan();
+ 404   2                      if(KeyValue != NO_KEY)
+ 405   2                      {
+ 406   3                              
+ 407   3                              if((KeyValue & 0xf0) ==0)
+ 408   3                              {//按键弹起时开始处理
+ 409   4                                      if(TimerCount10S == 0)
+ 410   4                                      {//黑屏状态
+ 411   5                                              fSecAddr =1;
+ 412   5                                              fRoomAddr =0;
+ 413   5                                              fBedAddr =0;
+ 414   5                                              SecAddr =0;
+ 415   5                                              RoomAddr =0;
+ 416   5                                              BedAddr =0;
+ 417   5                                              BCD[0] = 0x00;
+ 418   5                                              BCD[1] = 0x00;
+ 419   5                                              BCD[2] = 0x00;  
+ 420   5      
+ 421   5                                              DisplayInputSec();
+ 422   5                                              DisplayInputNumber();
+ 423   5                                              OpenLCDBLK();
+ 424   5                                              TimerCount10S=DISP_ON_TIME;
+ 425   5                                              
+ 426   5                                      }
+ 427   4                                      else
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 8   
+
+ 428   4                                      {       
+ 429   5                                              switch(KeyValue)
+ 430   5                                              {
+ 431   6                                                      case KEY0_UP:
+ 432   6                                                      case KEY1_UP:
+ 433   6                                                      case KEY2_UP:
+ 434   6                                                      case KEY3_UP:
+ 435   6                                                      case KEY4_UP:
+ 436   6                                                      case KEY5_UP:
+ 437   6                                                      case KEY6_UP:
+ 438   6                                                      case KEY7_UP:
+ 439   6                                                      case KEY8_UP:
+ 440   6                                                      case KEY9_UP:
+ 441   6                                                              BCD[0] = BCD[1];
+ 442   6                                                              BCD[1] = BCD[2];
+ 443   6                                                              BCD[2] = KeyValue;
+ 444   6                                                              DisplayInputNumber();
+ 445   6                                                              break;
+ 446   6                                                      case KEY_ENTER_UP:
+ 447   6                                                              if(fSecAddr)
+ 448   6                                                              {
+ 449   7                                                                      SecAddr = BCD[0]*100 + BCD[1]*10 + BCD[2];
+ 450   7                                                                      fSecAddr =0;
+ 451   7                                                                      fRoomAddr =1;
+ 452   7                                                                      BCD[0] = 0x00;
+ 453   7                                                                      BCD[1] = 0x00;
+ 454   7                                                                      BCD[2] = 0x00;
+ 455   7                                                                      DisplayInputRoom();
+ 456   7                                                                      DisplayInputNumber();
+ 457   7                                                              }
+ 458   6                                                              else if(fRoomAddr)
+ 459   6                                                              {
+ 460   7                                                                      RoomAddr = BCD[0]*100 + BCD[1]*10 + BCD[2];
+ 461   7                                                                      fRoomAddr =0;
+ 462   7                                                                      fBedAddr  =1;
+ 463   7                                                                      BCD[0] = 0x00;
+ 464   7                                                                      BCD[1] = 0x00;
+ 465   7                                                                      BCD[2] = 0x00;  
+ 466   7                                                                      DisplayInputBed();
+ 467   7                                                                      DisplayInputNumber();
+ 468   7      
+ 469   7      
+ 470   7                                                              }
+ 471   6                                                              else if(fBedAddr)
+ 472   6                                                              {       
+ 473   7      
+ 474   7                                                                      BedAddr = BCD[0]*100 + BCD[1]*10 + BCD[2];
+ 475   7                                                                      fBedAddr = 0;
+ 476   7                                                                      fSecAddr =1;
+ 477   7                                                                      BCD[0] = 0x00;
+ 478   7                                                                      BCD[1] = 0x00;
+ 479   7                                                                      BCD[2] = 0x00;                                                  
+ 480   7      
+ 481   7                                                                      //开始红外发送
+ 482   7                                                                      ir_sendbyte(0x05);
+ 483   7                                                                      ir_sendbyte(SecAddr);
+ 484   7                                                                      ir_sendbyte(RoomAddr);
+ 485   7                                                                      ir_sendbyte(BedAddr);
+ 486   7                                                                      ir_sendbyte(0x5a);
+ 487   7      
+ 488   7                                                                      sum=0x05;
+ 489   7                                                                      sum += SecAddr;
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 9   
+
+ 490   7                                                                      sum += RoomAddr;
+ 491   7                                                                      sum += BedAddr;
+ 492   7                                                                      sum += 0x5a;
+ 493   7                                                                      ir_sendbyte(sum);
+ 494   7      
+ 495   7                                                                      
+ 496   7                                                                      DisplayInputSec();
+ 497   7                                                                      DisplayInputNumber();                                                                                                                                                                           
+ 498   7                                                              }
+ 499   6                                                              break;
+ 500   6                                                      case KEY_ESC_UP:        //从区号开始再来
+ 501   6                                                              fSecAddr =1;
+ 502   6                                                              fRoomAddr =0;
+ 503   6                                                              fBedAddr =0;                                            
+ 504   6                                                              SecAddr =0;
+ 505   6                                                              RoomAddr =0;
+ 506   6                                                              BedAddr =0;
+ 507   6                                                              
+ 508   6                                                              BCD[0] = 0x00;
+ 509   6                                                              BCD[1] = 0x00;
+ 510   6                                                              BCD[2] = 0x00;
+ 511   6                                                              DisplayInputSec();
+ 512   6                                                              DisplayInputNumber();                                                   
+ 513   6                                                              break;
+ 514   6                                                              
+ 515   6                                                      default:
+ 516   6                                                              break;
+ 517   6                                              }
+ 518   5                                              TimerCount10S=DISP_ON_TIME;     //重新赋值，使灯亮5秒
+ 519   5                                      }
+ 520   4                              }
+ 521   3                              uart_send_byte(KeyValue);
+ 522   3                              KeyValue = NO_KEY;
+ 523   3                      }
+ 524   2      
+ 525   2         }
+ 526   1      }
+ 527          
+ 528          
+ 529          
+ 530          void ir_sendbyte(uchar ircode)  //发送红外数据
+ 531          {
+ 532   1      
+ 533   1              uchar i;
+ 534   1               
+ 535   1              set_count=64;           //起始位   //发送833us矩形方波   接收方收到为0 
+ 536   1              irflag=1;
+ 537   1              count=0;
+ 538   1              TR0=1;
+ 539   1              while(count<set_count);
+ 540   1              TR0=0;
+ 541   1              TL0 = TH0;
+ 542   1      
+ 543   1              
+ 544   1              for(i=0;i<8;i++)
+ 545   1              {
+ 546   2                      if(ircode&0x01)
+ 547   2                      {//数据位为1
+ 548   3                              irflag =1;   //矩形方波   接收方收到为0 
+ 549   3                      }
+ 550   2                      else irflag =0;
+ 551   2                      count=0;
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 10  
+
+ 552   2                      TR0=1;
+ 553   2                      while(count<set_count);
+ 554   2                      TR0=0;
+ 555   2                      TL0 = TH0;
+ 556   2                      ircode=ircode>>1;
+ 557   2              }
+ 558   1      
+ 559   1      
+ 560   1              ir=0;
+ 561   1              set_count=64;           //结束位   //发送833us高电平 
+ 562   1              irflag=0;
+ 563   1              count=0;
+ 564   1              TR0=1;
+ 565   1              while(count<set_count);
+ 566   1              TR0=0;
+ 567   1              TL0 = TH0;
+ 568   1      
+ 569   1              ir=0;
+ 570   1              irflag =0;      
+ 571   1      }
+ 572          
+ 573          
+ 574          
+ 575          
+ 576          void  KeyScan(void)
+ 577          {
+ 578   1              if(fKeyUpDown ==0)      //有任一一键处于按下状态
+ 579   1              {
+ 580   2      
+ 581   2                      //检测第一排
+ 582   2                      Row1 =0;
+ 583   2                      Row2 =1;
+ 584   2                      Row3 =1;
+ 585   2                      if(fKey0 == 0) //"0"键按下状态标志
+ 586   2                      {
+ 587   3                              if(Col1==1)     //第1列
+ 588   3                              {
+ 589   4                                      delay_nms(20);
+ 590   4                                      if(Col1 ==1)
+ 591   4                                      {
+ 592   5                                              fKeyUpDown = 1; //按键状态指示
+ 593   5      //                                      LED = 1;                //灯灭
+ 594   5                                              fKey0 =1;                       // "0"键置弹起状态
+ 595   5                                              KeyValue=KEY0_UP;
+ 596   5                                      }
+ 597   4                              }
+ 598   3                      }
+ 599   2                      
+ 600   2                      if(fKey1 == 0) //"1"键按下状态标志
+ 601   2                      {
+ 602   3                              if(Col2==1)     //第2列
+ 603   3                              {
+ 604   4                                      delay_nms(20);
+ 605   4                                      if(Col2 ==1)
+ 606   4                                      {
+ 607   5                                              fKeyUpDown = 1; //按键状态指示
+ 608   5      //                                      LED = 1;                //灯灭
+ 609   5                                              fKey1 =1;                       // "1"键置弹起状态
+ 610   5                                              KeyValue=KEY1_UP;
+ 611   5                                      }
+ 612   4                              }
+ 613   3                      }
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 11  
+
+ 614   2                      if(fKey2 == 0) //"2"键按下状态标志
+ 615   2                      {
+ 616   3                              if(Col3==1)     //第3列
+ 617   3                              {
+ 618   4                                      delay_nms(20);
+ 619   4                                      if(Col3 ==1)
+ 620   4                                      {
+ 621   5                                              fKeyUpDown = 1; //按键状态指示
+ 622   5      //                                      LED = 1;                //灯灭
+ 623   5                                              fKey2 =1;                       // "2"键置弹起状态
+ 624   5                                              KeyValue=KEY2_UP;
+ 625   5                                      }
+ 626   4                              }
+ 627   3                      }
+ 628   2      
+ 629   2                      if(fKey3 == 0) //"3"键按下状态标志
+ 630   2                      {
+ 631   3                              if(Col4==1)     //第4列
+ 632   3                              {
+ 633   4                                      delay_nms(20);
+ 634   4                                      if(Col4 ==1)
+ 635   4                                      {
+ 636   5                                              fKeyUpDown = 1; //按键状态指示
+ 637   5      //                                      LED = 1;                //灯灭
+ 638   5                                              fKey3 =1;                       // "3"键置弹起状态
+ 639   5                                              KeyValue=KEY3_UP;
+ 640   5                                      }
+ 641   4                              }
+ 642   3                      }
+ 643   2      
+ 644   2                      //检测第二排
+ 645   2                      Row1 =1;
+ 646   2                      Row2 =0;
+ 647   2      
+ 648   2                      if(fKey4 == 0) //"4"键按下状态标志
+ 649   2                      {
+ 650   3                              if(Col1==1)     //第1列
+ 651   3                              {
+ 652   4                                      delay_nms(20);
+ 653   4                                      if(Col1 ==1)
+ 654   4                                      {
+ 655   5                                              fKeyUpDown = 1; //按键状态指示
+ 656   5      //                                      LED = 1;                //灯灭
+ 657   5                                              fKey4 =1;                       // "4"键置弹起状态
+ 658   5                                              KeyValue=KEY4_UP;
+ 659   5                                      }
+ 660   4                              }
+ 661   3                      }
+ 662   2                      if(fKey5 == 0) //"5"键按下状态标志
+ 663   2                      {
+ 664   3                              if(Col2==1)     //第2列
+ 665   3                              {
+ 666   4                                      delay_nms(20);
+ 667   4                                      if(Col2 ==1)
+ 668   4                                      {
+ 669   5                                              fKeyUpDown = 1; //按键状态指示
+ 670   5      //                                      LED = 1;                //灯灭
+ 671   5                                              fKey5 =1;                       // "5"键置弹起状态
+ 672   5                                              KeyValue=KEY5_UP;
+ 673   5                                      }
+ 674   4                              }
+ 675   3                      }
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 12  
+
+ 676   2      
+ 677   2                      if(fKey6 == 0) //"6"键按下状态标志
+ 678   2                      {
+ 679   3                              if(Col3==1)     //第3列
+ 680   3                              {
+ 681   4                                      delay_nms(20);
+ 682   4                                      if(Col3 ==1)
+ 683   4                                      {
+ 684   5                                              fKeyUpDown = 1; //按键状态指示
+ 685   5      ///                                     LED = 1;                //灯灭
+ 686   5                                              fKey6 =1;                       // "6"键置弹起状态
+ 687   5                                              KeyValue=KEY6_UP;
+ 688   5                                      }
+ 689   4                              }
+ 690   3                      }
+ 691   2      
+ 692   2                      if(fKey7 == 0) //"7"键按下状态标志
+ 693   2                      {
+ 694   3                              if(Col4==1)     //第4列
+ 695   3                              {
+ 696   4                                      delay_nms(20);
+ 697   4                                      if(Col4 ==1)
+ 698   4                                      {
+ 699   5                                              fKeyUpDown = 1; //按键状态指示
+ 700   5      //                                      LED = 1;                //灯灭
+ 701   5                                              fKey7 =1;                       // "7"键置弹起状态
+ 702   5                                              KeyValue=KEY7_UP;
+ 703   5                                      }
+ 704   4                              }
+ 705   3                      }
+ 706   2                      
+ 707   2      
+ 708   2                      //检测第三排
+ 709   2                      Row2 =1;
+ 710   2                      Row3 =0;
+ 711   2      
+ 712   2                      if(fKey8 == 0) //"8"键按下状态标志
+ 713   2                      {
+ 714   3                              if(Col1==1)     //第1列
+ 715   3                              {
+ 716   4                                      delay_nms(20);
+ 717   4                                      if(Col1 ==1)
+ 718   4                                      {
+ 719   5                                              fKeyUpDown = 1; //按键状态指示
+ 720   5      //                                      LED = 1;                //灯灭
+ 721   5                                              fKey8 =1;                       // "8"键置弹起状态
+ 722   5                                              KeyValue=KEY8_UP;
+ 723   5                                      }
+ 724   4                              }
+ 725   3                      }
+ 726   2      
+ 727   2                      if(fKey9 == 0) //"9"键按下状态标志
+ 728   2                      {
+ 729   3                              if(Col2==1)     //第2列
+ 730   3                              {
+ 731   4                                      delay_nms(20);
+ 732   4                                      if(Col2 ==1)
+ 733   4                                      {
+ 734   5                                              fKeyUpDown = 1; //按键状态指示
+ 735   5      //                                      LED = 1;                //灯灭
+ 736   5                                              fKey9 =1;                       // "9"键置弹起状态
+ 737   5                                              KeyValue=KEY9_UP;
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 13  
+
+ 738   5                                      }
+ 739   4                              }
+ 740   3                      }
+ 741   2                      
+ 742   2                      if(fKeyEnter== 0) //"确认"键按下状态标志
+ 743   2                      {
+ 744   3                              if(Col3==1)     //第3列
+ 745   3                              {
+ 746   4                                      delay_nms(20);
+ 747   4                                      if(Col3 ==1)
+ 748   4                                      {
+ 749   5                                              fKeyUpDown = 1; //按键状态指示
+ 750   5      //                                      LED = 1;                //灯灭
+ 751   5                                              fKeyEnter =1;                   // "确认"键置弹起状态
+ 752   5                                              KeyValue=KEY_ENTER_UP;
+ 753   5                                      }
+ 754   4                              }
+ 755   3                      }
+ 756   2      
+ 757   2      
+ 758   2                      if(fKeyEsc== 0) //"清除"键按下状态标志
+ 759   2                      {
+ 760   3                              if(Col4==1)     //第4列
+ 761   3                              {
+ 762   4                                      delay_nms(20);
+ 763   4                                      if(Col4 ==1)
+ 764   4                                      {
+ 765   5                                              fKeyUpDown = 1; //按键状态指示
+ 766   5      //                                      LED = 1;                //灯灭
+ 767   5                                              fKeyEsc =1;                     // "清除"键置弹起状态
+ 768   5                                              KeyValue=KEY_ESC_UP;
+ 769   5                                      }
+ 770   4                              }
+ 771   3                      }
+ 772   2                      
+ 773   2      
+ 774   2                      //检测第四排
+ 775   2                      Row3 =1;
+ 776   2      
+ 777   2              }
+ 778   1      
+ 779   1      
+ 780   1              if(fKeyUpDown == 1)     //所有按键都是弹起状态  
+ 781   1              {
+ 782   2              
+ 783   2                      //检测第一排
+ 784   2                      Row1 =0;
+ 785   2                      Row2 =1;
+ 786   2                      Row3 =1;
+ 787   2      
+ 788   2                      if(fKey0 == 1) //"0"键弹起状态标志
+ 789   2                      {
+ 790   3                              if(Col1==0)     //第1列
+ 791   3                              {
+ 792   4                                      delay_nms(20);
+ 793   4                                      if(Col1 ==0)
+ 794   4                                      {
+ 795   5                                              fKeyUpDown = 0; //按键状态指示
+ 796   5      //                                      LED = 0;                //灯亮
+ 797   5                                              fKey0 =0;                       // "0"键置按下状态
+ 798   5                                              KeyValue=KEY0_DOWN;
+ 799   5                                      }
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 14  
+
+ 800   4                              }
+ 801   3                      }
+ 802   2      
+ 803   2      
+ 804   2                      if(fKey1 == 1) //"1"键弹起状态标志
+ 805   2                      {
+ 806   3                              if(Col2==0)     //第2列
+ 807   3                              {
+ 808   4                                      delay_nms(20);
+ 809   4                                      if(Col2 ==0)
+ 810   4                                      {
+ 811   5                                              fKeyUpDown = 0; //按键状态指示
+ 812   5      //                                      LED = 0;                //灯亮
+ 813   5                                              fKey1 =0;                       // "1"键置按下状态
+ 814   5                                              KeyValue=KEY1_DOWN;
+ 815   5                                      }
+ 816   4                              }
+ 817   3                      }
+ 818   2      
+ 819   2                      if(fKey2 == 1) //"2"键弹起状态标志
+ 820   2                      {
+ 821   3                              if(Col3==0)     //第3列
+ 822   3                              {
+ 823   4                                      delay_nms(20);
+ 824   4                                      if(Col3 ==0)
+ 825   4                                      {
+ 826   5                                              fKeyUpDown = 0; //按键状态指示
+ 827   5      //                                      LED = 0;                //灯亮
+ 828   5                                              fKey2 =0;                       // "2"键置按下状态
+ 829   5                                              KeyValue=KEY2_DOWN;
+ 830   5                                      }
+ 831   4                              }
+ 832   3                      }
+ 833   2      
+ 834   2                      if(fKey3 == 1) //"3"键弹起状态标志
+ 835   2                      {
+ 836   3                              if(Col4==0)     //第4列
+ 837   3                              {
+ 838   4                                      delay_nms(20);
+ 839   4                                      if(Col4 ==0)
+ 840   4                                      {
+ 841   5                                              fKeyUpDown = 0; //按键状态指示
+ 842   5      //                                      LED = 0;                //灯亮
+ 843   5                                              fKey3 =0;                       // "3"键置按下状态
+ 844   5                                              KeyValue=KEY3_DOWN;
+ 845   5                                      }
+ 846   4                              }
+ 847   3                      }
+ 848   2      
+ 849   2                      //检测第二排
+ 850   2                      Row1 =1;
+ 851   2                      Row2 =0;
+ 852   2                      if(fKey4 == 1) //"4"键弹起状态标志
+ 853   2                      {
+ 854   3                              if(Col1==0)     //第1列
+ 855   3                              {
+ 856   4                                      delay_nms(20);
+ 857   4                                      if(Col1 ==0)
+ 858   4                                      {
+ 859   5                                              fKeyUpDown = 0; //按键状态指示
+ 860   5      //                                      LED = 0;                //灯亮
+ 861   5                                              fKey4 =0;                       // "4"键置按下状态
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 15  
+
+ 862   5                                              KeyValue=KEY4_DOWN;
+ 863   5                                      }
+ 864   4                              }
+ 865   3                      }
+ 866   2      
+ 867   2                      if(fKey5 == 1) //"5"键弹起状态标志
+ 868   2                      {
+ 869   3                              if(Col2==0)     //第2列
+ 870   3                              {
+ 871   4                                      delay_nms(20);
+ 872   4                                      if(Col2 ==0)
+ 873   4                                      {
+ 874   5                                              fKeyUpDown = 0; //按键状态指示
+ 875   5      //                                      LED = 0;                //灯亮
+ 876   5                                              fKey5 =0;                       // "5"键置按下状态
+ 877   5                                              KeyValue=KEY5_DOWN;
+ 878   5                                      }
+ 879   4                              }
+ 880   3                      }
+ 881   2      
+ 882   2                      if(fKey6 == 1) //"6"键弹起状态标志
+ 883   2                      {
+ 884   3                              if(Col3==0)     //第3列
+ 885   3                              {
+ 886   4                                      delay_nms(20);
+ 887   4                                      if(Col3 ==0)
+ 888   4                                      {
+ 889   5                                              fKeyUpDown = 0; //按键状态指示
+ 890   5      //                                      LED = 0;                //灯亮
+ 891   5                                              fKey6 =0;                       // "6"键置按下状态
+ 892   5                                              KeyValue=KEY6_DOWN;
+ 893   5                                      }
+ 894   4                              }
+ 895   3                      }
+ 896   2      
+ 897   2                      if(fKey7 == 1) //"7"键弹起状态标志
+ 898   2                      {
+ 899   3                              if(Col4==0)     //第1列
+ 900   3                              {
+ 901   4                                      delay_nms(20);
+ 902   4                                      if(Col4 ==0)
+ 903   4                                      {
+ 904   5                                              fKeyUpDown = 0; //按键状态指示
+ 905   5      //                                      LED = 0;                //灯亮
+ 906   5                                              fKey7 =0;                       // "7"键置按下状态
+ 907   5                                              KeyValue=KEY7_DOWN;
+ 908   5                                      }
+ 909   4                              }
+ 910   3                      }
+ 911   2      
+ 912   2      
+ 913   2                      //检测第三排
+ 914   2                      Row2 =1;
+ 915   2                      Row3 =0;
+ 916   2      
+ 917   2                      if(fKey8 == 1) //"8"键弹起状态标志
+ 918   2                      {
+ 919   3                              if(Col1==0)     //第1列
+ 920   3                              {
+ 921   4                                      delay_nms(20);
+ 922   4                                      if(Col1 ==0)
+ 923   4                                      {
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 16  
+
+ 924   5                                              fKeyUpDown = 0; //按键状态指示
+ 925   5      //                                      LED = 0;                //灯亮
+ 926   5                                              fKey8 =0;                       // "8"键置按下状态
+ 927   5                                              KeyValue=KEY8_DOWN;
+ 928   5                                      }
+ 929   4                              }
+ 930   3                      }
+ 931   2      
+ 932   2                      if(fKey9 == 1) //"9"键弹起状态标志
+ 933   2                      {
+ 934   3                              if(Col2==0)     //第2列
+ 935   3                              {
+ 936   4                                      delay_nms(20);
+ 937   4                                      if(Col2 ==0)
+ 938   4                                      {
+ 939   5                                              fKeyUpDown = 0; //按键状态指示
+ 940   5      //                                      LED = 0;                //灯亮
+ 941   5                                              fKey9 =0;                       // "9"键置按下状态
+ 942   5                                              KeyValue=KEY9_DOWN;
+ 943   5                                      }
+ 944   4                              }
+ 945   3                      }
+ 946   2      
+ 947   2                      if(fKeyEnter == 1) //"确认"键弹起状态标志
+ 948   2                      {
+ 949   3                              if(Col3==0)     //第3列
+ 950   3                              {
+ 951   4                                      delay_nms(20);
+ 952   4                                      if(Col3 ==0)
+ 953   4                                      {
+ 954   5                                              fKeyUpDown = 0; //按键状态指示
+ 955   5      //                                      LED = 0;                //灯亮
+ 956   5                                              fKeyEnter =0;                   // "确认"键置按下状态
+ 957   5                                              KeyValue=KEY_ENTER_DOWN;
+ 958   5                                      }
+ 959   4                              }
+ 960   3                      }
+ 961   2      
+ 962   2                      if(fKeyEsc == 1) //"取消"键弹起状态标志
+ 963   2                      {
+ 964   3                              if(Col4==0)     //第4列
+ 965   3                              {
+ 966   4                                      delay_nms(20);
+ 967   4                                      if(Col4 ==0)
+ 968   4                                      {
+ 969   5                                              fKeyUpDown = 0; //按键状态指示
+ 970   5      //                                      LED = 0;                //灯亮
+ 971   5                                              fKeyEsc =0;                     // "取消"键置按下状态
+ 972   5                                              KeyValue=KEY_ESC_DOWN;
+ 973   5                                      }
+ 974   4                              }
+ 975   3                      }
+ 976   2      
+ 977   2                      Row3 =1;
+ 978   2      
+ 979   2              }
+ 980   1      }
+ 981          
+ 982          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V8.08   MAIN                                                                  12/19/2011 11:22:22 PAGE 17  
+
+   CODE SIZE        =   1396    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      2    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     15    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

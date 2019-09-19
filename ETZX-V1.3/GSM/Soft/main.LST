@@ -1,0 +1,999 @@
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  湖南熙旺达科技有限公司
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称               :main.c
+   9          *文件描述               :主函数
+  10          *创建人                 :陈卫国
+  11          *创建日期               :2008-9-22
+  12          *版本号                 :V1.0
+  13          *注释                   :                                       
+  14          *----------------------------------------------------------
+  15          *修改人                         :
+  16          *修改日期                       :
+  17          *版本号                 :
+  18          *注释                   :
+  19          ***********************************************************
+  20          */
+  21          #define  _IN_MAIN_
+  22          #include "config.h"
+  23          
+  24          uint16  uiIsrTimerCount = ISR_INC_COUNT;                                        //系统时钟定时值
+  25          STLocalControl xdata stLocalControl;
+  26          uint8 xdata TelNum[TEL_NUM_LEN+1]={0,0,0,0,0,0,0,0,0,0,0,0};
+  27          
+  28          
+  29          uint8 xdata byRecPosition=0;
+  30          uint8 xdata byRecTimeout=0;
+  31          uint8 xdata byUsart0RecBuf[UART0_REC_LEN];
+  32          
+  33          bit bUartRecFinished =0;
+  34          bit bTimerOutDeal=0;
+  35          uint8 xdata RePeat =0;
+  36          uint8 xdata RecGsmDataResult=0;                 //接收GSM数据的结果
+  37          /**********************************************************
+  38          *函数名称                       :delay_nus      
+  39          *函数描述               :纳秒级延时操作
+  40          *输入参数               :i:延时的us数
+  41          *返回值                         :       
+  42          *全局变量                       :
+  43          *调用模块                       :
+  44          ***********************************************************
+  45          *创建人                 :尹运同
+  46          *创建日期                       :2008-9-22
+  47          ***********************************************************
+  48          *修改人                         :
+  49          *修改日期               :
+  50          *注释                   :
+  51          **********************************************************/
+  52          void delay_nus(unsigned char i)
+  53          {
+  54   1              unsigned char j;
+  55   1      
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 2   
+
+  56   1              for(;i>0;i--)
+  57   1              {
+  58   2                      for(j=2;j>0;j--);
+  59   2              }
+  60   1               
+  61   1      }
+  62          
+  63          /*---------------------------------------------------------------------------
+  64          函数原型: void Delayms(uint16 ms)
+  65          参数说明: ms--需要延时的值
+  66          返 回 值: 无
+  67          函数功能：延时程序(对于18.432M晶振单指令周期延时1mS)
+  68          ----------------------------------------------------------------------------*/
+  69          void Delayms(uint16 ms)   
+  70          {
+  71   1         uint16 xdata i;
+  72   1         for(;ms!=0;ms--)
+  73   1                      for(i=900;i!=0;i--);
+  74   1      }
+  75          
+  76          
+  77          
+  78          
+  79          void UsartInit(void)
+  80          {
+  81   1                 SCON =       0X50;      //工作方式1      8位可变波特率
+  82   1                 
+  83   1                 TMOD &=      0X0F;      //TO方式不变
+  84   1                 TMOD |=      0X20;      //;t1 方式2作波特率发生器    //8位自动重载
+  85   1              
+  86   1              
+  87   1                 TL1 =   0XF6;           //波特率4800  在18.432M晶振的情况下
+  88   1      //          TL1 =   0XFC;          //波特率9600  在18.432M晶振的情况下  
+  89   1                 TH1 =   TL1;
+  90   1      //         PCON    &=  ~SMOD;   //      ;波特率倍增选择            smod=0
+  91   1                      PCON    |=      SMOD;   //      ;波特率倍增选择            smod=1
+  92   1      
+  93   1              // AUXR    &=  0xBf;       //传统12分频速度
+  94   1                 AUXR |= T1x12;          //1T模式,最后波特率为:4800*12*2=115200
+  95   1                 TF1=0;
+  96   1                 TR1=1;
+  97   1                 
+  98   1                 RI=0;
+  99   1                 TI=0;
+ 100   1                 REN=1;
+ 101   1                 ES=1;   
+ 102   1      }
+ 103          
+ 104          
+ 105          
+ 106          void UsartInit_work(void)
+ 107          {
+ 108   1                 SCON =       0X50;      //工作方式1      8位可变波特率
+ 109   1                 
+ 110   1                 TMOD &=      0X0F;      //TO方式不变
+ 111   1                 TMOD |=      0X20;      //;t1 方式2作波特率发生器    //8位自动重载
+ 112   1              
+ 113   1      //         TL1 =   0Xd8;           //波特率19200/12   在18.432M晶振的情况下     
+ 114   1                  TL1 =   0XF6;          //波特率57600/12  在18.432M晶振的情况下
+ 115   1      //          TL1 =   0XFC;          //波特率115200/12  在18.432M晶振的情况下     
+ 116   1                 TH1 =   TL1;
+ 117   1                 PCON    &=  ~SMOD;   //      ;波特率倍增选择            smod=0
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 3   
+
+ 118   1                 
+ 119   1              // AUXR    &=  0xBf;       //传统12分频速度
+ 120   1                 AUXR |= T1x12;          //1T模式
+ 121   1                 TF1=0;
+ 122   1                 TR1=1;
+ 123   1                 
+ 124   1                 RI=0;
+ 125   1                 TI=0;
+ 126   1                 REN=1;
+ 127   1                 ES=1;   
+ 128   1      }
+ 129          
+ 130          
+ 131          void UartISR(void ) interrupt UART_INTNO
+ 132          {
+ 133   1              uint8 RecData;
+ 134   1              if(RI)
+ 135   1              {
+ 136   2                      RI=0;
+ 137   2                      RecData=SBUF;
+ 138   2                                      
+ 139   2                      if(byRecPosition!=0) //不是起始字节
+ 140   2                      {
+ 141   3                              if(byRecTimeout==0)
+ 142   3                              {//超时到了
+ 143   4                                      byRecPosition=0;
+ 144   4                                      return;
+ 145   4                              }
+ 146   3                      }
+ 147   2                      byRecTimeout=4; //又开始定时80ms     每字节最大间隔80ms,超时即为另帧数据
+ 148   2                      byUsart0RecBuf[byRecPosition++] = RecData;      
+ 149   2                      if(byRecPosition>=UART0_REC_LEN)
+ 150   2                      {
+ 151   3                              byRecPosition=0;
+ 152   3                              byRecTimeout=0;
+ 153   3                              memset(byUsart0RecBuf,0x00,UART0_REC_LEN);
+ 154   3                      }
+ 155   2              }
+ 156   1              if(TI)
+ 157   1              {
+ 158   2                      TI=0;
+ 159   2              }
+ 160   1      }
+ 161          
+ 162          
+ 163          void UartSendByte(uint8 Data)
+ 164          { 
+ 165   1          ES=0;
+ 166   1              SBUF=Data;
+ 167   1              while(!TI);
+ 168   1              TI=0;
+ 169   1              ES=1;
+ 170   1      }
+ 171          
+ 172          
+ 173          /***********************************************************/
+ 174          void Send_Data(uint8 *Databuf,uint8 l)
+ 175          { 
+ 176   1          uint8 i;
+ 177   1          ES=0;
+ 178   1              for(i=0;i<l;i++)
+ 179   1           {
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 4   
+
+ 180   2                 SBUF=*Databuf;
+ 181   2             while(!TI);
+ 182   2                 TI=0;
+ 183   2                 Databuf++;
+ 184   2               }
+ 185   1              ES=1;
+ 186   1      }
+ 187          
+ 188          
+ 189          void UartSendString(uint8 *Databuf)
+ 190          {
+ 191   1              ES=0;
+ 192   1              while(*Databuf  !=      0)   //'\0'
+ 193   1              {
+ 194   2                 SBUF=*Databuf;
+ 195   2             while(!TI);
+ 196   2                 TI=0;
+ 197   2                 Databuf++;           
+ 198   2              }
+ 199   1              ES=1;   
+ 200   1      }
+ 201          
+ 202          
+ 203          void IOInit(void)
+ 204          {
+ 205   1              //总线1发送脚设置为开漏输出，接收脚设置为高阻输入
+ 206   1              //P3^3,高阻输入
+ 207   1              P3M0 |= ( Bin(0,0,0,0,1,0,0,0));
+ 208   1              P3M1 &= (~Bin(0,0,0,0,1,0,0,0));
+ 209   1      
+ 210   1      
+ 211   1              // P1^3   GSM_RST 开漏输出
+ 212   1              P1M0 |=  (Bin(0,0,0,0,1,0,0,0));
+ 213   1              P1M1 |=  (Bin(0,0,0,0,1,0,0,0));
+ 214   1              GSM_RST =1;     //高阻s
+ 215   1              GSM_ON_OFF =1;
+ 216   1      
+ 217   1              //P1^6,P1^7 推挽输出
+ 218   1              P1M0 &=  (~(Bin(1,1,0,0,0,0,0,0)));
+ 219   1              P1M1 |=    (Bin(1,1,0,0,0,0,0,0));      
+ 220   1              XTA =0;
+ 221   1              XTD =0;
+ 222   1      }
+ 223          
+ 224          
+ 225          
+ 226          //出参：找到的数据在byUsart0RecBuf[]中的位置+1
+ 227          uint8 UartRecTreat(uint8* pCmd,uint8 byCmdLen)  
+ 228          {
+ 229   1              uint8 i,j,k;
+ 230   1              ES=0;
+ 231   1              for(i=0;i<byRecPosition;i++)
+ 232   1              {
+ 233   2      
+ 234   2                      if(byUsart0RecBuf[i]==*pCmd)
+ 235   2                      {//第1个相符
+ 236   3                              if(byCmdLen==1)
+ 237   3                              {//长度为1，直接退出
+ 238   4                                      byRecPosition=0;
+ 239   4      //                              memset(byUsart0RecBuf,0x00,UART0_REC_LEN);
+ 240   4                                      ES=1;
+ 241   4                                      return(i+1);    //使之为一个不为0的数                                   
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 5   
+
+ 242   4                              }
+ 243   3                              
+ 244   3                              if((i+byCmdLen)>byRecPosition)  
+ 245   3                              {//超过缓冲区
+ 246   4                                      byRecPosition=0;
+ 247   4      //;                             memset(byUsart0RecBuf,0x00,UART0_REC_LEN);
+ 248   4                                      ES=1;                   
+ 249   4                                      return 0;
+ 250   4                              }
+ 251   3                              
+ 252   3                              //后续没有超出接收缓冲区
+ 253   3                              k=1;
+ 254   3                              for(j=i+1;j<byCmdLen+i;j++)
+ 255   3                              {
+ 256   4                                      if(byUsart0RecBuf[j]!= *(pCmd+k))       break;  //不相等，退出内循环
+ 257   4                                      k++;
+ 258   4                              }
+ 259   3                              
+ 260   3                              if(j>=byCmdLen+i)
+ 261   3                              {//全部数据相符
+ 262   4                                      byRecPosition=0;
+ 263   4      //                              memset(byUsart0RecBuf,0x00,UART0_REC_LEN);
+ 264   4                                      ES=1;                   
+ 265   4                                      return(i+1);
+ 266   4                              }
+ 267   3                              //不相符从下一个位置开始查找
+ 268   3                      }
+ 269   2              }
+ 270   1      
+ 271   1              byRecPosition=0;
+ 272   1      //      memset(byUsart0RecBuf,0x00,UART0_REC_LEN);
+ 273   1              ES=1;
+ 274   1              return 0;       
+ 275   1      }
+ 276          
+ 277          
+ 278          
+ 279          //过程函数，用于UartRecTreat3（）
+ 280          uint8 UartRecTreat2(uint8* pCmd,uint8 byCmdLen) 
+ 281          {
+ 282   1              uint8 i,j,k;
+ 283   1              ES=0;
+ 284   1              for(i=0;i<byRecPosition;i++)
+ 285   1              {
+ 286   2      
+ 287   2                      if(byUsart0RecBuf[i]==*pCmd)
+ 288   2                      {//第1个相符
+ 289   3                              if(byCmdLen==1)
+ 290   3                              {//长度为1，直接退出
+ 291   4                                      byRecPosition=0;
+ 292   4      //                              memset(byUsart0RecBuf,0x00,UART0_REC_LEN);
+ 293   4                                      ES=1;
+ 294   4                                      return(i+1);    //使之为一个不为0的数                                   
+ 295   4                              }
+ 296   3                              
+ 297   3                              if((i+byCmdLen)>byRecPosition)  
+ 298   3                              {//超过缓冲区
+ 299   4      //                              byRecPosition=0;
+ 300   4      //                              memset(byUsart0RecBuf,0x00,UART0_REC_LEN);
+ 301   4      //                              ES=1;                   
+ 302   4                                      return 0;
+ 303   4                              }
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 6   
+
+ 304   3                              
+ 305   3                              //后续没有超出接收缓冲区
+ 306   3                              k=1;
+ 307   3                              for(j=i+1;j<byCmdLen+i;j++)
+ 308   3                              {
+ 309   4                                      if(byUsart0RecBuf[j]!= *(pCmd+k))       break;  //不相等，退出内循环
+ 310   4                                      k++;
+ 311   4                              }
+ 312   3                              
+ 313   3                              if(j>=byCmdLen+i)
+ 314   3                              {//全部数据相符
+ 315   4                                      byRecPosition=0;
+ 316   4      //                              memset(byUsart0RecBuf,0x00,UART0_REC_LEN);
+ 317   4                                      ES=1;                   
+ 318   4                                      return(i+1);
+ 319   4                              }
+ 320   3                              //不相符从下一个位置开始查找
+ 321   3                      }
+ 322   2              }
+ 323   1      
+ 324   1      //      byRecPosition=0;
+ 325   1      //      memset(byUsart0RecBuf,0x00,UART0_REC_LEN);
+ 326   1      //      ES=1;
+ 327   1              return 0;       
+ 328   1      }
+ 329          
+ 330          
+ 331          
+ 332          uint8 UartRecTreat3(void)               //从收到的一帧数据中查找是否有关键字符
+ 333          {
+ 334   1      
+ 335   1              ES=0;
+ 336   1              if(UartRecTreat2("+CPIN: READY",(uint8)strlen("+CPIN: READY")/*12*/))
+ 337   1              {
+ 338   2                      return CPIN_READY;
+ 339   2              }
+ 340   1              else if(UartRecTreat2("+COPS: 0,0,\"CHINA MOBILE\"",/*(uint8)strlen("+COPS: 0,0,\"CHINA MOBILE\"")*/24))
+ 341   1              {
+ 342   2                      return COPS_OK;
+ 343   2              }
+ 344   1              else if(UartRecTreat2("^CONF: 1",(uint8)strlen("^CONF: 1")))
+ 345   1              {
+ 346   2                      return GSM_CALL_OK;
+ 347   2              }
+ 348   1              else if(UartRecTreat2("^CONN: 1,0",(uint8)strlen("^CONN: 1,0")))
+ 349   1              {
+ 350   2                      return TEL_HANDLE;
+ 351   2              }
+ 352   1      
+ 353   1              else if(UartRecTreat2("^CEND: 1,0, 67, 21\r\n\r\nNO CARRIER",(uint8)strlen("^CEND: 1,0, 67, 21\r\n\r\nNO 
+             -CARRIER")))
+ 354   1              {//移动电话按了忽略键，约17秒后收到  此帧数据
+ 355   2                      return TEL_IGNORE;
+ 356   2              }
+ 357   1      
+ 358   1              else if(UartRecTreat2("^CEND: 1,0, 67, 17\r\n\r\nBUSY",(uint8)strlen("^CEND: 1,0, 67, 21\r\n\r\nBUSY")))
+ 359   1              {//移动电话按了忙键，或者有其它电话正拨打，或者正在通话中，约18秒后收到  此帧数据
+ 360   2                      return TEL_BUSY;
+ 361   2              }
+ 362   1              else if(UartRecTreat2("NO CARRIER",(uint8)strlen("NO CARRIER")))
+ 363   1              {//电话接通之后的挂机，收到的字束为"^CEND: 1,9,67,16\r\n\r\nNO CARRIER",因第二位数字不定，有时为9，有时间
+             -为12，有时为61
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 7   
+
+ 364   2      //GSM_STATE_LED = LED_ON;
+ 365   2                      return TEL_HAND_UP;
+ 366   2              }
+ 367   1              else if(UartRecTreat2("^CEND:1,0,48",(uint8)strlen("^CEND:1,0,48")))
+ 368   1              {
+ 369   2                      return TEL_NO_HANDLE;
+ 370   2              }
+ 371   1              else if(UartRecTreat2("OK",(uint8)strlen("OK")))
+ 372   1              {
+ 373   2                      return COMM_OK;
+ 374   2              }
+ 375   1              else 
+ 376   1              {
+ 377   2                      byRecPosition=0;
+ 378   2                      ES=1;
+ 379   2                      return 0;
+ 380   2              }
+ 381   1              
+ 382   1      }
+ 383          
+ 384          
+ 385          
+ 386          
+ 387          void PCA0TimerISR(void) interrupt PCA_LVD_INTNO //20ms定时
+ 388          {
+ 389   1              if(CCF0 ==1)
+ 390   1              {
+ 391   2                      CCF0=0;
+ 392   2                      WDT_CONTR = 0x3a;       //喂狗
+ 393   2                      uiIsrTimerCount+=ISR_INC_COUNT;
+ 394   2                      CCAP0L = (uint8)uiIsrTimerCount;
+ 395   2                      CCAP0H = (uint8)(uiIsrTimerCount>>8);   
+ 396   2      
+ 397   2                      bTimerOutDeal =1;
+ 398   2      
+ 399   2                      if(byRecTimeout)
+ 400   2                      {
+ 401   3                              if(--byRecTimeout ==0)
+ 402   3                              {//一帧数据接收完成
+ 403   4                                      bUartRecFinished=1;
+ 404   4                                      //GSM_STATE_LED = LED_ON;
+ 405   4                              }
+ 406   3                      }
+ 407   2              }
+ 408   1              else if(CCF1 ==1)
+ 409   1              {
+ 410   2                      CCF1=0;
+ 411   2              }
+ 412   1              else if(CCF2 ==1)
+ 413   1              {
+ 414   2                      CCF2=0;
+ 415   2              }
+ 416   1              else if(CCF3 ==1)
+ 417   1              {
+ 418   2                      CCF3=0;
+ 419   2              }
+ 420   1      
+ 421   1      }
+ 422          
+ 423          
+ 424          
+ 425          
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 8   
+
+ 426          
+ 427          /**********************************************************
+ 428          *函数名称                       :Init   
+ 429          *函数描述               :硬件初始化操作
+ 430          *输入参数               :
+ 431          *返回值                         :       
+ 432          *全局变量                       :
+ 433          *调用模块                       :
+ 434          ***********************************************************
+ 435          *创建人                 :陈卫国
+ 436          *创建日期                       :2008-9-22
+ 437          ***********************************************************
+ 438          *修改人                         :
+ 439          *修改日期               :
+ 440          *注释                   :
+ 441          **********************************************************/
+ 442          void Init(void)
+ 443          {
+ 444   1              uint16 i;
+ 445   1      
+ 446   1      /*      char *string1 = "abcdefghijklmnopqrstuvwxyz";
+ 447   1              char *string2 = "onm";
+ 448   1              char *ptr;
+ 449   1              char *str;
+ 450   1      */
+ 451   1      
+ 452   1      //      CMOD = 0x02;    // 2分频
+ 453   1              CMOD =PCACLK0;  //00 ==PCA时钟12分频
+ 454   1              CCON = 0x00;    
+ 455   1              CL = 0x00;
+ 456   1              CH = 0x00;
+ 457   1              CCAP0L = (uint8)uiIsrTimerCount;
+ 458   1              CCAP0H = (uint8)(uiIsrTimerCount>>8);
+ 459   1              //设置PCA模块0为16位软件定时器，ECCF0=1允许PCA模块0中断
+ 460   1              CCAPM0 = 0x49;  
+ 461   1              //开PCA中断和LVD(低压检测)中断共享的总中断控制位
+ 462   1              EPCA_LVD = 1;
+ 463   1              //启动PCA计数器计数
+ 464   1              CR = 1; 
+ 465   1      
+ 466   1              IOInit();
+ 467   1              GSMInit();
+ 468   1              UsartInit();
+ 469   1      
+ 470   1      /*      while(1)
+ 471   1              {
+ 472   1                      Delayms(500);
+ 473   1                      Send_Data_Byte(0X55);
+ 474   1              }*/
+ 475   1      
+ 476   1              //单总线初始化 
+ 477   1              SingleBusInit(); 
+ 478   1              
+ 479   1      //      //复位看门狗
+ 480   1      //      WDT_CONTR = 0x3a;               
+ 481   1              //参数初始化
+ 482   1              InitParameter();
+ 483   1      
+ 484   1      
+ 485   1              stLocalControl.stBusDealFreq.bySndSecAddr  = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 486   1              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 487   1              stLocalControl.stBusDealFreq.bySndBedAddr  = stLocalControl.stEepromCfgData.bySelfBedAddr;
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 9   
+
+ 488   1              stLocalControl.stBusDealFreq.byCmd         = CMD_LANDING;
+ 489   1              stLocalControl.stBusDealFreq.byRecSecAddr  = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 490   1              stLocalControl.stBusDealFreq.byRecRoomAddr  = GLZJ_ADDR;
+ 491   1              stLocalControl.stBusDealFreq.byRecBedAddr   = 0x00;
+ 492   1              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 493   1      
+ 494   1              stLocalControl.byLedFlashTime = 50;
+ 495   1              stLocalControl.byLedTimeSet   = 50;
+ 496   1      
+ 497   1              byDevState1 = 0x00;
+ 498   1              byDevState2 = 0x00;
+ 499   1              byDevState2 = 0x00;
+ 500   1      
+ 501   1      
+ 502   1      
+ 503   1      //      bLanding = 1;
+ 504   1              SYS_STATE_LED = LED_ON;
+ 505   1              bLanding = 0;           //管理主机不发送上电登记命令
+ 506   1              EA=1;
+ 507   1      
+ 508   1      
+ 509   1      RE_GSM_UART_AUTOBRT_SET:        
+ 510   1              GSMUartAutoBrtSet();    //设置自适应波特率
+ 511   1              i=100;          //延时2S
+ 512   1              while(!bUartRecFinished)
+ 513   1              {
+ 514   2                      Delayms(20);
+ 515   2                      if(--i==0)  break;
+ 516   2              }
+ 517   1              if(bUartRecFinished)
+ 518   1              {
+ 519   2                      bUartRecFinished=0;
+ 520   2                      if(UartRecTreat("OK",2))
+ 521   2                      {//串口正常
+ 522   3      //                      GSM_STATE_LED = LED_ON;
+ 523   3                      }
+ 524   2                      else 
+ 525   2                      {
+ 526   3      //                      GSM_STATE_LED = LED_OFF;                                                                        
+ 527   3                              Delayms(1000);
+ 528   3                              goto RE_GSM_UART_AUTOBRT_SET;           
+ 529   3                      }               
+ 530   2              }
+ 531   1              else
+ 532   1              {
+ 533   2      //                      GSM_STATE_LED = LED_OFF;
+ 534   2                              Delayms(1000);
+ 535   2                              goto RE_GSM_UART_AUTOBRT_SET;   
+ 536   2              }       
+ 537   1      
+ 538   1              
+ 539   1              TR1=0;
+ 540   1              UsartInit_work();
+ 541   1              Delayms(1000);
+ 542   1      
+ 543   1      
+ 544   1      RE_AFFIRM_UART_COM:
+ 545   1              AffirmUartCom();
+ 546   1              i=100;          //延时2S
+ 547   1              while(!bUartRecFinished)
+ 548   1              {
+ 549   2                      Delayms(20);
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 10  
+
+ 550   2                      if(--i==0)  break;
+ 551   2              }
+ 552   1              if(bUartRecFinished)
+ 553   1              {
+ 554   2                      bUartRecFinished=0;
+ 555   2                      if(UartRecTreat("OK",2))
+ 556   2                      {//串口正常
+ 557   3      //                      GSM_STATE_LED = LED_ON;
+ 558   3      
+ 559   3                      }
+ 560   2                      else 
+ 561   2                      {
+ 562   3      //                      GSM_STATE_LED = LED_OFF;
+ 563   3                              Delayms(1000);
+ 564   3                              goto RE_AFFIRM_UART_COM;                
+ 565   3                      }               
+ 566   2              }
+ 567   1              else
+ 568   1              {
+ 569   2      //                      GSM_STATE_LED = LED_OFF;        
+ 570   2                              Delayms(1000);
+ 571   2                              goto RE_AFFIRM_UART_COM;        
+ 572   2              }
+ 573   1      
+ 574   1      
+ 575   1      RE_LOOP_DISP_OFF:
+ 576   1              LoopDispOff();  //关闭回显
+ 577   1              i=100;          //延时2S
+ 578   1              while(!bUartRecFinished)
+ 579   1              {
+ 580   2                      Delayms(20);
+ 581   2                      if(--i==0)  break;
+ 582   2              }
+ 583   1              if(bUartRecFinished)
+ 584   1              {
+ 585   2                      bUartRecFinished=0;
+ 586   2                      if(UartRecTreat("OK",2))
+ 587   2                      {//串口正常
+ 588   3      //                      GSM_STATE_LED = LED_ON;
+ 589   3                      }
+ 590   2                      else 
+ 591   2                      {
+ 592   3      //                      GSM_STATE_LED = LED_OFF;
+ 593   3                              Delayms(1000);
+ 594   3                              goto RE_LOOP_DISP_OFF;          
+ 595   3                      }               
+ 596   2              }
+ 597   1              else
+ 598   1              {
+ 599   2      //                      GSM_STATE_LED = LED_OFF;        
+ 600   2                              Delayms(1000);
+ 601   2                              goto RE_LOOP_DISP_OFF;  
+ 602   2              }       
+ 603   1              
+ 604   1      
+ 605   1      RE_SIM_STATE_QUERY:
+ 606   1              SIMStateQuery();
+ 607   1              i=250;
+ 608   1              while(!bUartRecFinished)
+ 609   1              {
+ 610   2                      Delayms(20);
+ 611   2                      if(--i==0)  break;
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 11  
+
+ 612   2              }
+ 613   1      
+ 614   1              if(bUartRecFinished)
+ 615   1              {
+ 616   2                      bUartRecFinished=0;
+ 617   2                      if(UartRecTreat("+CPIN: READY",(uint8)strlen("+CPIN: READY")/*12*/))
+ 618   2                      {//串口正常
+ 619   3      //                      GSM_STATE_LED = LED_ON;
+ 620   3                      }
+ 621   2                      else 
+ 622   2                      {
+ 623   3      //                      GSM_STATE_LED = LED_OFF;
+ 624   3                              Delayms(1000);
+ 625   3                              goto RE_SIM_STATE_QUERY;                
+ 626   3                      }
+ 627   2              }
+ 628   1              else 
+ 629   1              {       
+ 630   2      //              GSM_STATE_LED = LED_OFF;
+ 631   2                      Delayms(1000);
+ 632   2                      goto RE_SIM_STATE_QUERY;
+ 633   2              }
+ 634   1      
+ 635   1      
+ 636   1      
+ 637   1      
+ 638   1      
+ 639   1      
+ 640   1      RE_GSM_SWPATH_SET:
+ 641   1              GSMSWPathSet(0x00);     //当前语音通道设置为第一路
+ 642   1              i=250;
+ 643   1              while(!bUartRecFinished)
+ 644   1              {
+ 645   2                      Delayms(20);
+ 646   2                      if(--i==0)  break;
+ 647   2              }
+ 648   1      
+ 649   1              if(bUartRecFinished)
+ 650   1              {
+ 651   2                      bUartRecFinished=0;
+ 652   2                      if(UartRecTreat("OK",(uint8)strlen("OK")))
+ 653   2                      {//串口正常
+ 654   3      //                      GSM_STATE_LED = LED_ON;
+ 655   3                      }
+ 656   2                      else 
+ 657   2                      {
+ 658   3      //                      GSM_STATE_LED = LED_OFF;
+ 659   3                              Delayms(1000);
+ 660   3                              goto RE_GSM_SWPATH_SET;         
+ 661   3                      }
+ 662   2              }
+ 663   1              else 
+ 664   1              {       
+ 665   2      //              GSM_STATE_LED = LED_OFF;
+ 666   2                      Delayms(1000);
+ 667   2                      goto RE_GSM_SWPATH_SET;
+ 668   2              }
+ 669   1      
+ 670   1      
+ 671   1      RE_ECHO_REST_SET:
+ 672   1              EchoRestrainSet(0x01);  //打开回声抑制功能 不产生嘶叫
+ 673   1              i=250;
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 12  
+
+ 674   1              while(!bUartRecFinished)
+ 675   1              {
+ 676   2                      Delayms(20);
+ 677   2                      if(--i==0)  break;
+ 678   2              }
+ 679   1      
+ 680   1              if(bUartRecFinished)
+ 681   1              {
+ 682   2                      bUartRecFinished=0;
+ 683   2                      if(UartRecTreat("OK",(uint8)strlen("OK")))
+ 684   2                      {//串口正常
+ 685   3      //                      GSM_STATE_LED = LED_ON;
+ 686   3                      }
+ 687   2                      else 
+ 688   2                      {
+ 689   3      //                      GSM_STATE_LED = LED_OFF;
+ 690   3                              Delayms(1000);
+ 691   3                              goto RE_ECHO_REST_SET;          
+ 692   3                      }
+ 693   2              }
+ 694   1              else 
+ 695   1              {       
+ 696   2      //              GSM_STATE_LED = LED_OFF;
+ 697   2                      Delayms(1000);
+ 698   2                      goto RE_ECHO_REST_SET;
+ 699   2              }
+ 700   1      
+ 701   1      
+ 702   1      RE_GSM_SPK_VOL_SET:
+ 703   1              GSMSPKVoiceSet(0x01);   //设置SPK音量       5:为最大音量
+ 704   1              i=250;
+ 705   1              while(!bUartRecFinished)
+ 706   1              {
+ 707   2                      Delayms(20);
+ 708   2                      if(--i==0)  break;
+ 709   2              }
+ 710   1      
+ 711   1              if(bUartRecFinished)
+ 712   1              {
+ 713   2                      bUartRecFinished=0;
+ 714   2                      if(UartRecTreat("OK",(uint8)strlen("OK")))
+ 715   2                      {//串口正常
+ 716   3      //                      GSM_STATE_LED = LED_ON;
+ 717   3                      }
+ 718   2                      else 
+ 719   2                      {
+ 720   3      //                      GSM_STATE_LED = LED_OFF;
+ 721   3                              Delayms(1000);
+ 722   3                              goto RE_GSM_SPK_VOL_SET;                
+ 723   3                      }
+ 724   2              }
+ 725   1              else 
+ 726   1              {       
+ 727   2      //              GSM_STATE_LED = LED_OFF;
+ 728   2                      Delayms(1000);
+ 729   2                      goto RE_GSM_SPK_VOL_SET;
+ 730   2              }
+ 731   1      
+ 732   1      RE_GSM_MIC_GAIN_SET:
+ 733   1              GSMMICGainSet(0x00);    //设置MIC增益       
+ 734   1              i=250;
+ 735   1              while(!bUartRecFinished)
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 13  
+
+ 736   1              {
+ 737   2                      Delayms(20);
+ 738   2                      if(--i==0)  break;
+ 739   2              }
+ 740   1      
+ 741   1              if(bUartRecFinished)
+ 742   1              {
+ 743   2                      bUartRecFinished=0;
+ 744   2                      if(UartRecTreat("OK",(uint8)strlen("OK")))
+ 745   2                      {//串口正常
+ 746   3                              GSM_STATE_LED = LED_ON;
+ 747   3                      }
+ 748   2                      else 
+ 749   2                      {
+ 750   3      //                      GSM_STATE_LED = LED_OFF;
+ 751   3                              Delayms(1000);
+ 752   3                              goto RE_GSM_MIC_GAIN_SET;               
+ 753   3                      }
+ 754   2              }
+ 755   1              else 
+ 756   1              {       
+ 757   2      //              GSM_STATE_LED = LED_OFF;
+ 758   2                      Delayms(1000);
+ 759   2                      goto RE_GSM_MIC_GAIN_SET;
+ 760   2              }
+ 761   1      
+ 762   1      
+ 763   1      RE_NETOPS_QUERY:
+ 764   1                      NetOPSQuery();
+ 765   1                      i=250;
+ 766   1                      while(!bUartRecFinished)
+ 767   1                      {
+ 768   2                              Delayms(20);
+ 769   2                              if(--i==0)      break;
+ 770   2                      }
+ 771   1              
+ 772   1                      if(bUartRecFinished)
+ 773   1                      {
+ 774   2                              bUartRecFinished=0;
+ 775   2                              if(UartRecTreat("+COPS: 0,0,"/*\"CHINA MOBILE\""*/,(uint8)strlen("+COPS: 0,0,") /*24*/))
+ 776   2                              {//已连接网络
+ 777   3                                      GSM_STATE_LED = LED_ON;
+ 778   3                              }
+ 779   2                              else 
+ 780   2                              {
+ 781   3                                      GSM_STATE_LED = LED_OFF;
+ 782   3                                      Delayms(1000);
+ 783   3                                      goto RE_NETOPS_QUERY;           
+ 784   3                              }
+ 785   2                      }
+ 786   1                      else 
+ 787   1                      {       
+ 788   2                              GSM_STATE_LED = LED_OFF;
+ 789   2                              Delayms(1000);
+ 790   2                              goto RE_NETOPS_QUERY;
+ 791   2                      }
+ 792   1      }
+ 793          
+ 794          
+ 795          
+ 796          /**********************************************************
+ 797          *函数名称                       :main   
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 14  
+
+ 798          *函数描述               :系统主函数,整个软件的入口
+ 799          *输入参数               :
+ 800          *返回值                         :       
+ 801          *全局变量                       :
+ 802          *调用模块                       :
+ 803          ***********************************************************
+ 804          *创建人                 :陈卫国
+ 805          *创建日期                       :2008-9-22
+ 806          ***********************************************************
+ 807          *修改人                         :
+ 808          *修改日期               :
+ 809          *注释                   :
+ 810          **********************************************************/
+ 811          void main(void)
+ 812          {       
+ 813   1              //系统初始化                    
+ 814   1              Init(); 
+ 815   1              UartSendByte(0xAA);
+ 816   1              while(1)
+ 817   1          {
+ 818   2                  if(bBus0RecFinish)
+ 819   2              {
+ 820   3                      bBus0RecFinish =0;
+ 821   3                              Bus0RecDeal();
+ 822   3                              
+ 823   3              }
+ 824   2                      if(bBus0SendFinish)
+ 825   2                      {
+ 826   3                              bBus0SendFinish=0;
+ 827   3                              Bus0SendDeal();
+ 828   3                      }
+ 829   2      
+ 830   2                      if(bUartRecFinished)
+ 831   2                      {
+ 832   3      
+ 833   3                              bUartRecFinished=0;
+ 834   3                              RecGsmDataResult = UartRecTreat3();
+ 835   3                              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 836   3                              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 837   3                              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 838   3                              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 839   3                              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 840   3                              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;                       
+ 841   3                              if(TEL_HANDLE == RecGsmDataResult)
+ 842   3                              {//电话接听
+ 843   4                                      RecGsmDataResult=0;
+ 844   4                                      UartSendByte(0xbb);
+ 845   4                                      bDealKeyDown = 1;       
+ 846   4                                      //如果正在指示其他分机的呼叫,处理其他分机呼叫
+ 847   4                                      if((bIndicatingOther))
+ 848   4                                      {                               
+ 849   5                                              stLocalControl.stBusDealFreq.byRecSecAddr       = stLocalControl.stIndicationData.bySndSecAddr;
+ 850   5                                              stLocalControl.stBusDealFreq.byRecRoomAddr      = stLocalControl.stIndicationData.bySndRoomAddr;
+ 851   5                                              stLocalControl.stBusDealFreq.byRecBedAddr       = stLocalControl.stIndicationData.bySndBedAddr;
+ 852   5                                              if(CMD_EMERGENCY_CALL == (stLocalControl.stIndicationData.byCmd & 0x1f))
+ 853   5                                              {       //卫生间呼叫,不需要处理,直接清除
+ 854   6                                                      stLocalControl.stBusDealFreq.byCmd = CMD_EMERGENCY_CLEAR;
+ 855   6                                              }
+ 856   5                                              else
+ 857   5                                              {       //其他类型呼叫,处理
+ 858   6                                                      if(stLocalControl.stIndicationData.bySndRoomAddr==ADD_BED_FJ_ADDR)
+ 859   6                                                      {//加床分机呼叫,不需要处理,直接清除
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 15  
+
+ 860   7                                                              stLocalControl.stBusDealFreq.byCmd = CMD_INFUSION_CLEAR;
+ 861   7                                                      }
+ 862   6                                                      else
+ 863   6                                                      {
+ 864   7                                                              stLocalControl.stBusDealFreq.byCmd = stLocalControl.stIndicationData.byCmd & 0x1f;
+ 865   7                                                              stLocalControl.stBusDealFreq.byCmd += 0x06;
+ 866   7                                                      }
+ 867   6                                              }                               
+ 868   5                                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 869   5                                      }                               
+ 870   4                              }
+ 871   3                              else if(TEL_HAND_UP == RecGsmDataResult)
+ 872   3                              {//电话接通之后的挂断    收到“NO CARRIER”
+ 873   4      
+ 874   4                                      RecGsmDataResult =0;
+ 875   4                                      //如果存在本机的呼叫,收到电话挂断,清除本机的呼叫        
+ 876   4      /*                              if(bConfusionNoting)
+ 877   4                                      {
+ 878   4                                              stLocalControl.stBusDealFreq.byCmd = CMD_INFUSION_CLEAR;
+ 879   4                                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 880   4                                      }
+ 881   4                                      else if(bServiceNoting)
+ 882   4                                      {
+ 883   4                                              stLocalControl.stBusDealFreq.byCmd = CMD_SERVICE_CLEAR;
+ 884   4                                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 885   4                                      }
+ 886   4                                      else if(bHelpNoting)
+ 887   4                                      {
+ 888   4                                              stLocalControl.stBusDealFreq.byCmd = CMD_HELP_CLEAR;
+ 889   4                                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 890   4                                      }
+ 891   4                                      else if(bEmergencyNoting)
+ 892   4                                      {
+ 893   4                                              stLocalControl.stBusDealFreq.byCmd = CMD_EMERGENCY_CLEAR;
+ 894   4                                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 895   4                                      }
+ 896   4                                      else */
+ 897   4                                      {
+ 898   5      
+ 899   5                                              GSM_STATE_LED= LED_OFF;
+ 900   5                                              bDealKeyDown = 0;                                                               //保存处置键的状态                              
+ 901   5                                              if((bWaitAck|bWaitListen|bChannel0Talk))
+ 902   5                                              {       //通道0主动呼叫或者通话状态,减少该通道超时时间                          
+ 903   6                                                      MakeCH0TimerOut(5, 0);
+ 904   6                                              }
+ 905   5                                              else if(bChannel1Talk)
+ 906   5                                              {       //通道1主动通话状态,减少该通道超时时间
+ 907   6                                                      MakeCH1TimerOut(5, 0);
+ 908   6                                              }       
+ 909   5      
+ 910   5                                              else if(( bIndicatingOther))
+ 911   5                                              {       
+ 912   6                                                      //GSM_STATE_LED= LED_OFF;
+ 913   6                                                       bIndicatingOther =0;
+ 914   6                                                      stLocalControl.stBusDealFreq.byRecSecAddr       = stLocalControl.stIndicationData.bySndSecAddr;
+ 915   6                                                      stLocalControl.stBusDealFreq.byRecRoomAddr      = stLocalControl.stIndicationData.bySndRoomAddr;
+ 916   6                                                      stLocalControl.stBusDealFreq.byRecBedAddr       = stLocalControl.stIndicationData.bySndBedAddr;
+ 917   6                                                      if(CMD_EMERGENCY_CALL == (stLocalControl.stIndicationData.byCmd & 0x1f))
+ 918   6                                                      {       //卫生间呼叫,不需要处理,直接清除
+ 919   7                                                              stLocalControl.stBusDealFreq.byCmd = CMD_EMERGENCY_CLEAR;
+ 920   7                                                      }
+ 921   6                                                      else if(CMD_INFUSION_CALL == (stLocalControl.stIndicationData.byCmd & 0x1f))
+C51 COMPILER V8.08   MAIN                                                                  09/25/2012 08:54:09 PAGE 16  
+
+ 922   6                                                      {               //输液呼叫
+ 923   7                                                              stLocalControl.stBusDealFreq.byCmd = CMD_INFUSION_CLEAR;
+ 924   7                                                      }                                                               
+ 925   6                                                      else if(CMD_SERVICE_CALL == (stLocalControl.stIndicationData.byCmd & 0x1f))
+ 926   6                                                      {               //输液呼叫
+ 927   7                                                              stLocalControl.stBusDealFreq.byCmd = CMD_SERVICE_CLEAR;
+ 928   7                                                      }                                       
+ 929   6                                                      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 930   6                                              }
+ 931   5                                      }
+ 932   4      
+ 933   4                              }
+ 934   3      //                      byRecPosition=0;                        
+ 935   3      //                      memset(byUsart0RecBuf,0x00,UART0_REC_LEN);
+ 936   3                      }
+ 937   2      
+ 938   2                      if(bTimerOutDeal)
+ 939   2                      {
+ 940   3                              bTimerOutDeal=0;
+ 941   3                              TimerOutDeal();
+ 942   3                      }
+ 943   2          }    
+ 944   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2061    ----
+   CONSTANT SIZE    =    185    ----
+   XDATA SIZE       =    182       2
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2      16
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

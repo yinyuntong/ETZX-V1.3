@@ -1,0 +1,16 @@
+"GT23.obj",
+"IAP.obj",
+"LCD.obj",
+"main.obj",
+"SingleBus.obj",
+"SPI.obj",
+"Uart.obj",
+"sst25vf040_2005.obj",
+".\OS_CORE.obj",
+".\OS_MEM.obj",
+".\OS_Q.obj",
+".\OS_SEM.obj",
+".\OS_CPU_C.obj",
+".\OS_CPU_A.obj" 
+TO "YHFJ-DISP-V21" 
+RAMSIZE(256) 

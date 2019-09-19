@@ -1,0 +1,7 @@
+"IAP.obj",
+"main.obj",
+"parameter.obj",
+"SingleBus.obj",
+"GSM.obj" 
+TO "GSM" 
+CODE( ?CO?parameter(0x2300) )

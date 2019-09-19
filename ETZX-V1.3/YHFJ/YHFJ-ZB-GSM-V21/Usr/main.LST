@@ -1,0 +1,480 @@
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 15:28:55 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  湖南一特股份有限公司
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称               :main.c
+   9          *文件描述               :主函数
+  10          *创建人                 :尹运同
+  11          *创建日期               :2008-9-22
+  12          *版本号                 :V1.0
+  13          *注释                   :                                       
+  14          *----------------------------------------------------------
+  15          *修改人                         :
+  16          *修改日期                       :
+  17          *版本号                 :
+  18          *注释                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_MAIN_
+  22          #include "config.h"
+  23          
+  24          uint16  uiIsrTimerCount = ISR_INC_COUNT;                                        //系统时钟定时值
+  25          uint8   OS_Q_MEM_SEL    byMainCmdQ[16];                                         //主线程消息队列
+  26          STLocalControl  xdata stLocalControl;                                           //全局变量结构体
+  27          
+  28          void TIMER1Int(void) interrupt T1_INTNO         //3号中断
+  29          {
+  30   1              ET1=0;
+  31   1      }
+  32          
+  33          void UsartInt(void) interrupt UART_INTNO        //4 //4号中断
+  34          {       
+  35   1              ES=0;
+  36   1      }
+  37          
+  38          #if STC12C5A==true
+  39          void AdcInt(void)       interrupt ADC_INTNO             //5号中断
+  40          {
+  41   1              EADC=0;
+  42   1      }
+  43          
+  44          void LvdInt(void) interrupt LVD_INTNO           //6号中断
+  45          {
+  46   1              ELVD=0;
+  47   1      }
+  48          
+  49          //void PcaInt(void) interrupt PCA_INTNO         //7号中断
+  50          //{
+  51          //      CMOD    &=      !ECF;                   //禁止 PCA计数器溢出中断   
+  52          //      CCAPM0  &=      !PCA0_ECCF;             //禁止CCF0中断
+  53          //      CCAPM1  &=      !PCA1_ECCF;             //禁止CCF1中断  
+  54          //}
+  55          
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 15:28:55 PAGE 2   
+
+  56          void SpiInt(void) interrupt SPI_INTNO           //9号中断
+  57          {
+  58   1              IE2 &= ~ESPI;
+  59   1      }
+  60          
+  61          #endif
+  62          
+  63          
+  64          /***********************************************************/
+  65          
+  66          void UsartInit(void)
+  67          {
+  68   1                 SCON=0X50;      //工作方式1
+  69   1                 TMOD&=0X0F;     //TO方式不变
+  70   1                 TMOD|=0X20;     //;t1 方式2作波特率发生器
+  71   1              
+  72   1              
+  73   1                 TL1 =   0XF6;           //波特率4800  在18.432M晶振的情况下
+  74   1                 TH1 =   TL1;
+  75   1                 PCON    &=  ~SMOD;   //      ;波特率倍增选择            smod=0
+  76   1              // AUXR    &=  0xBf;       //传统12分频速度
+  77   1                 AUXR |= T1x12;          //1T模式,最后波特率为:4800*12=57.6K
+  78   1                 TF1=0;
+  79   1                 TR1=1;
+  80   1                 
+  81   1                 RI=0;
+  82   1                 TI=0;
+  83   1                 REN=1;
+  84   1                 ES=1;   
+  85   1      
+  86   1      
+  87   1      }
+  88          /***********************************************************/
+  89          
+  90          void uart_send(unsigned char *SDATA,unsigned char length)
+  91          {
+  92   1      #if DEBUG==1
+  93   1              WDT_CONTR = 0x3d;       //喂狗
+  94   1      
+  95   1              EA=0;
+  96   1              ES=0;
+  97   1              CR=0;
+  98   1              TI=0;
+  99   1              for(;length>0;length--)
+ 100   1              {
+ 101   2                      SBUF=*SDATA;
+ 102   2                      while(!TI);
+ 103   2                      TI=0;
+ 104   2                      SDATA++;
+ 105   2              }
+ 106   1              CR=1;
+ 107   1              ES=1;
+ 108   1              EA=1;
+ 109   1      #endif
+ 110   1      }
+ 111          
+ 112          
+ 113          
+ 114          void uart_send_byte(unsigned char SDATA)
+ 115          {
+ 116   1      #if DEBUG==1
+ 117   1              EA=0;
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 15:28:55 PAGE 3   
+
+ 118   1              ES=0;
+ 119   1              CR=0;
+ 120   1              TI=0;
+ 121   1              SBUF=SDATA;
+ 122   1              while(!TI);
+ 123   1              TI=0;
+ 124   1              CR=1;
+ 125   1              ES=1;
+ 126   1              EA=1;
+ 127   1      #endif
+ 128   1      }
+ 129          
+ 130          
+ 131          /*---------------------------------------------------------------------------
+ 132          函数原型: void Delayms(uint16 ms)
+ 133          参数说明: ms--需要延时的值
+ 134          返 回 值: 无
+ 135          函数功能：延时程序(对于18.432M晶振单指令周期延时1mS)
+ 136          ----------------------------------------------------------------------------*/
+ 137          void Delayms(uint16 ms)   
+ 138          {
+ 139   1              uint16 xdata i;
+ 140   1              for(;ms!=0;ms--)
+ 141   1              {
+ 142   2                      for(i=900;i!=0;i--);
+ 143   2                      WDT_CONTR = 0x3d;       //喂狗
+ 144   2              }
+ 145   1      }
+ 146          
+ 147          /**********************************************************
+ 148          *函数名称                       :Init   
+ 149          *函数描述               :硬件初始化操作
+ 150          *输入参数               :
+ 151          *返回值                         :       
+ 152          *全局变量                       :
+ 153          *调用模块                       :
+ 154          ***********************************************************
+ 155          *创建人                 :尹运同
+ 156          *创建日期                       :2008-9-22
+ 157          ***********************************************************
+ 158          *修改人                         :
+ 159          *修改日期               :
+ 160          *注释                   :
+ 161          **********************************************************/
+ 162          void Init(void)
+ 163          {
+ 164   1              CMOD = 0x02;
+ 165   1              CCON = 0x00;    
+ 166   1              CL = 0x00;
+ 167   1              CH = 0x00;
+ 168   1              CCAP0L = (uint8)uiIsrTimerCount;
+ 169   1              CCAP0H = (uint8)(uiIsrTimerCount>>8);
+ 170   1              //设置PCA模块0为16位软件定时器,ECCF0=1允许PCA模块0中断
+ 171   1              CCAPM0 = 0x49;
+ 172   1              CR = 1; 
+ 173   1      
+ 174   1              //参数初始化
+ 175   1              byDevState1 = 0;
+ 176   1              byDevState2 = 0;
+ 177   1              byDevState3 = 0;
+ 178   1              byDevState4 = 0;
+ 179   1              
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 15:28:55 PAGE 4   
+
+ 180   1      
+ 181   1              //IO初始化
+ 182   1              MUS = 0;
+ 183   1              CloseCGB();
+ 184   1              CloseCBD();
+ 185   1      
+ 186   1      
+ 187   1      
+ 188   1              P1M0 |=   Bin(0,0,0,1,0,0,0,0);
+ 189   1              P1M1 &= (~Bin(0,0,0,1,0,0,0,0));        //XTA配置成推挽输出
+ 190   1      
+ 191   1              
+ 192   1              P1M0 |=   Bin(0,0,0,0,1,0,0,0);
+ 193   1              P1M1 &= (~Bin(0,0,0,0,1,0,0,0));        //XTD配置成推挽输出     
+ 194   1              XTA = 0;
+ 195   1              XTD = 0;
+ 196   1      
+ 197   1      
+ 198   1      //      KDR = 1;        
+ 199   1              KDR =0;
+ 200   1      
+ 201   1              //MC_CNT配置成强推挽输出
+ 202   1              P1M0 |=   Bin(0,0,1,0,0,0,0,0); P1M1 &= (~Bin(0,0,1,0,0,0,0,0));
+ 203   1              
+ 204   1              P1M0 |=   Bin(1,0,0,0,0,0,0,0);  P1M1 |=  Bin(1,0,0,0,0,0,0,0); //MC_CTRL配置成开漏输出
+ 205   1      
+ 206   1              //MCN开漏输出    悬空
+ 207   1              P1M0 |= Bin(0,1,0,0,0,0,0,0);P1M1 |= Bin(0,1,0,0,0,0,0,0);MCN= 1;
+ 208   1              
+ 209   1              CloseHandleMIC();
+ 210   1              ClosePanelMIC();
+ 211   1              P2M0=0xff;
+ 212   1              P2M1=0xff;      //喇叭的音量控制配置成开漏输出
+ 213   1              SetSPKVol0();   //喇叭静音
+ 214   1      
+ 215   1      
+ 216   1              //PW强推挽输出
+ 217   1              P0M0 |=   Bin(0,0,0,0,1,0,0,0);
+ 218   1              P0M1 &= (~Bin(0,0,0,0,1,0,0,0));        
+ 219   1              bPWState=PW=1;          //禁止34018
+ 220   1              bPW2State=PW2=1;        //禁止TDA7233
+ 221   1              bVl0State=VL0=0;        //关闭34018的喇叭
+ 222   1      
+ 223   1                      
+ 224   1              Delayms(1000);          //延时1S
+ 225   1              
+ 226   1              //读取系统配置字
+ 227   1              InitParameter();
+ 228   1      
+ 229   1              //串口初始化
+ 230   1              UsartInit();
+ 231   1              uart_send_byte(0X88);
+ 232   1      
+ 233   1              //单总线初始化 
+ 234   1              SingleBusInit(); 
+ 235   1              
+ 236   1              //初始化呼叫地址
+ 237   1              InitKeyCallAddr();
+ 238   1              stLocalControl.byKeyValue[MAX_KEY_SIZE-1] = 0xff;
+ 239   1              memset(stLocalControl.byKeyDownState, 0x00, 4); 
+ 240   1              //状态初始化    
+ 241   1              bLanding = 1;
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 15:28:55 PAGE 5   
+
+ 242   1              //初始化听筒状态为挂机状态
+ 243   1              bHandleDown = 1;        
+ 244   1              MakeCH0TimerOut(50, 0); 
+ 245   1      
+ 246   1      
+ 247   1      //      测试声音通道
+ 248   1      /*      bPWState=PW=0;                          //使能34018
+ 249   1              OpenPanelMIC();
+ 250   1              XTD=1;
+ 251   1              OpenCGB();
+ 252   1              SetSPKVol4();
+ 253   1              bVl0State=1;*/
+ 254   1      
+ 255   1      /*      bPW2State=PW2=0;                                //使能TDA7233
+ 256   1              OpenHandleMIC();
+ 257   1              XTD=1;
+ 258   1              OpenCGB();*/    
+ 259   1      
+ 260   1      //      while(1);
+ 261   1      
+ 262   1              
+ 263   1              led0init();
+ 264   1              stLocalControl.byNumSetTime=0;
+ 265   1      }
+ 266          /**********************************************************
+ 267          *函数名称                       :GetMessage     
+ 268          *函数描述               :获取主线程消息队列中的消息(无消息则挂起自身)
+ 269          *输入参数               :Msg:存储消息指针
+ 270          *返回值                         :       
+ 271          *全局变量                       :
+ 272          *调用模块                       :
+ 273          ***********************************************************
+ 274          *创建人                 :尹运同
+ 275          *创建日期                       :2008-9-22
+ 276          ***********************************************************
+ 277          *修改人                         :
+ 278          *修改日期               :
+ 279          *注释                   :
+ 280          **********************************************************/
+ 281          void GetMessage(uint8 data *Msg)
+ 282          {
+ 283   1              OSQPend(Msg, byMainCmdQ, 0);
+ 284   1      }
+ 285          /**********************************************************
+ 286          *函数名称                       :DispatchMessage        
+ 287          *函数描述               :分发处理获取的主线程消息
+ 288          *输入参数               :Msg:消息,高4位是命令类型,低4位是命令数据
+ 289          *返回值                         :       
+ 290          *全局变量                       :
+ 291          *调用模块                       :
+ 292          ***********************************************************
+ 293          *创建人                 :尹运同
+ 294          *创建日期                       :2008-9-22
+ 295          ***********************************************************
+ 296          *修改人                         :
+ 297          *修改日期               :
+ 298          *注释                   :
+ 299          **********************************************************/
+ 300          void DispatchMessage(uint8 Msg)
+ 301          {
+ 302   1              switch(Msg&0xf0)
+ 303   1              {
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 15:28:55 PAGE 6   
+
+ 304   2                      case BUS0_REC:                                                                          //总线0收到数据帧
+ 305   2                              Bus0RecDeal();
+ 306   2                              break;
+ 307   2                      case BUS0_SND:                                                                          //总线0数据发送完成
+ 308   2                              Bus0SendDeal();
+ 309   2                              break;
+ 310   2                      case BUS1_REC:                                                                          //总线1收到数据帧
+ 311   2                              Bus1RecDeal();
+ 312   2                              break;
+ 313   2                      case BUS1_SND:                                                                          //总线1数据发送完成
+ 314   2                              Bus1SendDeal();
+ 315   2                              break;
+ 316   2                      case KEY_DOWN:                                                                          //听筒挂机处理                                  
+ 317   2                              KeyDown();
+ 318   2                              break;          
+ 319   2                      case KEY_UP:                                                                            //听筒摘机处理
+ 320   2                              KeyUp();
+ 321   2                              break;                  
+ 322   2                      case TIMER_OUT:                                                                         //超时处理
+ 323   2                              TimerOutDeal();
+ 324   2                              break;                  
+ 325   2              }       
+ 326   1      }
+ 327          /**********************************************************
+ 328          *函数名称                       :MainTask       
+ 329          *函数描述               :系统主线程,负责整个系统的消息处理
+ 330          *输入参数               :
+ 331          *返回值                         :       
+ 332          *全局变量                       :
+ 333          *调用模块                       :
+ 334          ***********************************************************
+ 335          *创建人                 :尹运同
+ 336          *创建日期                       :2008-9-22
+ 337          ***********************************************************
+ 338          *修改人                         :
+ 339          *修改日期               :
+ 340          *注释                   :
+ 341          **********************************************************/
+ 342          void MainTask(void)
+ 343          {
+ 344   1              static uint8 data Msg;  
+ 345   1              
+ 346   1              //系统硬件初始化
+ 347   1              Init();
+ 348   1              //创建主线程消息队列    
+ 349   1              OSQCreate(byMainCmdQ, 16);
+ 350   1              //以下为创建任务线程    
+ 351   1              OSTaskCreate(Bus0Manage, NULL, 1);
+ 352   1              OSTaskCreate(Bus1Manage, NULL, 2);
+ 353   1              OSTaskCreate(KeyManager, NULL, 3);
+ 354   1              OSTaskCreate(TimerOutManager, NULL, 4);         
+ 355   1              //进入消息循环          
+ 356   1              while(TRUE)
+ 357   1              {
+ 358   2                      WDT_CONTR = 0x3d;       //喂狗
+ 359   2                      GetMessage(&Msg);
+ 360   2                      DispatchMessage(Msg);
+ 361   2      
+ 362   2                      if(Bus0RxBuffLen() >= BUS0_FREQ_SIZE)
+ 363   2                      {       //有一帧完整的数据在接收队列中 
+ 364   3                              OS_ENTER_CRITICAL();
+ 365   3                              stLocalControl.stBusDealFreq.bySndSecAddr= byBus0RxQ[byBus0RxHead];
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 15:28:55 PAGE 7   
+
+ 366   3                              IncBus0RxPtr(byBus0RxHead);
+ 367   3                              stLocalControl.stBusDealFreq.bySndRoomAddr= byBus0RxQ[byBus0RxHead];
+ 368   3                              IncBus0RxPtr(byBus0RxHead);
+ 369   3                              stLocalControl.stBusDealFreq.bySndBedAddr= byBus0RxQ[byBus0RxHead];
+ 370   3                              IncBus0RxPtr(byBus0RxHead);
+ 371   3                              stLocalControl.stBusDealFreq.byCmd= byBus0RxQ[byBus0RxHead];
+ 372   3                              IncBus0RxPtr(byBus0RxHead);
+ 373   3                              stLocalControl.stBusDealFreq.byRecSecAddr= byBus0RxQ[byBus0RxHead];
+ 374   3                              IncBus0RxPtr(byBus0RxHead);
+ 375   3                              stLocalControl.stBusDealFreq.byRecRoomAddr= byBus0RxQ[byBus0RxHead];
+ 376   3                              IncBus0RxPtr(byBus0RxHead);
+ 377   3                              stLocalControl.stBusDealFreq.byRecBedAddr= byBus0RxQ[byBus0RxHead];
+ 378   3                              IncBus0RxPtr(byBus0RxHead);
+ 379   3                              OS_EXIT_CRITICAL();     
+ 380   3                              Bus0RecDeal();
+ 381   3                      }
+ 382   2                      else
+ 383   2                      {       //没有一帧完整的数据在发送队列中了
+ 384   3                              byBus0RxHead = byBus0RxTail = 0;
+ 385   3                      }
+ 386   2      
+ 387   2                      
+ 388   2                      if(Bus1RxBuffLen() >= BUS1_FREQ_SIZE)
+ 389   2                      {       //有一帧完整的数据在接收队列中 
+ 390   3                              OS_ENTER_CRITICAL();
+ 391   3                              stLocalControl.stBusDealFreq.bySndSecAddr= byBus1RxQ[byBus1RxHead];
+ 392   3                              IncBus1RxPtr(byBus1RxHead);
+ 393   3                              stLocalControl.stBusDealFreq.bySndRoomAddr= byBus1RxQ[byBus1RxHead];
+ 394   3                              IncBus1RxPtr(byBus1RxHead);
+ 395   3                              stLocalControl.stBusDealFreq.bySndBedAddr= byBus1RxQ[byBus1RxHead];
+ 396   3                              IncBus1RxPtr(byBus1RxHead);
+ 397   3                              stLocalControl.stBusDealFreq.byCmd= byBus1RxQ[byBus1RxHead];
+ 398   3                              IncBus1RxPtr(byBus1RxHead);
+ 399   3                              stLocalControl.stBusDealFreq.byRecSecAddr= byBus1RxQ[byBus1RxHead];
+ 400   3                              IncBus1RxPtr(byBus1RxHead);
+ 401   3                              stLocalControl.stBusDealFreq.byRecRoomAddr= byBus1RxQ[byBus1RxHead];
+ 402   3                              IncBus1RxPtr(byBus1RxHead);
+ 403   3                              stLocalControl.stBusDealFreq.byRecBedAddr= byBus1RxQ[byBus1RxHead];
+ 404   3                              IncBus1RxPtr(byBus1RxHead);
+ 405   3                              OS_EXIT_CRITICAL();     
+ 406   3                              Bus1RecDeal();
+ 407   3                      }
+ 408   2                      else
+ 409   2                      {       //没有一帧完整的数据在发送队列中了
+ 410   3                              byBus1RxHead = byBus1RxTail = 0;
+ 411   3                      }
+ 412   2      
+ 413   2                      
+ 414   2              }
+ 415   1      } 
+ 416          /**********************************************************
+ 417          *函数名称                       :main   
+ 418          *函数描述               :系统主函数,整个软件的入口
+ 419          *输入参数               :
+ 420          *返回值                         :       
+ 421          *全局变量                       :
+ 422          *调用模块                       :
+ 423          ***********************************************************
+ 424          *创建人                 :尹运同
+ 425          *创建日期                       :2008-9-22
+ 426          ***********************************************************
+ 427          *修改人                         :
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 15:28:55 PAGE 8   
+
+ 428          *修改日期               :
+ 429          *注释                   :
+ 430          **********************************************************/
+ 431          void main(void)
+ 432          {       
+ 433   1              //操作系统初始化                        
+ 434   1              OSInit();       
+ 435   1      
+ 436   1              //创建系统主线程
+ 437   1              OSTaskCreate(MainTask, NULL, 0);        
+ 438   1              while(1)
+ 439   1          {
+ 440   2             _nop_();
+ 441   2             PCON = PCON | 0x01;                    //CPU进入休眠状态     
+ 442   2          }    
+ 443   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1113    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    120       2
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3    ----
+   IDATA SIZE       =     16    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

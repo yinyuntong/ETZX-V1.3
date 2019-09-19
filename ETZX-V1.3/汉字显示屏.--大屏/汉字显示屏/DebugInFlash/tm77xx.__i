@@ -1,0 +1,1 @@
+-c --cpu Cortex-M0 -g -O0 --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I "C:\Keil\ARM\INC" -I "C:\Keil\ARM\INC\NXP\LPC11xx" -o ".\DebugInFlash\tm77xx.o" --omf_browse ".\DebugInFlash\tm77xx.crf" --depend ".\DebugInFlash\tm77xx.d" "USER_CODE\TM77XX.c"

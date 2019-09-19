@@ -1,0 +1,203 @@
+/*
+************************Copyright(c)************************
+*	  			   湖南熙旺达科技有限公司
+*			       	All Rights Reserved
+*			     		 
+*
+*-----------------------文件信息---------------------------
+*文件名称     		:config.h
+*文件描述    		:配置头文件
+*创建人     		:陈卫国
+*创建日期   		:2008-9-22
+*版本号       		:V1.0
+*注释	     		:					
+*----------------------------------------------------------
+*修改人  			:
+*修改日期  			:
+*版本号        		:
+*注释	     		:
+***********************************************************
+*/
+//系统头文件
+#pragma REGPARMS	  
+#include <intrins.h>
+#include <absacc.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h> 
+#include "STC12C5410AD.H"
+#define const code 
+#ifndef TRUE
+#define TRUE  1
+#endif 
+#ifndef FALSE
+#define FALSE 0
+#endif
+//主线程命令
+#define	BUS0_REC		0x10 								//总线0接收完成
+#define BUS0_SND		0x20								//总线0发送完成
+#define	BUS1_REC		0x30 								//总线0接收完成
+#define BUS1_SND		0x40								//总线0发送完成	 
+#define TIMER_OUT		0x50								//超时命令	
+#define KEY_DOWN		0x60								//听筒放下
+#define KEY_UP			0x70								//听筒拿起
+//控制引脚定义
+sbit	CGB			= 	P1^0;								//SD控制脚
+sbit	CBD			= 	P1^1;								//SA控制脚 
+sbit	CTA			= 	P3^0;								//MIC的SA控制
+sbit	CTD			=	P3^1;								//MIC的SD控制
+sbit  	KDR 		= 	P1^5;								//485控制引脚 
+sbit    PW			= 	P1^3;								//功放控制引脚
+sbit	KV			=	P3^5;
+sbit	PW2			=	P1^6; 
+sbit	MUS			=	P3^7;								//提示音	
+#define Bin(b7,b6,b5,b4,b3,b2,b1,b0)	((b7<<7)|(b6<<6)|(b5<<5)|(b4<<4)|(b3<<3)|(b2<<2)|(b1<<1)|(b0<<0))
+#define OpenCGB()		{P1M0 |= Bin(0,0,0,0,0,0,0,1);P1M1 |= Bin(0,0,0,0,0,0,0,1);CGB = 1;}	
+#define CloseCGB()		{P1M0 &= (~Bin(0,0,0,0,0,0,0,1));P1M1 &= (~Bin(0,0,0,0,0,0,0,1));CGB = 1;}	
+#define OpenCBD()		{P1M0 |= Bin(0,0,0,0,0,0,1,0);P1M1 |= Bin(0,0,0,0,0,0,1,0);CBD = 1;}	
+#define CloseCBD()		{P1M0 &= (~Bin(0,0,0,0,0,0,1,0));P1M1 &= (~Bin(0,0,0,0,0,0,1,0));CBD = 1;}
+#define	K_SICK_BROAD	0									//病区广播键
+#define K_OFFICE_BROAD	1									//办公区广播键
+#define K_ALL_BROAD		2									//全区广播键
+#define K_MENU_SET		3									//功能设置键
+#define K_VOL_INC		4									//音量增加键
+#define K_VOL_DEC		5									//音量减小键
+#define K_NUM_1			6									//数字键1
+#define K_NUM_4			7									//数字键4
+#define K_NUM_7			8									//数字键7
+#define K_ROOM			9									//房键
+#define K_ESC			10									//取消键
+#define K_NUM_2			11									//数字键2
+#define K_NUM_5			12									//数字键5
+#define K_NUM_8			13									//数字键8
+#define K_NUM_0			14									//数字键0
+#define K_ENTER			15									//确认键
+#define K_NUM_3			16									//数字键3
+#define K_NUM_6			17									//数字键6
+#define K_NUM_9			18									//数字键9
+#define K_SEC			19									//科键
+#define K_SET_1			20									//1号键
+#define K_SET_3			21									//3号键
+#define K_SET_5			22									//5号键
+#define K_SET_7			23									//7号键
+#define K_SET_9			24									//9号键
+#define K_SET_11		25									//11号键
+#define K_SET_2			26									//2号键
+#define K_SET_4			27									//4号键
+#define K_SET_6			28									//6号键
+#define K_SET_8			29									//8号键
+#define K_SET_10		30									//10号键
+#define K_SET_12		31									//12号键
+//键值缓存区大小
+#define MAX_KEY_SIZE	16
+#define GET_SEC_ADDR	0
+#define GET_ROOM_ADDR	1
+#define GET_BED_ADDR	2 
+//包含头文件
+#include "OS_CFG.H"
+#include "OS_CPU.H"
+#include "..\os\OS.H"
+#include "..\os\OS_Q.h"
+#include "..\os\OS_SEM.h" 	
+#include "SingleBus.h"	 
+#include "IAP.h"
+#include "Key.h"   
+//设备配置字定义
+typedef struct
+{
+	uint8  	bySelfSecAddr;									//本机区地址
+	uint8  	bySelfRoomAddr;									//本机房地址
+	uint8  	bySelfBedAddr;									//本机床地址
+	uint8  	byEnable1;										//允许标志1
+	uint8  	byEnable2;										//允许标志2	
+	uint8   byPrio;											//优先级
+	uint8	byRingTime;										//振铃时间
+	uint8	byTalkTime;										//通话时间
+	uint8	byBroadTime;									//广播时间
+	uint8	byListenDelay;									//接听延时时间
+	uint8	byVolumStep;									//音量调节步长
+	uint8	byHDwnRingVol;									//免提振铃提示音量 			//0
+	uint8	byHUpRingVol;									//摘机振铃提示音量			//1
+	uint8	byCH0HDwnTalkedVol;								//通道0免提被呼通话音量		//2
+	uint8	byCH1HDwnTalkedVol;								//通道1免提被呼通话音量		//3
+	uint8	byCH0HUpTalkedVol;								//通道0摘机被呼通话音量		//4
+	uint8	byCH1HUpTalkedVol;								//通道1摘机被呼通话音量		//5
+	uint8	byHDwnBroadVol;									//免提广播音量				//6
+	uint8	byHUpBroadVol;									//摘机广播音量				//7
+	uint8	byHDwnNoteVol;									//免提提示音量 				//8
+	uint8	byHUpNoteVol;									//摘机提示音量 				//9
+	uint8	byHDwnMusicVol;									//免提背景音乐音量			//10
+	uint8	byHUpMusicVol;									//摘机背景音乐音量 			//11
+	uint8	byCH0HDwnTalkVol;								//通道0免提主动通话音量		//12
+	uint8	byCH1HDwnTalkVol;								//通道1免提主动通话音量		//13
+	uint8	byCH0HUpTalkVol;								//通道0摘机主动通话音量		//14
+	uint8	byCH1HUpTalkVol;								//通道1摘机主动通话音量		//15
+	uint8	byHDwnSelfRingVol;								//本机免提振铃提示音量		//16
+	uint8	byHUpSelfRingVol;								//本机摘机振铃提示音量		//17
+	uint8	byMaxVol;										//最大音量值
+	uint8	byMinVol;										//最小音量值
+	uint8	byReserve1;										//保留字节1
+	uint8	byReserve2;										//保留字节2
+	uint8	byReserve3;										//保留字节3
+	uint8	bySerialNum1;									//序列号字节1(序列号最高位的一个字节)
+	uint8	bySerialNum2;									//序列号字节2
+	uint8	bySerialNum3;									//序列号字节3(序列号最低位的一个字节)
+	uint8	byVersionHi;									//版本号高字节
+	uint8	byVersionLo;									//版本号低字节 
+} STEepromCfgData, *pSTEepromCfgData;
+//许可标志掩码
+#define		EN_SICKROOM_BROADCAST		0x0001				//许可病区广播
+#define		EN_OFFICE_BROADCAST			0x0002				//许可办公区广播
+#define		EN_ALL_BROADCAST			0x0004				//许可全区广播
+#define		EN_SOUND_REMIND				0x0008				//许可语音提示
+#define		EN_SYS_RING					0x0010				//许可外部振铃
+#define		EN_AUTO_LISTEN				0x0020				//许可自动接听
+#define		EN_VOICE_REMIND				0x0040				//许可声音提示
+#define		EN_HANDLER_DEAL				0x0080				//许可手柄处理
+#define		EN_INFUSION_TREAT			0x0100				//许可输液呼叫处理
+#define		EN_SERVICE_TREAT			0x0200				//许可服务呼叫处理
+#define		EN_EMERGENCY_TREAT			0x0400				//许可紧急呼叫处理
+#define		EN_HELP_TREAT				0x0800				//许可求援呼叫处理
+#define		EN_CALL_TREAT				0x1000				//许可呼叫处理
+#define		EN_MUSIC					0x2000				//许可背景音乐播放
+//地址结构体
+typedef struct
+{
+	uint8  	bySecAddr;										//指示方区地址
+    uint8  	byRoomAddr;										//指示方房地址  
+    uint8  	byBedAddr;										//指示方床地址
+} STAddr, *pSTAddr;
+//信息指示方地址结构体
+typedef struct 
+{	    
+	STAddr	stAddr;											//指示方地址 
+    uint8  	byCallCmd;										//指示的命令
+} STIndicationData, *pSTIndicationData;	
+//超时控制结构体
+typedef struct
+{
+	uint8 				byTimerOutSet;						//一次超时时间设置(20ms单位)
+	uint8 				byTimerOut;							//一次超时时间(20ms单位)
+	uint8 				byTimerOutCount;					//允许超时次数 
+} STTimerOut, *pSTTimerOut;
+//全局控制结构体
+typedef struct
+{
+	uint16				uiShortType;						//短整形数据
+	uint8				byChar1;							//字符型形数据
+	uint8*				pbyData;							//数据指针
+	uint8				byKeyDownState[4];					//按键按下状态	
+	uint8				byKeyValue[MAX_KEY_SIZE];			//记录的按键数字					
+	STTimerOut			stCH0TimerOut;						//设备当前状态超时控制结构体 
+	STTimerOut			stCH1Timerout;						//通道1通话超时管理结构体	
+	STIndicationData	stIndicationData;					//信息指示数据结构体
+	STAddr				stCallAddr;							//主动呼叫方地址 	
+	STEepromCfgData		stEepromCfgData;					//系统配置字
+	STBusFreq			stKeyCallAddr;						//键盘呼叫的地址
+	STBusFreq 			stBusDealFreq;						//总线数据处理存储器 	  		
+} STLocalControl, *pSTLocalControl;
+//5msPCA中断计时次数，Fosc=18.432MHz,分频系数为2 
+#define	Fosc				18432000
+#define	Fbus				184320			
+#define ISR_INC_COUNT		(Fosc/2/OS_TICKS_PER_SEC)
+#define	IAP_ADDR			0x2800

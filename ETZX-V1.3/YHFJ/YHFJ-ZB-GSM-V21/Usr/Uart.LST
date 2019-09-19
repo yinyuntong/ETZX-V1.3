@@ -1,0 +1,613 @@
+C51 COMPILER V8.08   UART                                                                  10/12/2010 13:33:30 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE UART
+OBJECT MODULE PLACED IN Uart.OBJ
+COMPILER INVOKED BY: D:\Program Files\Keil\C51\BIN\C51.EXE Uart.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  湖南熙旺达科技有限公司
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称               :Uart.c
+   9          *文件描述               :串口驱动程序
+  10          *创建人                 :陈卫国
+  11          *创建日期               :2009-4-6
+  12          *版本号                 :V1.0
+  13          *注释                   :                                       
+  14          *----------------------------------------------------------
+  15          *修改人                         :
+  16          *修改日期                       :
+  17          *版本号                 :
+  18          *注释                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_USART_
+  22          #include "config.h"
+  23          
+  24          //串口变量定义
+  25          #if MAX_COM > 0
+  26          STUsartCfg  xdata stUsartCfg[MAX_COM];
+  27          #define IncRxPtr(byPort,addr)           (addr=(addr+1)%stUsartCfg[byPort].uiRecBufSize)
+  28          #define IncTxPtr(byPort,addr)           (addr=(addr+1)%stUsartCfg[byPort].uiSndBufSize)
+  29          #endif
+  30          //串口0配置
+  31          #if MAX_COM >= 1
+  32          #define UART0_RX_BUF_SIZE       100
+  33          #define UART0_TX_BUF_SIZE       20
+  34          uint8   xdata byUsart0RecBuf[UART0_RX_BUF_SIZE];
+  35          uint8   xdata byUsart0SndBuf[UART0_TX_BUF_SIZE];
+  36          uint8   xdata byUsart0RecDealBuf[UART0_RX_BUF_SIZE];
+  37          uint8   xdata byUsart0SndDealBuf[UART0_TX_BUF_SIZE];
+  38          #endif
+  39          //串口1配置
+  40          #if MAX_COM >= 2
+              #define UART1_TX_BUF_SIZE       100
+              uint8   xdata byUsart1SndBuf[UART1_TX_BUF_SIZE];
+              #endif
+  44          
+  45          extern STLocalControl xdata stLocalControl;
+  46          extern uint8    OS_Q_MEM_SEL    byMainCmdQ[];
+  47          /**********************************************************
+  48          *函数名称                       :UsartInit      
+  49          *函数描述               :串口初始化函数
+  50          *输入参数               :
+  51          *返回值                         :
+  52          *全局变量                       :
+  53          *调用模块                       :
+  54          ***********************************************************
+  55          *创建人                 :陈卫国
+C51 COMPILER V8.08   UART                                                                  10/12/2010 13:33:30 PAGE 2   
+
+  56          *创建日期                       :2009-4-6
+  57          ***********************************************************
+  58          *修改人                         :
+  59          *修改日期               :
+  60          *注释                   :
+  61          **********************************************************/
+  62          void UsartInit(void)
+  63          {
+  64   1      #if MAX_COM >= 1
+  65   1              //串口0初始化
+  66   1              stUsartCfg[0].pbyRecBuf = byUsart0RecBuf;
+  67   1              stUsartCfg[0].pbySndBuf = byUsart0SndBuf;
+  68   1              stUsartCfg[0].uiRecHead = stUsartCfg[0].uiRecTail = 0;
+  69   1              stUsartCfg[0].uiSndHead = stUsartCfg[0].uiSndTail = 0;
+  70   1              stUsartCfg[0].uiRecBufSize = UART0_RX_BUF_SIZE;
+  71   1              stUsartCfg[0].uiSndBufSize = UART0_TX_BUF_SIZE;
+  72   1              stUsartCfg[0].byBusy = false;
+  73   1              
+  74   1              SCON=0X50;              //工作方式1
+  75   1      
+  76   1       //   TMOD= 0x21;   //  ;t1作波特率发生器，t0作方式1（16位)定时器
+  77   1              TMOD&=0X0F;             //TO方式不变
+  78   1              TMOD|=0X20;             //
+  79   1      
+  80   1      
+  81   1              TL1=0XFD;               //波特率9600
+  82   1              TH1=0XFD;
+  83   1          PCON&=0X7f;   //  ;波特率倍增选择           smod=0
+  84   1              AUXR &= 0xBf;           //传统12分频速度  
+  85   1          TF1=0;
+  86   1          TR1=1;
+  87   1              
+  88   1              RI=0;
+  89   1              TI=0;
+  90   1              REN=1;
+  91   1              ES=1;   
+  92   1      #endif
+  93   1      #if MAX_COM >= 2
+                      //串口1初始化
+                      stUsartCfg[1].pbyRecBuf = NULL;
+                      stUsartCfg[1].pbySndBuf = byUsart1SndBuf;
+                      stUsartCfg[1].uiRecHead = stUsartCfg[1].uiRecTail = 0;
+                      stUsartCfg[1].uiSndHead = stUsartCfg[1].uiSndTail = 0;
+                      stUsartCfg[1].uiRecBufSize = 0;
+                      stUsartCfg[1].uiSndBufSize = UART1_TX_BUF_SIZE;
+                      stUsartCfg[1].byBusy = false;
+                      S2CON   =       0X50;           //0101 0000 8位可变波特率,无奇偶校验位
+                      AUXR    &=      ~(S2SMOD|BRTx12);       //S2MOD=0;BRTX12=0;
+                      BRT             =       0XFD;
+                      AUXR    |=      BRTR;           //启动独立波特率发生器
+                      IE2     |= ES2;
+              #endif
+ 108   1      }
+ 109          #if MAX_COM >= 1
+ 110          /**********************************************************
+ 111          *函数名称                       :UART0(void)    
+ 112          *函数描述               :串口0中断函数
+ 113          *输入参数               :
+ 114          *返回值                         :
+ 115          *全局变量                       :stUsartCfg
+ 116          *调用模块                       :
+ 117          ***********************************************************
+C51 COMPILER V8.08   UART                                                                  10/12/2010 13:33:30 PAGE 3   
+
+ 118          *创建人                 :陈卫国
+ 119          *创建日期                       :2009-4-6
+ 120          ***********************************************************
+ 121          *修改人                         :
+ 122          *修改日期               :
+ 123          *注释                   :
+ 124          **********************************************************/
+ 125          #pragma disable
+ 126          void UART0(void) interrupt UART_INTNO
+ 127          {
+ 128   1              if(RI==1)
+ 129   1              {   
+ 130   2              
+ 131   2                      stUsartCfg[0].pbyRecBuf[stUsartCfg[0].uiRecTail] = SBUF;
+ 132   2                      IncRxPtr(0, stUsartCfg[0].uiRecTail);                                   //调整接收指针 
+ 133   2                      RI=0;
+ 134   2              }
+ 135   1              else if(TI==1)
+ 136   1              {
+ 137   2                      if(stUsartCfg[0].uiSndTail != stUsartCfg[0].uiSndHead)
+ 138   2                      {                
+ 139   3                              SBUF = stUsartCfg[0].pbySndBuf[stUsartCfg[0].uiSndHead];        
+ 140   3                              IncTxPtr(0, stUsartCfg[0].uiSndHead);                           //调整指针                      
+ 141   3                      }
+ 142   2                      else
+ 143   2                      {       //串口空闲
+ 144   3                              stUsartCfg[0].byBusy = false;   
+ 145   3                      }
+ 146   2              TI=0;
+ 147   2              }
+ 148   1      } 
+ 149          
+ 150          #endif
+ 151          #if MAX_COM >= 2
+              /**********************************************************
+              *函数名称                       :UART1(void)    
+              *函数描述               :串口2中断函数
+              *输入参数               :
+              *返回值                         :
+              *全局变量                       :stUsartCfg
+              *调用模块                       :
+              ***********************************************************
+              *创建人                 :陈卫国
+              *创建日期                       :2009-4-6
+              ***********************************************************
+              *修改人                         :
+              *修改日期               :
+              *注释                   :
+              **********************************************************/
+              #pragma disable
+              void UART1(void) interrupt UART2_INTNO
+              {
+                      if((S2CON&S2RI)==0x01)
+                      {
+                              S2CON &= ~S2RI;
+                      }
+                      else if((S2CON&S2TI)==1)
+                      {
+                              if(stUsartCfg[1].uiSndTail != stUsartCfg[1].uiSndHead)
+                              {                
+                                      S2BUF = stUsartCfg[1].pbySndBuf[stUsartCfg[1].uiSndHead];       
+                                      IncTxPtr(1, stUsartCfg[1].uiSndHead);                           //调整指针                      
+C51 COMPILER V8.08   UART                                                                  10/12/2010 13:33:30 PAGE 4   
+
+                              }
+                              else
+                              {       //串口空闲
+                                      stUsartCfg[1].byBusy = false;   
+                              }
+                              S2CON &= ~S2TI;
+                      }
+              }
+              
+              #endif
+ 190          /**********************************************************
+ 191          *函数名称                       :GetUsart       
+ 192          *函数描述               :从指定串口获取一个字节数据
+ 193          *输入参数               :byPort:串口号,pbyData:数据存储器指针
+ 194          *返回值                         :true:获取数据成功,false:获取数据失败
+ 195          *全局变量                       :stUsartCfg
+ 196          *调用模块                       :
+ 197          ***********************************************************
+ 198          *创建人                 :陈卫国
+ 199          *创建日期                       :2009-4-6
+ 200          ***********************************************************
+ 201          *修改人                         :
+ 202          *修改日期               :
+ 203          *注释                   :
+ 204          **********************************************************/
+ 205          uint8 GetUsart(uint8 byPort, uint8 *pbyData)
+ 206          {
+ 207   1              if(stUsartCfg[byPort].uiRecTail != stUsartCfg[byPort].uiRecHead)
+ 208   1              {       //缓冲区中有数据
+ 209   2                      *pbyData = stUsartCfg[byPort].pbyRecBuf[stUsartCfg[byPort].uiRecHead];
+ 210   2                      IncRxPtr(byPort, stUsartCfg[byPort].uiRecHead);         //调整指针
+ 211   2                      return(true); 
+ 212   2              }
+ 213   1              return(false);  
+ 214   1      }
+ 215          /**********************************************************
+ 216          *函数名称                       :PutUsart       
+ 217          *函数描述               :发送一个字节到串口
+ 218          *输入参数               :byPort:串口号,byData:待发送的数据
+ 219          *返回值                         :true:发送成功,false:发送失败
+ 220          *全局变量                       :stUsartCfg
+ 221          *调用模块                       :
+ 222          ***********************************************************
+ 223          *创建人                 :陈卫国
+ 224          *创建日期                       :2009-4-6
+ 225          ***********************************************************
+ 226          *修改人                         :
+ 227          *修改日期               :
+ 228          *注释                   :
+ 229          **********************************************************/
+ 230          uint8 PutUsart(uint8 byPort, uint8 byData)
+ 231          {       
+ 232   1              OS_ENTER_CRITICAL();
+ 233   1              if(stUsartCfg[byPort].byBusy)
+ 234   1              {       //串口忙,数据入队列后退出
+ 235   2                      stUsartCfg[byPort].pbySndBuf[stUsartCfg[byPort].uiSndTail] = byData;
+ 236   2                      IncTxPtr(byPort, stUsartCfg[byPort].uiSndTail);
+ 237   2                      if(stUsartCfg[byPort].uiSndTail != stUsartCfg[byPort].uiSndHead)
+ 238   2                      {       //队列没有满，返回成功
+ 239   3                              OS_EXIT_CRITICAL();
+ 240   3                              return(true);
+ 241   3                      }
+C51 COMPILER V8.08   UART                                                                  10/12/2010 13:33:30 PAGE 5   
+
+ 242   2                      else
+ 243   2                      {       //队列满，返回失败
+ 244   3                              OS_EXIT_CRITICAL();
+ 245   3                              return(false);
+ 246   3                      }               
+ 247   2              }
+ 248   1              else
+ 249   1              {       //串口空闲，启动数据发送
+ 250   2                      stUsartCfg[byPort].byBusy = true;               
+ 251   2                      OS_EXIT_CRITICAL();
+ 252   2                      switch(byPort)
+ 253   2                              {
+ 254   3                              case 0:
+ 255   3                                      SBUF=byData;
+ 256   3                                      return(true);
+ 257   3      #if MAX_COM >= 2
+                                      case 1:
+                                              S2BUF=byData;
+                                              return(true);
+              #endif
+ 262   3                              default:
+ 263   3                                      return(false);
+ 264   3                      
+ 265   3                              }
+ 266   2      
+ 267   2              }       
+ 268   1      } 
+ 269          /**********************************************************
+ 270          *函数名称                       :SendUsart      
+ 271          *函数描述               :发送字节串到串口
+ 272          *输入参数               :byPort:串口号,pbyData:待发送数据缓冲区
+ 273                                                   指针,uiLen:待发数据长度
+ 274          *返回值                         :true:发送成功,false:发送失败
+ 275          *全局变量                       :stUsartCfg
+ 276          *调用模块                       :
+ 277          ***********************************************************
+ 278          *创建人                 :陈卫国
+ 279          *创建日期                       :2009-4-6
+ 280          ***********************************************************
+ 281          *修改人                         :
+ 282          *修改日期               :
+ 283          *注释                   :
+ 284          **********************************************************/
+ 285          uint8 SendUsart(uint8 byPort, uint8 *pbyData, uint16 uiLen)
+ 286          {
+ 287   1              if(uiLen == 0)
+ 288   1              {
+ 289   2                      return(false);
+ 290   2              }
+ 291   1              while(uiLen--)
+ 292   1              {       //将数据全部放入发送缓冲区
+ 293   2                  if(PutUsart(byPort, *pbyData++) == false)
+ 294   2                  {   //发送数据帧超过缓冲区大小
+ 295   3                      return(false);
+ 296   3                  }               
+ 297   2              }
+ 298   1              return(true);   
+ 299   1      }
+ 300          /**********************************************************
+ 301          *函数名称                       :GetPskCrc      
+ 302          *函数描述               :计算数据桢累加校验和
+ 303          *输入参数               :pstDataFreq:待计算的数据桢指针
+C51 COMPILER V8.08   UART                                                                  10/12/2010 13:33:30 PAGE 6   
+
+ 304          *返回值                         :累加校验和
+ 305          *全局变量                       :stUsartCfg
+ 306          *调用模块                       :
+ 307          ***********************************************************
+ 308          *创建人                 :陈卫国
+ 309          *创建日期                       :2009-4-6
+ 310          ***********************************************************
+ 311          *修改人                         :
+ 312          *修改日期               :
+ 313          *注释                   :
+ 314          **********************************************************/
+ 315          uint8 GetPskCrc(pSTUartFreq pstDataFreq)
+ 316          {
+ 317   1              uint8  *pbyData;
+ 318   1              uint16 uiLen;
+ 319   1              uint8  byCrc = 0;
+ 320   1              
+ 321   1              pbyData = &(pstDataFreq->byRecSecAddr);
+ 322   1              uiLen = pstDataFreq->uiLen + HEAD_SIZE;
+ 323   1              while(uiLen--)
+ 324   1              {
+ 325   2                      byCrc += *pbyData++;
+ 326   2              }       
+ 327   1              return(byCrc);
+ 328   1      }
+ 329          /**********************************************************
+ 330          *函数名称                       :CheckPsk       
+ 331          *函数描述               :检验数据包的正确型
+ 332          *输入参数               :pstDataFreq:待校验的数据桢指针
+ 333          *返回值                         :true:数据包正确,false:数据包有误
+ 334          *全局变量                       :
+ 335          *调用模块                       :
+ 336          ***********************************************************
+ 337          *创建人                 :陈卫国
+ 338          *创建日期                       :2009-4-6
+ 339          ***********************************************************
+ 340          *修改人                         :
+ 341          *修改日期               :
+ 342          *注释                   :
+ 343          **********************************************************/
+ 344          uint8 CheckPsk(pSTUartFreq pstDataFreq)
+ 345          {
+ 346   1              uint8* pbyData;
+ 347   1              uint16 uiLen;
+ 348   1              uint8  byCrc = 0;
+ 349   1              
+ 350   1              pbyData = &(pstDataFreq->byRecSecAddr);
+ 351   1              uiLen = pstDataFreq->uiLen + HEAD_SIZE;
+ 352   1              while(uiLen--)
+ 353   1              {
+ 354   2                      byCrc += *pbyData++;
+ 355   2              }
+ 356   1              if(byCrc != *pbyData)
+ 357   1              {
+ 358   2                      return(false);
+ 359   2              }
+ 360   1              return(true);   
+ 361   1      }
+ 362          /**********************************************************
+ 363          *函数名称                       :MakeUsart0Freq 
+ 364          *函数描述               :构建串口0数据帧
+ 365          *输入参数               :byCmd:命令,uiLen:数据帧长度,
+C51 COMPILER V8.08   UART                                                                  10/12/2010 13:33:30 PAGE 7   
+
+ 366                                               byPort:数据端口
+ 367          *返回值                         :
+ 368          *全局变量                       :
+ 369          *调用模块                       :
+ 370          ***********************************************************
+ 371          *创建人                 :陈卫国
+ 372          *创建日期                       :2009-4-6
+ 373          ***********************************************************
+ 374          *修改人                         :
+ 375          *修改日期               :
+ 376          *注释                   :
+ 377          **********************************************************/
+ 378          void MakeUsart0Freq(uint8 byCmd, uint16 uiLen, uint8 byPort)
+ 379          {
+ 380   1          pSTUartFreq pstDataFreq = (pSTUartFreq)byUsart0SndDealBuf;
+ 381   1              
+ 382   1              pstDataFreq->byStartByte1 = START_BYTE1;        
+ 383   1              //构建其它数据
+ 384   1              pstDataFreq->byStartByte2 = byPort;     
+ 385   1              pstDataFreq->byCmd = byCmd;
+ 386   1              pstDataFreq->uiLen = uiLen;             
+ 387   1              pstDataFreq->byData[uiLen] = GetPskCrc(pstDataFreq);
+ 388   1              pstDataFreq->byData[uiLen+1] = END_BYTE;        
+ 389   1              //发送数据
+ 390   1              SendUsart(0, byUsart0SndDealBuf, uiLen+EXT_SIZE);               
+ 391   1      }
+ 392          /**********************************************************
+ 393          *函数名称                       :Usart0RecDeal  
+ 394          *函数描述               :串口0协议处理
+ 395          *输入参数               :
+ 396          *返回值                         :
+ 397          *全局变量                       :
+ 398          *调用模块                       :
+ 399          ***********************************************************
+ 400          *创建人                 :陈卫国
+ 401          *创建日期                       :2009-4-6
+ 402          ***********************************************************
+ 403          *修改人                         :
+ 404          *修改日期               :
+ 405          *注释                   :
+ 406          **********************************************************/
+ 407          void Usart0RecDeal(void)
+ 408          {               
+ 409   1              pSTUartFreq pstDataFreq = (pSTUartFreq)byUsart0RecDealBuf;              
+ 410   1              
+ 411   1              if(false == CheckPsk(pstDataFreq))
+ 412   1              {       //校验和不正确                                  
+ 413   2                      return;
+ 414   2              }
+ 415   1              SendUsart(0, byUsart0RecDealBuf, pstDataFreq->uiLen+EXT_SIZE);
+ 416   1        //  switch(pstDataFreq->byStartByte2)
+ 417   1        //  {
+ 418   1        //    case 0:                                                                                         //本机命令
+ 419   1        //            if(CMD_DATA_SEND == pstDataFreq->byCmd)
+ 420   1        //            {
+ 421   1        //                    memcpy(&(stLocalControl.stBusFreq.bySndSecAddr), pstDataFreq->byData, 7);
+ 422   1               //             memcpy(&byUsart0SndDealBuf[1], pstDataFreq->byData, 7);
+ 423   1               //             byUsart0SndDealBuf[0] = PCF8563_SEC_ADDR;
+ 424   1               //             SetClock(byUsart0SndDealBuf);
+ 425   1               //             //构建校时数据包                
+ 426   1               //             stLocalControl.stBusFreq.byRecSecAddr = stLocalControl.stBusFreq.byCmd;
+ 427   1               //             stLocalControl.stBusFreq.byCmd = CMD_DATA_SEND;   
+C51 COMPILER V8.08   UART                                                                  10/12/2010 13:33:30 PAGE 8   
+
+ 428   1               //             Bus0OutputData(&(stLocalControl.stBusFreq.bySndSecAddr));               
+ 429   1        //            }
+ 430   1        //            else if(CMD_POWER_ON == pstDataFreq->byCmd)
+ 431   1        //            {
+ 432   1        ////                          UCSR0B == 0x00;
+ 433   1        ////                          UCSR1B = 0x00;
+ 434   1        ////                          TIMSK = 0x00;
+ 435   1        ////                          EIMSK = 0x00;
+ 436   1        //                    //关闭所有打开的中断
+ 437   1                      //      CCAPM0 = 0x00;
+ 438   1                      //      ET0 = 0;
+ 439   1                      //      TR0 = 0;
+ 440   1                      //      EX0 = 0;
+ 441   1                      //      IE=0X00;
+ 442   1                      //      IE2=0X00;
+ 443   1                      //      IAP_CONTR = 0x20;       //软复位
+ 444   1        //                    while(1);
+ 445   1        //            }
+ 446   1        //            break;
+ 447   1        //    case 1:                                                                                         //总线命令
+ 448   1        //            stLocalControl.stBusFreq.bySndSecAddr = pstDataFreq->bySndSecAddr;
+ 449   1        //            stLocalControl.stBusFreq.bySndRoomAddr = pstDataFreq->bySndRoomAddr;
+ 450   1        //            stLocalControl.stBusFreq.bySndBedAddr = pstDataFreq->bySndBedAddr;
+ 451   1        //            stLocalControl.stBusFreq.byCmd = pstDataFreq->byCmd;
+ 452   1        //            stLocalControl.stBusFreq.byRecSecAddr = pstDataFreq->byRecSecAddr;
+ 453   1        //            stLocalControl.stBusFreq.byRecRoomAddr = pstDataFreq->byRecRoomAddr;
+ 454   1        //            stLocalControl.stBusFreq.byRecBedAddr = pstDataFreq->byRecBedAddr;
+ 455   1        //            Bus0OutputData(&(stLocalControl.stBusFreq.bySndSecAddr));
+ 456   1        //            break;
+ 457   1        //    case 2:                                                                                         //RS485命令 
+ 458   1        //            SendUsart(1, byUsart0RecDealBuf, pstDataFreq->uiLen+EXT_SIZE);                  
+ 459   1        //            /*if((pstDataFreq->byCmd == 0x1a)||(pstDataFreq->byCmd == 0x1d)||(pstDataFreq->byCmd == 0x51))
+ 460   1               //     {       //液晶命令                              
+ 461   1               //     }*/
+ 462   1        //            break;
+ 463   1        //  }    
+ 464   1      }
+ 465          /**********************************************************
+ 466          *函数名称                       :Usart0Manager  
+ 467          *函数描述               :串口0管理函数
+ 468          *输入参数               :
+ 469          *返回值                         :
+ 470          *全局变量                       :stUsartCfg,stLocalControl
+ 471          *调用模块                       :
+ 472          ***********************************************************
+ 473          *创建人                 :陈卫国
+ 474          *创建日期                       :2009-4-6
+ 475          ***********************************************************
+ 476          *修改人                         :
+ 477          *修改日期               :
+ 478          *注释                   :
+ 479          **********************************************************/
+ 480          void Usart0Manager(void)
+ 481          {       
+ 482   1              static uint8  byTemp;
+ 483   1              static uint8  byState = 0;
+ 484   1              static uint16 uiPosition = 0;
+ 485   1              static uint16 uiLen;
+ 486   1              static uint8  byCount;
+ 487   1              static uint8  byTimerout = 5;   
+ 488   1      
+ 489   1              while(true)
+C51 COMPILER V8.08   UART                                                                  10/12/2010 13:33:30 PAGE 9   
+
+ 490   1              {
+ 491   2                      while(GetUsart(0, &byTemp) == false)
+ 492   2                      {
+ 493   3                              OSWait(K_TMO,1);
+ 494   3                              if(byTimerout)
+ 495   3                              {
+ 496   4                                      if(--byTimerout == 0x00)
+ 497   4                                      {       //超时到了
+ 498   5                                              byState = 0;
+ 499   5                                              uiPosition = 0;
+ 500   5                                      }
+ 501   4                              }
+ 502   3                      }                                                               
+ 503   2                      byTimerout = 5;
+ 504   2                      byUsart0RecDealBuf[uiPosition++] = byTemp;              
+ 505   2                      switch(byState)
+ 506   2                      {
+ 507   3                              case 0:                                                         
+ 508   3                                      if(byTemp == START_BYTE1)
+ 509   3                                      {
+ 510   4                                              byState = 1;
+ 511   4                                              byCount = 7;
+ 512   4                                      }
+ 513   3                                      else
+ 514   3                                      {
+ 515   4                                              uiPosition = 0;
+ 516   4                                      }
+ 517   3                                      break;
+ 518   3                              case 1:                                                         
+ 519   3                                      if(--byCount == 0)
+ 520   3                                      {       //收完地址数据和起始字符2                                                                                                                                               
+ 521   4                                              //if(byTemp == START_BYTE2)
+ 522   4                                              {       //直接存储该字节数据,处理时判断
+ 523   5                                                      byState = 2;
+ 524   5                                                      byCount = 3;                                            
+ 525   5                                              }
+ 526   4                                              /*else
+ 527   4                                              {
+ 528   4                                                      byState = 0;
+ 529   4                                                      uiPosition = 0;
+ 530   4                                              }*/
+ 531   4                                      }
+ 532   3                                      break;                          
+ 533   3                              case 2:                         
+ 534   3                                      byCount--;
+ 535   3                                      if(byCount == 1)
+ 536   3                                      {       
+ 537   4                                              uiLen = byTemp;                                 
+ 538   4                                      }
+ 539   3                                      else if(byCount == 0)
+ 540   3                                      {       //接收完数据长度
+ 541   4                                              uiLen += (byTemp << 8);                         //获取整个数据长度值
+ 542   4                                              if(uiLen < MAX_UART0_DATA_LEN)                                  
+ 543   4                                              {       //数据长度符合要求
+ 544   5                                                      byState = 3;
+ 545   5                                                      uiLen += 2;                                                                                                                     
+ 546   5                                              }
+ 547   4                                              else
+ 548   4                                              {
+ 549   5                                                      byState = 0;
+ 550   5                                                      uiPosition = 0;
+ 551   5                                              }                                                                               
+C51 COMPILER V8.08   UART                                                                  10/12/2010 13:33:30 PAGE 10  
+
+ 552   4                                      }
+ 553   3                                      break;                  
+ 554   3                              case 3:                         
+ 555   3                                      if(--uiLen == 0)
+ 556   3                                      {       //接收完所有数据
+ 557   4                                              if(END_BYTE == byTemp)
+ 558   4                                              {       //结束位正确
+ 559   5      
+ 560   5                                              OSQPost(byMainCmdQ, UART0_CMD);
+ 561   5                                              }
+ 562   4                                              byState = 0;
+ 563   4                                              uiPosition = 0;                         
+ 564   4                                      }
+ 565   3                                      break;                  
+ 566   3                              default:
+ 567   3                                      byState = 0;
+ 568   3                                      uiPosition = 0;
+ 569   3                                      break;          
+ 570   3                      }
+ 571   2              }       
+ 572   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1335    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    257    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8      31
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,24 @@
+C51 COMPILER V8.08   DATA                                                                  01/18/2011 09:47:35 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE DATA
+OBJECT MODULE PLACED IN data.OBJ
+COMPILER INVOKED BY: D:\Program Files\Keil\C51\BIN\C51.EXE data.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          unsigned char MyNum[3]={0x01,0x02,0x03};
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

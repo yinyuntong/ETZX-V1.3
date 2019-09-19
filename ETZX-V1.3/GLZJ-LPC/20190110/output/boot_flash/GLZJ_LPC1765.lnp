@@ -1,0 +1,5 @@
+--cpu Cortex-M3 ".\output\boot_flash\core_cm3.o" ".\output\boot_flash\startup_lpc17xx.o" ".\output\boot_flash\system_lpc17xx.o" ".\output\boot_flash\main.o" ".\output\boot_flash\inflash.o" ".\output\boot_flash\uart.o" ".\output\boot_flash\global.o" ".\output\boot_flash\wdt.o" ".\output\boot_flash\voice_play.o" ".\output\boot_flash\interrupt.o" ".\output\boot_flash\timer.o" ".\output\boot_flash\extint.o" ".\output\boot_flash\singlebus.o" ".\output\boot_flash\tel.o" ".\output\boot_flash\ds3231.o" ".\output\boot_flash\pct25vf.o" ".\output\boot_flash\wpa_cli.o" ".\output\boot_flash\fm62429.o" 
+--library_type=microlib --strict --scatter ".\output\boot_flash\boot_flash.sct" 
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\output\boot_flash\list\GLZJ_LPC1765.map" -o .\output\boot_flash\GLZJ_LPC1765.axf

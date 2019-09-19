@@ -1,0 +1,6 @@
+---- GSM_RST Matches (5 in 3 files) ----
+Config.h:sbit GSM_RST	=	P1^3;
+Gsm.c:	GSM_RST =0;
+Gsm.c:	GSM_RST =1;
+Main.c:	// P1^3   GSM_RST ¿ªÂ©Êä³ö
+Main.c:	GSM_RST =1;	//¸ß×ès

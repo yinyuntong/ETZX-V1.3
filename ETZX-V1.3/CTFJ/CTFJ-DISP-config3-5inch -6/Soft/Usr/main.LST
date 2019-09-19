@@ -1,0 +1,753 @@
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c LARGE BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *            ºþÄÏÒ»ÌØµç×Ó¹É·ÝÓÐÏÞ¹«Ë¾
+   4          *             All Rights Reserved
+   5          *              
+   6          *
+   7          *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8          *ÎÄ¼þÃû³Æ         :main.c
+   9          *ÎÄ¼þÃèÊö       :Ö÷º¯Êý
+  10          *´´½¨ÈË         :ÒüÔËÍ¬
+  11          *´´½¨ÈÕÆÚ       :2008-9-22
+  12          *°æ±¾ºÅ           :V1.0
+  13          *×¢ÊÍ         :         
+  14          *----------------------------------------------------------
+  15          *ÐÞ¸ÄÈË       :
+  16          *ÐÞ¸ÄÈÕÆÚ       :
+  17          *°æ±¾ºÅ           :
+  18          *×¢ÊÍ         :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_MAIN
+  22          #include "config.h"
+  23          
+  24          uint16  xdata uiIsrTimerCount = ISR_INC_COUNT;          //ÏµÍ³Ê±ÖÓ¶¨Ê±Öµ
+  25          uint8 OS_Q_MEM_SEL  byMainCmdQ[16];           //Ö÷Ïß³ÌÏûÏ¢¶ÓÁÐ
+  26          STLocalControl  xdata stLocalControl;           //È«¾Ö±äÁ¿½á¹¹Ìå
+  27          
+  28          bit bWireLessRec=0;
+  29          bit bEnableOxTimer=0;       //Èç¹ûÃ»ÊÕµ½¹©Ñõ¿ªÊ¼²»³äÐí¼ÆÊ±
+  30          
+  31          uint8 xdata byWireLessRecBuff[10];
+  32          uint8 xdata byWireLessRecLen;
+  33          
+  34          
+  35          uint8 xdata byWireLessSndBuff[8]={0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88};
+  36          
+  37          uint8 code    run[12]={31,29,31,30,31,30,31,31,30,31,30,31};   
+  38          uint8 code   notrun[12]={31,28,31,30,31,30,31,31,30,31,30,31};
+  39          
+  40          
+  41          bit bOXSupplyState=0;   //¹©Ñõ×´Ì¬±êÖ¾
+  42          
+  43          
+  44          
+  45          void Ex0Int(void) interrupt X0_INTNO    //0ºÅÖÐ¶Ï
+  46          {
+  47   1        EX0=0;
+  48   1      }
+  49          
+  50          void TIMER1Int(void) interrupt T1_INTNO   //3ºÅÖÐ¶Ï
+  51          {
+  52   1        ET1=0;
+  53   1      }
+  54          
+  55          #if STC12C5A==true
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 2   
+
+  56          void AdcInt(void) interrupt ADC_INTNO   //5ºÅÖÐ¶Ï
+  57          {
+  58   1        EADC=0;
+  59   1      }
+  60          
+  61          void LvdInt(void) interrupt LVD_INTNO   //6ºÅÖÐ¶Ï
+  62          {
+  63   1        ELVD=0;
+  64   1      }
+  65          
+  66          //void PcaInt(void) interrupt PCA_INTNO   //7ºÅÖÐ¶Ï
+  67          //{
+  68          //  CMOD  &=  ~ECF;     //½ûÖ¹ PCA¼ÆÊýÆ÷Òç³öÖÐ¶Ï   
+  69          //  CCAPM0  &=  ~PCA0_ECCF;   //½ûÖ¹CCF0ÖÐ¶Ï
+  70          //  CCAPM1  &=  ~PCA1_ECCF;   //½ûÖ¹CCF1ÖÐ¶Ï  
+  71          //}
+  72          
+  73          #endif
+  74          /***********************************************************/
+  75          void UserTickTimer(void)   /* ÏµÍ³¶¨Ê±ÖÐ¶ÏÖÐµ÷ÓÃµÄÓÃ»§º¯ */
+  76          { 
+  77   1        #if STC90 == 1  
+                  TF2=0;
+                #endif
+  80   1        #if STC12C5A==1
+  81   1          uiIsrTimerCount+=ISR_INC_COUNT;
+  82   1          CCAP0L = (uint8)uiIsrTimerCount;
+  83   1          CCAP0H = (uint8)(uiIsrTimerCount>>8);
+  84   1          CCF0=0;
+  85   1        #endif
+  86   1      
+  87   1        if(stUsartCfg.byRecTimeout!=0) stUsartCfg.byRecTimeout--;
+  88   1      }
+  89          
+  90          
+  91          
+  92          void Send_Data(uint8 *Databuf,uint8 l)
+  93          { 
+  94   1          uint8 xdata i;
+  95   1        Databuf=Databuf;
+  96   1        l=l;
+  97   1        i=i;
+  98   1      #if DEBUG==1
+  99   1        i=1000;
+ 100   1        while(stUsartCfg.uiSndLen)
+ 101   1        {
+ 102   2          delay_nms(1);
+ 103   2          if(--i ==0) break;
+ 104   2        }
+ 105   1        WDT_CONTR = 0x3e; //Î¹¹·  
+ 106   1          ES=0;
+ 107   1        for(i=0;i<l;i++)
+ 108   1           {
+ 109   2           SBUF=*Databuf;
+ 110   2             while(!TI);
+ 111   2           TI=0;
+ 112   2           Databuf++;
+ 113   2         }
+ 114   1        ES=1;
+ 115   1      #endif
+ 116   1      
+ 117   1      /*#if DEBUG==1
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 3   
+
+ 118   1        i=1000;
+ 119   1        while(stUsartCfg.uiSndLen)
+ 120   1        {
+ 121   1          delay_nms(1);
+ 122   1          if(--i ==0) break;
+ 123   1        }
+ 124   1        stUsartCfg.uiSndLen=l;
+ 125   1        stUsartCfg.uiSndPos=0;
+ 126   1        stUsartCfg.pbySndBuf=Databuf;
+ 127   1        SBUF=stUsartCfg.pbySndBuf[0];
+ 128   1      #endif
+ 129   1      */
+ 130   1      }
+ 131          
+ 132          
+ 133          void Send_Data_Byte(uint8 SendData)
+ 134          { 
+ 135   1        uint8 xdata i;
+ 136   1        SendData=SendData;
+ 137   1        i=i;
+ 138   1      #if DEBUG ==1
+ 139   1        i=1000;
+ 140   1        while(stUsartCfg.uiSndLen)
+ 141   1        {
+ 142   2          delay_nms(1);
+ 143   2          if(--i ==0) break;
+ 144   2        }
+ 145   1        WDT_CONTR = 0x3e; //Î¹¹·
+ 146   1        ES=0;
+ 147   1          SBUF=SendData;
+ 148   1          while(!TI);
+ 149   1          TI=0;
+ 150   1        ES=1;
+ 151   1      #endif
+ 152   1      
+ 153   1      /*#if DEBUG==1  
+ 154   1        i=1000;
+ 155   1        while(stUsartCfg.uiSndLen)
+ 156   1        {
+ 157   1          delay_nms(1);
+ 158   1          if(--i ==0) break;
+ 159   1        }
+ 160   1        stUsartCfg.uiSndLen=1;
+ 161   1        stUsartCfg.uiSndPos=0; 
+ 162   1        SBUF=SendData;  
+ 163   1      #endif
+ 164   1      */
+ 165   1      }
+ 166          
+ 167          
+ 168          void RD_ID(void)
+ 169          {
+ 170   1        uint8 idata *p;
+ 171   1        p=0xf1;
+ 172   1        Send_Data(p,7);
+ 173   1      }
+ 174          
+ 175          bit DirRFSerialCompare()  //ÐòÁÐºÅ×î¸ßÎ»ºöÂÔ
+ 176          {
+ 177   1        if(stLocalControl.stEepromCfgData.byRFSerialNum1!= byWireLessRecBuff[1])
+ 178   1        { 
+ 179   2          return(0);
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 4   
+
+ 180   2        } 
+ 181   1        if(stLocalControl.stEepromCfgData.byRFSerialNum2!= byWireLessRecBuff[2])
+ 182   1        { 
+ 183   2          return(0);
+ 184   2        }
+ 185   1        if(stLocalControl.stEepromCfgData.byRFSerialNum3!= byWireLessRecBuff[3])
+ 186   1        { 
+ 187   2          return(0);
+ 188   2        }
+ 189   1        if(stLocalControl.stEepromCfgData.byRFSerialNum4!= byWireLessRecBuff[4])
+ 190   1        { 
+ 191   2          return(0);
+ 192   2        } 
+ 193   1        if(stLocalControl.stEepromCfgData.byRFSerialNum5!= byWireLessRecBuff[5])
+ 194   1        { 
+ 195   2          return(0);
+ 196   2        }
+ 197   1        if(stLocalControl.stEepromCfgData.byRFSerialNum6!= byWireLessRecBuff[6])
+ 198   1        { 
+ 199   2          return(0);
+ 200   2        }
+ 201   1        
+ 202   1        return(1);  
+ 203   1      }
+ 204          
+ 205          
+ 206          uint16   allday(STTime   a)   //·µ»Ø¶àÉÙÌì 
+ 207          {    
+ 208   1        uint16 xdata  x; 
+ 209   1        uint8 xdata i;
+ 210   1        x=(a.byYear)*365+a.byYear/4;   
+ 211   1        if((a.byYear%4)==0)  
+ 212   1        {   
+ 213   2          for(i=0;i<a.byMonth;i++)   
+ 214   2          {   
+ 215   3            if(i>0)   
+ 216   3            {   
+ 217   4               x=x+run[i-1];   
+ 218   4            }   
+ 219   3          }   
+ 220   2        }   
+ 221   1        else   
+ 222   1        {   
+ 223   2          for(i=0;i<a.byMonth;i++)   
+ 224   2          {   
+ 225   3            if(i>0)   
+ 226   3            {   
+ 227   4              x=x+notrun[i-1];   
+ 228   4            }   
+ 229   3          }   
+ 230   2        }   
+ 231   1        x=x+a.byDay;   
+ 232   1        return   x;   
+ 233   1      }  
+ 234          
+ 235          STOXTime   timeInterval(STTime a,STTime   b)    //a:½áÊøÊ±¼ä  b:ÆðÊ¼Ê±¼ä  
+ 236          {   
+ 237   1        uint16   xdata x,y;   
+ 238   1        STOXTime   xdata sum;   
+ 239   1        x=allday(a);   
+ 240   1        y=allday(b);   
+ 241   1        sum.uiHour=(x-y)*24+a.byHour-b.byHour;   
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 5   
+
+ 242   1        if((a.byMin)<b.byMin)   
+ 243   1        {   
+ 244   2          sum.byMin=a.byMin+60-b.byMin;
+ 245   2        sum.uiHour=sum.uiHour-1;   
+ 246   2        }
+ 247   1        else  
+ 248   1        {   
+ 249   2        sum.byMin=a.byMin-b.byMin;   
+ 250   2        } 
+ 251   1      
+ 252   1        if((a.bySec)<b.bySec)   
+ 253   1        {   
+ 254   2          sum.bySec=a.bySec+60-b.bySec;
+ 255   2        sum.byMin=sum.byMin-1;   
+ 256   2        }
+ 257   1        else  
+ 258   1        {   
+ 259   2        sum.bySec=a.bySec-b.bySec;   
+ 260   2        }
+ 261   1        return   sum;   
+ 262   1       }   
+ 263          
+ 264          /**********************************************************
+ 265          *º¯ÊýÃû³Æ     :Init 
+ 266          *º¯ÊýÃèÊö         :Ó²¼þ³õÊ¼»¯²Ù×÷
+ 267          *ÊäÈë²ÎÊý       :
+ 268          *·µ»ØÖµ       :   
+ 269          *È«¾Ö±äÁ¿     :
+ 270          *µ÷ÓÃÄ£¿é       :
+ 271          ***********************************************************
+ 272          *´´½¨ÈË           :ÒüÔËÍ¬
+ 273          *´´½¨ÈÕÆÚ     :2008-9-22
+ 274          ***********************************************************
+ 275          *ÐÞ¸ÄÈË         :
+ 276          *ÐÞ¸ÄÈÕÆÚ       :
+ 277          *×¢ÊÍ           :
+ 278          **********************************************************/
+ 279          void Init(void)
+ 280          {
+ 281   1        CMOD = 0x02;
+ 282   1        CCON = 0x00;  
+ 283   1        CL = 0x00;
+ 284   1        CH = 0x00;
+ 285   1        CCAP0L = (uint8)uiIsrTimerCount;
+ 286   1        CCAP0H = (uint8)(uiIsrTimerCount>>8);
+ 287   1        //ÉèÖÃPCAÄ£¿é0Îª16Î»Èí¼þ¶¨Ê±Æ÷,ECCF0=1ÔÊÐíPCAÄ£¿é0ÖÐ¶Ï
+ 288   1        CCAPM0 = 0x49;
+ 289   1         
+ 290   1      //  TF1=0;
+ 291   1      //  CCAPM1 = (PCA1_CAPN|PCA1_ECCF);   //PCA1²¶»ñÖÐ¶Ï
+ 292   1      //  AUXR1 |= PCA_P4;    //Ó³Éäµ½P4¿Ú
+ 293   1      
+ 294   1        //Æô¶¯PCA¼ÆÊýÆ÷¼ÆÊý
+ 295   1        CR = 1; 
+ 296   1        
+ 297   1      
+ 298   1        //IO¿ÚÅäÖÃ
+ 299   1        //STC12C52/5AÏµÁÐ:M0=0,M1=0:×¼Ë«Ïò£¬M0=0,M1=1:¸ß×è£¬M0=1,M1=0:ÍÆÍì£¬M0=1,M1=1:¿ªÂ©
+ 300   1        
+ 301   1        //ÌØ±ð×¢Òâ:ÒòÊäÈë¿ÚÏßÉÏÍâÎ§Î´ÅäÖÃÉÏÀ­µç×è£¬²»ÄÜÅäÖÃ³É¸ß×èÊäÈë£¬Ö»ÄÜÅäÖÃ³É×¼Ë«Ïò£¬·ñÔò¸Ã½ÅÔÚ¸ßµçÆ½Ê±´¦ÓÚÐü
+             -¸¡×´Ì¬
+ 302   1      
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 6   
+
+ 303   1      
+ 304   1        P4SW=P46EN|P45EN|P44EN; //P4¿ÚÉèÖÃ³ÉIO¿Ú
+ 305   1      
+ 306   1      
+ 307   1        memset(&(stLocalControl.stBusDealFreq),0x00,sizeof(STLocalControl));    //½«±äÁ¿Êý¾ÝÇå0
+ 308   1      
+ 309   1        //IO³õÊ¼»¯
+ 310   1        SSD1963_CS  = 1;
+ 311   1        SST25VF_CS = 1;
+ 312   1        GT23L_CS = 1;
+ 313   1        ADS7843_CS = 1;
+ 314   1        EPH1660_CS = 0;
+ 315   1      
+ 316   1        Delayms(200);
+ 317   1      
+ 318   1        //¸´Î»EPH1660
+ 319   1      //  ResetEPH1660();
+ 320   1      
+ 321   1        //ÉèÖÃMCUÎªSPIÖ÷·½
+ 322   1        MCUMasterSPI();
+ 323   1        
+ 324   1      
+ 325   1      //  RD_ID();
+ 326   1      
+ 327   1      
+ 328   1        
+ 329   1        //¶ÁÈ¡ÏµÍ³ÅäÖÃ×Ö
+ 330   1        InitParameter();
+ 331   1      
+ 332   1          //´®¿Ú³õÊ¼»¯
+ 333   1          UsartInit();
+ 334   1        Send_Data_Byte(0x33);
+ 335   1      
+ 336   1      
+ 337   1        //´æ´¢Æ÷³õÊ¼»¯
+ 338   1      
+ 339   1          manID=Read_ID(0x00);
+ 340   1        devID=Read_ID(0X01);
+ 341   1      
+ 342   1        Flash_Lock();
+ 343   1      
+ 344   1        //²âÊÔ´æ´¢Æ÷
+ 345   1        //FRAM_TEST(); 
+ 346   1      
+ 347   1        //µ¥×ÜÏß³õÊ¼»¯  
+ 348   1        SingleBusInit();
+ 349   1        
+ 350   1        //RGBÇý¶¯Ð¾Æ¬³õÊ¼»¯
+ 351   1        InitSSD1963();
+ 352   1        ShowPowerUpFace();
+ 353   1      
+ 354   1      #if CONFIG_CC1101==1  
+                CC1101Init();
+              #endif
+ 357   1          
+ 358   1        //ÉèÖÃÉÏµçµÇ¼Ç±êÖ¾,µÆÉÁË¸Ê±¼ä³õÊ¼»¯,³¬Ê±ÉèÖÃ(³¬Ê±ºó×Ô¶¯·¢ËÍÉÏµçµÇ¼ÇÃüÁî)  
+ 359   1        bLanding = 1; 
+ 360   1        MakeCH0TimerOut(50, 0); 
+ 361   1      
+ 362   1      
+ 363   1        stLocalControl.stSupplyOxTotalTime.uiHour=stLocalControl.stEepromCfgData.stSupplyOxTotalTime.uiHour;
+ 364   1        stLocalControl.stSupplyOxTotalTime.byMin=stLocalControl.stEepromCfgData.stSupplyOxTotalTime.byMin;
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 7   
+
+ 365   1      
+ 366   1        memset(&(stLocalControl.stTime.byYear),0x00,6); //Çåµ±Ç°Ê±¼äÊý¾Ý
+ 367   1      
+ 368   1        stLocalControl.byDispNumSetOkTime=0;
+ 369   1      
+ 370   1      
+ 371   1      #if CONFIG_CC1101==1
+              //ÒÆµ½×îºó,ÒÔÃâcc1101³õÊ¼»¯Ê±²úÉúÖÐ¶ÏÔì³ÉÎó¶ÁÔì³É¶Á¿Õ¼äÒç³ö
+                TF1=0;
+                CCAPM1 = (PCA1_CAPN|PCA1_ECCF);   //PCA1²¶»ñÖÐ¶Ï
+                AUXR1 |= PCA_P4;    //Ó³Éäµ½P4¿Ú  
+                halSpiStrobe(CCxxx0_SRX); //ÔÊÐí½ÓÊÕ
+              #endif
+ 378   1      
+ 379   1        ShowBedFace();
+ 380   1        memset(BedDataBuff,0x00,SEGMENT_DATA_LEN);
+ 381   1        memset(byUsart0SndBuf,0x00,UART0_TX_BUF_SIZE);
+ 382   1      
+ 383   1        stLocalControl.uiCC1101ReReadTime = CC1101_REREAD_TIME;
+ 384   1      
+ 385   1        //¸´Î»¿´ÃÅ¹·
+ 386   1        WDT_CONTR = 0x3e;   
+ 387   1      }
+ 388          /**********************************************************
+ 389          *º¯ÊýÃû³Æ     :GetMessage 
+ 390          *º¯ÊýÃèÊö         :»ñÈ¡Ö÷Ïß³ÌÏûÏ¢¶ÓÁÐÖÐµÄÏûÏ¢(ÎÞÏûÏ¢Ôò¹ÒÆð×ÔÉí)
+ 391          *ÊäÈë²ÎÊý       :Msg:´æ´¢ÏûÏ¢Ö¸Õë
+ 392          *·µ»ØÖµ       :   
+ 393          *È«¾Ö±äÁ¿     :
+ 394          *µ÷ÓÃÄ£¿é       :
+ 395          ***********************************************************
+ 396          *´´½¨ÈË           :ÒüÔËÍ¬
+ 397          *´´½¨ÈÕÆÚ     :2008-9-22
+ 398          ***********************************************************
+ 399          *ÐÞ¸ÄÈË         :
+ 400          *ÐÞ¸ÄÈÕÆÚ       :
+ 401          *×¢ÊÍ           :
+ 402          **********************************************************/
+ 403          void GetMessage(uint8 data *Msg)
+ 404          {
+ 405   1        OSQPend(Msg, byMainCmdQ, 0);
+ 406   1      }
+ 407          /**********************************************************
+ 408          *º¯ÊýÃû³Æ     :DispatchMessage  
+ 409          *º¯ÊýÃèÊö         :·Ö·¢´¦Àí»ñÈ¡µÄÖ÷Ïß³ÌÏûÏ¢
+ 410          *ÊäÈë²ÎÊý       :Msg:ÏûÏ¢,¸ß4Î»ÊÇÃüÁîÀàÐÍ,µÍ4Î»ÊÇÃüÁîÊý¾Ý
+ 411          *·µ»ØÖµ       :   
+ 412          *È«¾Ö±äÁ¿     :
+ 413          *µ÷ÓÃÄ£¿é       :
+ 414          ***********************************************************
+ 415          *´´½¨ÈË           :ÒüÔËÍ¬
+ 416          *´´½¨ÈÕÆÚ     :2008-9-22
+ 417          ***********************************************************
+ 418          *ÐÞ¸ÄÈË         :
+ 419          *ÐÞ¸ÄÈÕÆÚ       :
+ 420          *×¢ÊÍ           :
+ 421          **********************************************************/
+ 422          void DispatchMessage(uint8 Msg)
+ 423          {
+ 424   1        switch(Msg&0xf0)
+ 425   1        {
+ 426   2          case BUS0_REC:                    //×ÜÏß0ÊÕµ½Êý¾ÝÖ¡
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 8   
+
+ 427   2            Bus0RecDeal();
+ 428   2            break;
+ 429   2          case BUS0_SND:                    //×ÜÏß0Êý¾Ý·¢ËÍÍê³É
+ 430   2            Bus0SendDeal();
+ 431   2            break;      
+ 432   2          case TIMER_OUT:                   //³¬Ê±´¦Àí
+ 433   2            TimerOutDeal();
+ 434   2            break;  
+ 435   2      //    case UART0_CMD:
+ 436   2      //      Usart0RecDeal();
+ 437   2      //      break;
+ 438   2          default:
+ 439   2            break;
+ 440   2        } 
+ 441   1      }
+ 442          /**********************************************************
+ 443          *º¯ÊýÃû³Æ     :MainTask 
+ 444          *º¯ÊýÃèÊö         :ÏµÍ³Ö÷Ïß³Ì,¸ºÔðÕû¸öÏµÍ³µÄÏûÏ¢´¦Àí
+ 445          *ÊäÈë²ÎÊý       :
+ 446          *·µ»ØÖµ       :   
+ 447          *È«¾Ö±äÁ¿     :
+ 448          *µ÷ÓÃÄ£¿é       :
+ 449          ***********************************************************
+ 450          *´´½¨ÈË           :ÒüÔËÍ¬
+ 451          *´´½¨ÈÕÆÚ     :2008-9-22
+ 452          ***********************************************************
+ 453          *ÐÞ¸ÄÈË         :
+ 454          *ÐÞ¸ÄÈÕÆÚ       :
+ 455          *×¢ÊÍ           :
+ 456          **********************************************************/
+ 457          void MainTask(void)
+ 458          {
+ 459   1        static uint8 data Msg;  
+ 460   1        uint8 i;
+ 461   1        //ÏµÍ³Ó²¼þ³õÊ¼»¯
+ 462   1        Init(); 
+ 463   1        //´´½¨Ö÷Ïß³ÌÏûÏ¢¶ÓÁÐ  
+ 464   1        OSQCreate(byMainCmdQ, 16);
+ 465   1        //ÒÔÏÂÎª´´½¨ÈÎÎñÏß³Ì  
+ 466   1        OSTaskCreate(Bus0Manage, NULL, 1);  
+ 467   1        OSTaskCreate(TimerOutManager, NULL, 2); 
+ 468   1        //½øÈëÏûÏ¢Ñ­»·  
+ 469   1      
+ 470   1      //  RD_ID();
+ 471   1      
+ 472   1        while(TRUE)
+ 473   1        {
+ 474   2          WDT_CONTR = 0x3e; //Î¹¹·
+ 475   2          GetMessage(&Msg);
+ 476   2          DispatchMessage(Msg);
+ 477   2          if(bUsart0RecFinish)                  //´®¿Ú0ÊÕµ½Ò»Ö¡Êý¾Ý
+ 478   2          {   
+ 479   3            bUsart0RecFinish=0;
+ 480   3            Usart0RecDeal();  
+ 481   3          }
+ 482   2      
+ 483   2      #if CONFIG_CC1101==1    
+                  if(bWireLessRec==1)
+                  {
+              //      Send_Data(byWireLessRecBuff,byWireLessRecLen);
+                    bWireLessRec=0;
+                    byWireLessRecLen=8; //Òª¶ÁÈ¡Êý¾ÝµÄ×î´ó³¤¶È
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 9   
+
+                    if(halRfReceivePacket(byWireLessRecBuff,&byWireLessRecLen)==CRC_OK)
+                    {
+                      if(byWireLessRecLen==8)
+                      {//ÊäÒº±¨¾¯Æ÷ÉÏÀ´µÄÐÅºÅ
+                        if(byWireLessRecBuff[7]==CMD_NUMBER_SET)  
+                        {//ÊÇ¶ÔÂëÃüÁî
+                          memcpy(&(stLocalControl.stBusDealFreq.bySndSecAddr),&(byWireLessRecBuff[1]),3);
+                          stLocalControl.stBusDealFreq.byCmd = CMD_RF_NUMSET_START;
+                          memcpy(&(stLocalControl.stBusDealFreq.byRecSecAddr),&(byWireLessRecBuff[4]),3);
+                          Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+                        }
+                        else 
+                        {
+                          if(byWireLessRecBuff[7]==CMD_INFUSION_CALL)
+                          {
+                            if(DirRFSerialCompare())  //ÊÇÏàÓ¦µÄÊäÒº±¨¾¯Æ÷
+                            {
+                              memcpy(&(stLocalControl.stBusDealFreq.bySndSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr
+             -),3);
+                              stLocalControl.stBusDealFreq.byCmd = CMD_INFUSION_CALL;
+                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+                            }           
+                          }
+                        
+                        }
+                      }
+                      else if(byWireLessRecLen==6)
+                      {//ÒÆ¶¯·Ö»úÉÏÀ´µÄÐÅºÅ
+                        if(byWireLessRecBuff[0]==0x05)
+                        {//ÆðÊ¼Î»ÕýÈ·
+                          if(byWireLessRecBuff[5]==(uint8)(byWireLessRecBuff[0]+byWireLessRecBuff[1]+byWireLessRecBuff[2]+byWi
+             -reLessRecBuff[3]+byWireLessRecBuff[4]))
+                          {//Ð£ÑéºÍÏàµÈ
+                            if((byWireLessRecBuff[1]== stLocalControl.stEepromCfgData.bySelfSecAddr) && (byWireLessRecBuff[2]==
+             - 251))
+                            {//ÇøºÅÏàµÈÇÒÎªÒÆ¶¯·Ö»ú
+                              if(byWireLessRecBuff[4] ==0x01)
+                              {//ÃüÁîÊÇ»¤Ê¿µ½Î»ÃüÁî
+                                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+                                stLocalControl.stBusDealFreq.bySndRoomAddr = 251;
+                                stLocalControl.stBusDealFreq.bySndBedAddr = byWireLessRecBuff[3]; //ÒÆ¶¯·Ö»úºÅ
+                                stLocalControl.stBusDealFreq.byCmd = CMD_NURSE_IN;
+                                memcpy(&(stLocalControl.stBusDealFreq.byRecSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAdd
+             -r),3);
+                                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+                                if( !(stLocalControl.bySlaveState &LCD_ON) || (stLocalControl.bySlaveState &PATIENT_DISCHARGE)) /
+             -/ºÚÆÁµÄÇé¿öÏÂ
+                                {
+                                  BL_ON();
+                                }               
+                                
+                              }
+                              else if(byWireLessRecBuff[4] ==0x02)
+                              {//ÃüÁîÊÇ²é·¿ÃüÁî
+                                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+                                stLocalControl.stBusDealFreq.bySndRoomAddr = 251;
+                                stLocalControl.stBusDealFreq.bySndBedAddr = byWireLessRecBuff[3]; //ÒÆ¶¯·Ö»úºÅ
+                                stLocalControl.stBusDealFreq.byCmd = CMD_INSPECTOR_CALL;
+                                memcpy(&(stLocalControl.stBusDealFreq.byRecSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAdd
+             -r),3);
+                                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+                                if( !(stLocalControl.bySlaveState &LCD_ON) || (stLocalControl.bySlaveState &PATIENT_DISCHARGE)) /
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 10  
+
+             -/ºÚÆÁµÄÇé¿öÏÂ
+                                {
+                              
+                                  BL_ON();
+                                }               
+                                
+                              }
+                            }
+                          }
+                        }
+                      }               
+                    }
+                    halSpiStrobe(CCxxx0_SRX); //ÔÊÐí½ÓÊÕ
+                    //CCF1=0;     //²»Çå´ËÖÐ¶Ï£¬ÒÔÃâÔÚ´ËÊ±¼ä¶ÎÄÚÓÐÖÐ¶Ï²úÉú²»ÄÜÔÙ´Î´¥·¢ÖÐ¶Ï
+                    CCAPM1 |= PCA1_ECCF;  //¿ªÆôÖÐ¶Ï
+                  
+                  }
+              #endif
+ 562   2      
+ 563   2          if(bDispBedFace==1)
+ 564   2          {
+ 565   3            bDispBedFace =0;
+ 566   3            if(StoreDataCheck(BED_FACE_DATA_LENGTH_ADDR,stLocalControl.uiBedFaceDataLen+2)==1)
+ 567   3            {       
+ 568   4              page =0;
+ 569   4              ShowItem(BED_NUMBER); //ÏÔÊ¾´²ºÅ
+ 570   4              ShowPatientBaseInfo();    //ÏÔÊ¾²¡ÈË»ù±¾ÐÅÏ¢
+ 571   4              ShowItem(OX_START);
+ 572   4              ShowItem(OX_END);
+ 573   4              ShowItem(OX_SUBTOTAL);  
+ 574   4              ShowItem(OX_TOTAL);
+ 575   4              Set_VisualPage();
+ 576   4              stLocalControl.byDisplayFace = BED_INFO_FACE;
+ 577   4      
+ 578   4      
+ 579   4              for(i=0;i<5;i++)
+ 580   4              {
+ 581   5                SectorDataCopy(BED_FACE_DATA_BAK,BED_FACE_DATA_LENGTH_ADDR,stLocalControl.uiBedFaceDataLen+3);  //¿½±´
+             -ÖÁÁíÒ»±¸·ÝÇø        
+ 582   5                if(StoreDataCheck(BED_FACE_DATA_BAK,stLocalControl.uiBedFaceDataLen+2)==1)  break;
+ 583   5                  
+ 584   5              }
+ 585   4              
+ 586   4            }
+ 587   3            else
+ 588   3            {
+ 589   4              stLocalControl.uiBedFaceDataLen =0;     
+ 590   4              Write_Cont(BED_FACE_DATA_LENGTH_ADDR,&(stLocalControl.uiBedFaceDataLen),2); //½«Êý¾Ý³¤¶ÈÇå0
+*** WARNING C182 IN LINE 590 OF MAIN.C: pointer to different objects
+ 591   4              Write_Cont(BED_FACE_DATA_BAK,&(stLocalControl.uiBedFaceDataLen),2);
+*** WARNING C182 IN LINE 591 OF MAIN.C: pointer to different objects
+ 592   4              
+ 593   4            }
+ 594   3          }
+ 595   2      
+ 596   2          if(bDispBedForm ==1)
+ 597   2          {
+ 598   3            bDispBedForm =0;
+ 599   3            if(StoreDataCheck(BED_FACE_FORM_LENGTH_ADDR,stLocalControl.uiBedFaceFormLen+2)) //½«Êý¾Ý³¤¶ÈÒ²°üº¬½øÈ¥
+ 600   3            {
+ 601   4              ShowBedFaceForm();  
+ 602   4              ShowItem(BED_NUMBER);
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 11  
+
+ 603   4              Read_Cont((uint8*)&(stLocalControl.uiBedFaceDataLen),BED_FACE_DATA_LENGTH_ADDR,2);  //¶Á´²Í·¿¨Êý¾Ý×Ü¸öÊ
+             -ý
+ 604   4              if(StoreDataCheck(BED_FACE_DATA_LENGTH_ADDR,stLocalControl.uiBedFaceDataLen+2)) //½«Êý¾Ý³¤¶ÈÒ²°üº¬½øÈ¥
+ 605   4              {
+ 606   5                ShowPatientBaseInfo();  
+ 607   5      
+ 608   5                ShowItem(OX_START);
+ 609   5                ShowItem(OX_END);
+ 610   5                ShowItem(OX_SUBTOTAL);  
+ 611   5                ShowItem(OX_TOTAL);         
+ 612   5                if(StoreDataCheck(BED_FACE_DATA_BAK,stLocalControl.uiBedFaceDataLen+2)!=1)
+ 613   5                {//Èç¹û±¸·ÝÊý¾ÝÇø²»ÕýÈ·
+ 614   6                  for(i=0;i<5;i++)
+ 615   6                  {
+ 616   7                    SectorDataCopy(BED_FACE_DATA_BAK,BED_FACE_DATA_LENGTH_ADDR,stLocalControl.uiBedFaceDataLen+3);  //¿½
+             -±´ÖÁÁíÒ»±¸·ÝÇø        
+ 617   7                    if(StoreDataCheck(BED_FACE_DATA_BAK,stLocalControl.uiBedFaceDataLen+2)==1)  break;  
+ 618   7                  }   
+ 619   6                }
+ 620   5              }
+ 621   4              else
+ 622   4              {//Ö÷Êý¾ÝÇø²»ÕýÈ·
+ 623   5                if(StoreDataCheck(BED_FACE_DATA_BAK,stLocalControl.uiBedFaceDataLen+2))
+ 624   5                {//±¸·ÝÇøÕýÈ·
+ 625   6                  while(1)
+ 626   6                  {
+ 627   7                    SectorDataCopy(BED_FACE_DATA_LENGTH_ADDR,BED_FACE_DATA_BAK,stLocalControl.uiBedFaceDataLen+3);  //¿½
+             -±´ÖÁÖ÷Êý¾ÝÇø        
+ 628   7                    if(StoreDataCheck(BED_FACE_DATA_LENGTH_ADDR,stLocalControl.uiBedFaceDataLen+2)==1)  break;        
+ 629   7                  }
+ 630   6                  ShowPatientBaseInfo();
+ 631   6                  ShowItem(OX_START);
+ 632   6                  ShowItem(OX_END);
+ 633   6                  ShowItem(OX_SUBTOTAL);  
+ 634   6                  ShowItem(OX_TOTAL);           
+ 635   6                }
+ 636   5                else  //Ö÷Êý¾ÝÇø²»ÕýÈ·£¬±¸·ÝÊý¾ÝÇøÒ²²»ÕýÈ·¡£
+ 637   5                {
+ 638   6                }
+ 639   5              }
+ 640   4              Set_VisualPage();
+ 641   4      
+ 642   4              for(i=0;i<5;i++)
+ 643   4              {
+ 644   5                SectorDataCopy(BED_FACE_FORM_BAK,BED_FACE_FORM_LENGTH_ADDR,stLocalControl.uiBedFaceFormLen+3);  //¿½±´
+             -ÖÁÁíÒ»±¸·ÝÇø        
+ 645   5                if(StoreDataCheck(BED_FACE_FORM_BAK,stLocalControl.uiBedFaceFormLen+2)==1)  break;
+ 646   5                  
+ 647   5              }       
+ 648   4            }
+ 649   3            else
+ 650   3            {
+ 651   4              stLocalControl.uiBedFaceFormLen =0;     
+ 652   4              Write_Cont(BED_FACE_FORM_LENGTH_ADDR,&(stLocalControl.uiBedFaceFormLen),2); //½«Êý¾Ý³¤¶ÈÇå0
+*** WARNING C182 IN LINE 652 OF MAIN.C: pointer to different objects
+ 653   4              Write_Cont(BED_FACE_FORM_BAK,&(stLocalControl.uiBedFaceFormLen),2); //½«Êý¾Ý³¤¶ÈÇå0
+*** WARNING C182 IN LINE 653 OF MAIN.C: pointer to different objects
+ 654   4            }       
+ 655   3          }
+ 656   2        }
+ 657   1      } 
+ 658          /**********************************************************
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 10:08:08 PAGE 12  
+
+ 659          *º¯ÊýÃû³Æ     :main 
+ 660          *º¯ÊýÃèÊö         :ÏµÍ³Ö÷º¯Êý,Õû¸öÈí¼þµÄÈë¿Ú
+ 661          *ÊäÈë²ÎÊý       :
+ 662          *·µ»ØÖµ       :   
+ 663          *È«¾Ö±äÁ¿     :
+ 664          *µ÷ÓÃÄ£¿é       :
+ 665          ***********************************************************
+ 666          *´´½¨ÈË           :ÒüÔËÍ¬
+ 667          *´´½¨ÈÕÆÚ     :2008-9-22
+ 668          ***********************************************************
+ 669          *ÐÞ¸ÄÈË         :
+ 670          *ÐÞ¸ÄÈÕÆÚ       :
+ 671          *×¢ÊÍ           :
+ 672          **********************************************************/
+ 673          void main(void)
+ 674          {   
+ 675   1        //RD_ID();
+ 676   1        P4SW=0X70;
+ 677   1        EPH1660_CS=0; //½ûÖ¹
+ 678   1        Delayms(200);
+ 679   1        //²Ù×÷ÏµÍ³³õÊ¼»¯  
+ 680   1        OSInit();
+ 681   1      
+ 682   1        led0=1;
+ 683   1        //´´½¨ÏµÍ³Ö÷Ïß³Ì
+ 684   1        OSTaskCreate(MainTask, NULL, 0); 
+ 685   1        
+ 686   1        while(1)
+ 687   1          {
+ 688   2          _nop_();
+ 689   2       //      PCON = PCON | 0x01;                    //CPU½øÈëÐÝÃß×´Ì¬     
+ 690   2          }  
+ 691   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1739    ----
+   CONSTANT SIZE    =     24    ----
+   XDATA SIZE       =    121      32
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =     16    ----
+   BIT SIZE         =      3    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  4 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,10 @@
+"Key.obj",
+"IAP.obj",
+"LcdDriver.obj",
+"main.obj",
+"SingleBus.obj",
+"SPI.obj",
+"uart.obj",
+"Data.obj" 
+TO "MKTFT-V3.0" 
+RAMSIZE(256) 

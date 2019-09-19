@@ -1,0 +1,3928 @@
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE SINGLEBUS
+OBJECT MODULE PLACED IN SingleBus.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE SingleBus.c LARGE BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *            湖南一特电子股份有限公司
+   4          *             All Rights Reserved
+   5          *              
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称         :SingleBus.c
+   9          *文件描述       :单总线程序
+  10          *创建人         :尹运同
+  11          *创建日期       :2008-9-22
+  12          *版本号           :V1.0
+  13          *注释         :         
+  14          *----------------------------------------------------------
+  15          *修改人       :
+  16          *修改日期       :
+  17          *版本号           :
+  18          *注释         :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_SINGLE_BUS_
+  22          #include "config.h"
+  23          
+  24          
+  25          
+  26          
+  27          //总线0变量定义  总线0用于与外部设备通信
+  28          uint8 bdata byBus0State0  = 0;              //单总线0状态字1
+  29          sbit  bBus0StartRec     = byBus0State0^0;       //单总线0开始接收起始位标志
+  30          sbit  bBus0OnRec      = byBus0State0^1;       //单总线0开始接收数据位标志
+  31          sbit  bBus0Enable     = byBus0State0^2;       //单总线0允许发送标志
+  32          sbit  bBus0ReqSend      = byBus0State0^3;       //单总线0请求发送标志
+  33          sbit  bBus0OnSendBit    = byBus0State0^4;       //单总线0正在发送一个数据位标志
+  34          sbit  bBus0OnSendFreq   = byBus0State0^5;       //单总线0正在发送一个数据帧标志
+  35          sbit  bBus0SendError    = byBus0State0^6;       //单总线0发送错误标志
+  36          sbit  bBus0Error      = byBus0State0^7;       //单总线0故障标志
+  37          uint8 bdata byBus0State1  = 0;                //单总线0状态字2
+  38          sbit  bBus0RecFinish    = byBus0State1^0;       //单总线0接收完成标志
+  39          sbit  bBus0RecBit9      = byBus0State1^1;       //单总线0接收字节数据的第9位
+  40          sbit  bBus0SendFinish   = byBus0State1^2;       //单总线0发送完成标志
+  41          sbit  bBus0Disable      = byBus0State1^3;       //单总线0禁止发送标志
+  42          sbit  bBus0SendBit      = byBus0State1^4;       //单总线0正在发送的数据位
+  43          sbit  bBus0RecBit     = byBus0State1^5;         //单总线0正在接收的数据位
+  44          uint8 data byBus0RecCount = 0;                //高4位是总线0接收定时中断计数，低4位是接收到的位计数
+  45          uint8 data byBus0RecBuf;                  //总线0接收缓冲单元
+  46          uint8 data byBus0SendBuf;                 //总线0发送缓冲单元 
+  47          uint8 xdata byBus0RecData[BUS0_FREQ_SIZE];          //总线0接收缓冲区
+  48          uint8 xdata byBus0SendData[BUS0_FREQ_SIZE];         //总线0发送缓冲区
+  49          uint8 data byBus0SendCount = 0;               //高4位是总线0发送定时中断计数，低4位是发送的位计数
+  50          uint8 data byBus0RecSendCount = 0;              //高4位是总线0接收到的字节计数，低4位是总线0发送完的字节计数
+  51          uint8 data byBus0SendStopCount;               //总线0停止时间计数
+  52          uint8 data byBus0RecTimeOut = 0;              //总线0接收超时计数
+  53          uint8 data byBus0DisableCount = 0;              //总线0禁止计数  
+  54          uint8 xdata byBus0TxQ[BUS0_TX_Q_ZISE];            //总线0发送队列             
+  55          uint8 data byBus0TxHead = 0;                //单总线0发送队列头指针
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 2   
+
+  56          uint8 data byBus0TxTail = 0;                //单总线0发送队列尾指针
+  57          #define IncBus0TxPtr(addr)    {addr=(addr+1)%BUS0_TX_Q_ZISE;}
+  58          #define Bus0TxBuffLen()       ((byBus0TxTail+BUS0_TX_Q_ZISE-byBus0TxHead)%BUS0_TX_Q_ZISE)  
+  59          sbit  Bus0RecPin  = P3^2;                 //单总线0接收引脚定义
+  60          sbit  Bus0SendPin = P1^7;                 //单总线0发送引脚定义
+  61          
+  62          
+  63          
+  64          //总线1变量定义    总线1用于与内部模块通信
+  65          uint8 bdata byBus1State0  = 0;              //单总线1状态字1
+  66          sbit  bBus1StartRec     = byBus1State0^0;       //单总线1开始接收起始位标志
+  67          sbit  bBus1OnRec      = byBus1State0^1;       //单总线1开始接收数据位标志
+  68          sbit  bBus1Enable     = byBus1State0^2;       //单总线1允许发送标志
+  69          sbit  bBus1ReqSend      = byBus1State0^3;       //单总线1请求发送标志
+  70          sbit  bBus1OnSendBit    = byBus1State0^4;       //单总线1正在发送一个数据位标志
+  71          sbit  bBus1OnSendFreq   = byBus1State0^5;       //单总线1正在发送一个数据帧标志
+  72          sbit  bBus1SendError    = byBus1State0^6;       //单总线1发送错误标志
+  73          sbit  bBus1Error      = byBus1State0^7;       //单总线1故障标志
+  74          uint8 bdata byBus1State1  = 0;                //单总线1状态字2
+  75          sbit  bBus1RecFinish    = byBus1State1^0;       //单总线1接收完成标志
+  76          sbit  bBus1RecBit9      = byBus1State1^1;       //单总线1接收字节数据的第9位
+  77          sbit  bBus1SendFinish   = byBus1State1^2;       //单总线1发送完成标志
+  78          sbit  bBus1Disable      = byBus1State1^3;       //单总线1禁止发送标志
+  79          sbit  bBus1SendBit      = byBus1State1^4;       //单总线1正在发送的数据位
+  80          sbit  bBus1RecBit     = byBus1State1^5;         //单总线1正在接收的数据位
+  81          uint8 data byBus1RecCount = 0;                //高4位是总线1接收定时中断计数，低4位是接收到的位计数
+  82          uint8 data byBus1RecBuf;                  //总线1接收缓冲单元
+  83          uint8 data byBus1SendBuf;                 //总线1发送缓冲单元 
+  84          uint8 xdata byBus1RecData[BUS1_FREQ_SIZE];          //总线1接收缓冲区
+  85          uint8 xdata byBus1SendData[BUS1_FREQ_SIZE];         //总线1发送缓冲区
+  86          uint8 data byBus1SendCount = 0;               //高4位是总线1发送定时中断计数，低4位是发送的位计数
+  87          uint8 data byBus1RecSendCount = 0;              //高4位是总线1接收到的字节计数，低4位是总线1发送完的字节计数
+  88          uint8 data byBus1SendStopCount;               //总线1停止时间计数
+  89          uint8 data byBus1RecTimeOut = 0;              //总线1接收超时计数
+  90          uint8 data byBus1DisableCount = 0;              //总线1禁止计数  
+  91          uint8 xdata byBus1TxQ[BUS1_TX_Q_ZISE];            //总线1发送队列             
+  92          uint8 data byBus1TxHead = 0;                //单总线1发送队列头指针
+  93          uint8 data byBus1TxTail = 0;                //单总线1发送队列尾指针
+  94          #define IncBus1TxPtr(addr)    {addr=(addr+1)%BUS1_TX_Q_ZISE;}
+  95          #define Bus1TxBuffLen()       ((byBus1TxTail+BUS1_TX_Q_ZISE-byBus1TxHead)%BUS1_TX_Q_ZISE)  
+  96          sbit  Bus1RecPin  = P3^3;                 //单总线1接收引脚定义
+  97          sbit  Bus1SendPin = P3^4;                   //单总线1发送引脚定义
+  98          
+  99          
+ 100          uint8 xdata byIrDARecBuff[8], byIrDADealBuff[6];    //红外接收区、处理缓冲区
+ 101          
+ 102          uint8 xdata MoveFjNum;  //移动分机号
+ 103          //变量定义   
+ 104          extern uint8  OS_Q_MEM_SEL  byMainCmdQ[]; 
+ 105          extern STLocalControl   xdata stLocalControl; 
+ 106          extern uint8  xdata byUsart0SndDealBuf[];  
+ 107          
+ 108          extern unsigned char code ParameterData[];
+ 109          
+ 110          
+ 111          bit bBus0SndBitOk=0;
+ 112          //bit bBus1SndBitOk=0;
+ 113          
+ 114          /**********************************************************
+ 115          *函数名称     :SingleBusInit  
+ 116          *函数描述         :单总线初始化
+ 117          *输入参数       :
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 3   
+
+ 118          *返回值       :   
+ 119          *全局变量     :
+ 120          *调用模块       :
+ 121          ***********************************************************
+ 122          *创建人           :尹运同
+ 123          *创建日期     :2008-9-22
+ 124          ***********************************************************
+ 125          *修改人         :
+ 126          *修改日期       :
+ 127          *注释           :
+ 128          **********************************************************/
+ 129          void SingleBusInit(void)
+ 130          {
+ 131   1      
+ 132   1        //STC12C56系列::M0=0,M1=0:准双向，M0=0,M1=1:推挽，M0=1,M1=0:高阻，M0=1,M1=1:开漏
+ 133   1        //总线0发送脚设置为推挽输出，接收脚设置为准双向
+ 134   1        //P3^2,准双向,P1^7,推挽
+ 135   1        P3M0 &= (~Bin(0,0,0,0,0,1,0,0));
+ 136   1        P3M1 &= (~Bin(0,0,0,0,0,1,0,0));
+ 137   1        P1M0 &= (~Bin(1,0,0,0,0,0,0,0));
+ 138   1        P1M1 |=   Bin(1,0,0,0,0,0,0,0);
+ 139   1      
+ 140   1        
+ 141   1        //总线1发送脚设置为开漏输出，接收脚设置为高阻输入
+ 142   1        //P3^3,高阻输入
+ 143   1        P3M0 |= ( Bin(0,0,0,0,1,0,0,0));
+ 144   1        P3M1 &= (~Bin(0,0,0,0,1,0,0,0));
+ 145   1      
+ 146   1      
+ 147   1        //P3^4,开漏输出
+ 148   1        P3M0 |=  (Bin(0,0,0,1,0,0,0,0));
+ 149   1        P3M1 |=  (Bin(0,0,0,1,0,0,0,0));
+ 150   1      
+ 151   1      
+ 152   1        //总线电平设置
+ 153   1        Bus0SendPin = 0;
+ 154   1        Bus0RecPin = 1; 
+ 155   1        Bus1SendPin = 1;
+ 156   1        Bus1RecPin = 1;    
+ 157   1        
+ 158   1        
+ 159   1        //定时器0初始化:自动重载方式,定时93.75us   
+ 160   1        TMOD &= 0xf0;   //  ;t1作波特率发生器(不变)，
+ 161   1        TMOD |= 0X01; //t0作方式1（16位)定时器
+ 162   1      
+ 163   1        TL0 = TIMER0_L;
+ 164   1        TH0 = TIMER0_H;
+ 165   1        TF0 = 0;                        //清除中断标志
+ 166   1        AUXR &= (~T0x12);                   //传统12分频速度  
+ 167   1          ET0 = 1;                        //允许定时器0中断 
+ 168   1        TR0 = 1;                        //启动定时器
+ 169   1        //其它控制设置
+ 170   1        byBus0SendStopCount = 240;                //上电总线0禁止发送时间设置
+ 171   1        byBus1SendStopCount = 240;                //上电总线1禁止发送时间设置
+ 172   1        IE0 = 0;                        //清除外部中断0标志
+ 173   1        IT0 = 1;                        //外部中断0为下降沿触发模式  
+ 174   1        IE1 = 0;                        //清除外部中断1标志
+ 175   1        IT1 = 1;                        //外部中断1为下降沿触发模式       
+ 176   1        if(Bus0RecPin)
+ 177   1        { //如果总线正常,开中断   
+ 178   2          EX0 = 1;
+ 179   2          
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 4   
+
+ 180   2        }
+ 181   1        else
+ 182   1        { //如果总线不正常,置总线故障标志       
+ 183   2          bBus0Error = 1;
+ 184   2        } 
+ 185   1        if(Bus1RecPin)
+ 186   1        { //如果总线正常,开中断   
+ 187   2          EX1 = 1;
+ 188   2        }
+ 189   1        else
+ 190   1        { //如果总线不正常,置总线故障标志       
+ 191   2          bBus1Error = 1;
+ 192   2        }   
+ 193   1      
+ 194   1      }
+ 195          /**********************************************************
+ 196          *函数名称     :Bus0RecInt 
+ 197          *函数描述         :外部中断0函数,单总线0接收中断
+ 198          *输入参数       :
+ 199          *返回值       :   
+ 200          *全局变量     :
+ 201          *调用模块       :
+ 202          ***********************************************************
+ 203          *创建人           :尹运同
+ 204          *创建日期     :2008-9-22
+ 205          ***********************************************************
+ 206          *修改人         :
+ 207          *修改日期       :
+ 208          *注释           :
+ 209          **********************************************************/
+ 210          #pragma disable
+ 211          void Bus0RecInt(void) interrupt X0_INTNO
+ 212          {   
+ 213   1        DisableBus0RecInt();                  //禁止再次下降沿中断
+ 214   1        bBus0StartRec = 1;                    //启动起始位沿检测
+ 215   1        bBus0Enable = 0;                    //禁止总线发送              
+ 216   1        byBus0RecCount = 0;                   //清接收寄存器  
+ 217   1      
+ 218   1        if(bBus0ReqSend ==1)
+ 219   1        {//请求发送状态
+ 220   2          byBus0SendStopCount = 240;
+ 221   2        }
+ 222   1      
+ 223   1      }
+ 224          /**********************************************************
+ 225          *函数名称     :Bus1RecInt 
+ 226          *函数描述         :外部中断1函数,单总线1接收中断
+ 227          *输入参数       :
+ 228          *返回值       :   
+ 229          *全局变量     :
+ 230          *调用模块       :
+ 231          ***********************************************************
+ 232          *创建人           :陈卫国
+ 233          *创建日期     :2008-9-22
+ 234          ***********************************************************
+ 235          *修改人         :
+ 236          *修改日期       :
+ 237          *注释           :
+ 238          **********************************************************/
+ 239          #pragma disable
+ 240          void Bus1RecInt(void) interrupt X1_INTNO
+ 241          {   
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 5   
+
+ 242   1        DisableBus1RecInt();                  //禁止再次下降沿中断
+ 243   1        bBus1StartRec = 1;                    //启动起始位沿检测
+ 244   1        bBus1Enable = 0;                    //禁止总线发送              
+ 245   1        byBus1RecCount = 0;                   //清接收寄存器  
+ 246   1      }
+ 247          /**********************************************************
+ 248          *函数名称     :Timer0Int  
+ 249          *函数描述         :定时器0溢出中断,定时器每93.75us中断一次
+ 250                     程序间隔检查总线0与总线1的接收和发送
+ 251          *输入参数       :
+ 252          *返回值       :   
+ 253          *全局变量     :
+ 254          *调用模块       :
+ 255          ***********************************************************
+ 256          *创建人           :陈卫国
+ 257          *创建日期     :2008-9-22
+ 258          ***********************************************************
+ 259          *修改人         :
+ 260          *修改日期       :
+ 261          *注释           :
+ 262          **********************************************************/
+ 263          #pragma disable
+ 264          void Timer0Int(void) interrupt T0_INTNO
+ 265          { 
+ 266   1      
+ 267   1        TR0=0;
+ 268   1        TH0=TIMER0_H;
+ 269   1        TL0=TIMER0_L;
+ 270   1        TR0=1;
+ 271   1      
+ 272   1      
+ 273   1      //  TXD =!TXD;
+ 274   1      
+ 275   1        bBus0RecBit = Bus0RecPin; 
+ 276   1        bBus1RecBit = Bus1RecPin;                 //保存总线0、1接收引脚状态            
+ 277   1        /*******************************总线0接收处理***********************************/
+ 278   1        if(bBus0StartRec)                   //判断总线所处的状态，接收到起始位
+ 279   1        {     
+ 280   2          byBus0RecCount += 0x10;               //增加定时中断计数次数
+ 281   2          if(0x50 == (byBus0RecCount & 0xf0))         //到总线起始位检测时间
+ 282   2          {     
+ 283   3            bBus0StartRec = 0;
+ 284   3            byBus0RecCount = 0x00;              //重新开始计数      
+ 285   3            if(bBus0RecBit)     
+ 286   3            {   //无效起始位                                    
+ 287   4              if((!bBus0SendError)&&bBus0OnSendFreq)
+ 288   4              { //没有发生过总线发送错误,且有一帧数据正在发送,停止帧数据发送,置发送错误标志           
+ 289   5                byBus0State0 &= (~BUS0_SEND_CON);
+ 290   5                bBus0SendError = 1;
+ 291   5                Bus0SendPin = 0;            //释放总线          
+ 292   5              }       
+ 293   4              byBus0SendStopCount = 240;          
+ 294   4              byBus0RecSendCount = 0x00;          //接收出错,重置接收发送计数值
+ 295   4              EnableBus0RecInt();
+ 296   4              MUT = bMUTState;                //恢复语音功放的控制引脚
+ 297   4            }
+ 298   3            else                
+ 299   3            { //有效起始位
+ 300   4              bBus0OnRec = 1;               //开始接收数据位  
+ 301   4            }
+ 302   3          }
+ 303   2        }
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 6   
+
+ 304   1        else if(bBus0OnRec)
+ 305   1        {   
+ 306   2          byBus0RecCount += 0x10;               //增加定时中断计数次数      
+ 307   2          if(0xa0 == (byBus0RecCount & 0xf0))
+ 308   2          {
+ 309   3            byBus0RecCount &= 0x0f;             //清除定时中断计数次数
+ 310   3            byBus0RecCount += 0x01;
+ 311   3            if(0x0a == (byBus0RecCount & 0x0f)) 
+ 312   3            { //收到第10位,结束位           
+ 313   4              bBus0OnRec = 0;               //停止数据接收          
+ 314   4              if(bBus0RecBit)
+ 315   4              { //有效的结束位              
+ 316   5                if(((bit)(byBus0RecSendCount & 0xf0) == bBus0RecBit9)) 
+ 317   5                { //数据桢错误
+ 318   6                  byBus0RecTimeOut = 0;
+ 319   6                  byBus0RecSendCount &= 0x0f;                     
+ 320   6                }
+ 321   5                else 
+ 322   5                { //数据桢正确          
+ 323   6                  byBus0RecTimeOut = 230;       //设置下一个字节数据接收超时时间
+ 324   6                  byBus0RecData[byBus0RecSendCount>>4] = byBus0RecBuf;
+ 325   6                  byBus0RecSendCount += 0x10;                                         
+ 326   6                  if((byBus0RecSendCount & 0xf0) >= BUS0_FREQ_SIZE_HI)
+ 327   6                  {                                           
+ 328   7                    byBus0RecSendCount &= 0x0f;             
+ 329   7                    if(!((bBus0OnSendFreq == 1)&&(bBus0ReqSend == 0)))
+ 330   7                    { //如果接收到的这帧数据是自己发送的不置标志              
+ 331   8                      bBus0RecFinish = 1;                                                                             
+ 332   8                    }                                     
+ 333   7                    byBus0RecTimeOut = 0;
+ 334   7                    byBus0DisableCount = 10;
+ 335   7                    bBus0Disable = 1;       //禁止总线使用
+ 336   7                    MUT = bMUTState;          //恢复语音功放的控制引脚
+ 337   7                  } 
+ 338   6                }       
+ 339   5                byBus0SendStopCount = 240;
+ 340   5                EnableBus0RecInt();           
+ 341   5              }
+ 342   4              else              
+ 343   4              { //无效结束位
+ 344   5                bBus0Error = 1;                   
+ 345   5                if((!bBus0SendError) && bBus0OnSendFreq)
+ 346   5                { //没有发生过总线发送错误,且有一帧数据正在发送,停止帧数据发送,置发送错误标志
+ 347   6                  byBus0State0 &= (~BUS0_SEND_CON);
+ 348   6                  bBus0SendError = 1;             
+ 349   6                  Bus0SendPin = 0;          //释放总线
+ 350   6                }
+ 351   5                byBus0RecSendCount = 0x00;        //接收出错,重置接收发送计数值
+ 352   5                MUT = bMUTState;              //恢复语音功放的控制引脚
+ 353   5              }
+ 354   4            }
+ 355   3            else if(0x09 == (byBus0RecCount & 0x0f))
+ 356   3            { //第9位数据
+ 357   4              bBus0RecBit9 = bBus0RecBit;         
+ 358   4            }
+ 359   3            else                      
+ 360   3            {   //有效数据位
+ 361   4              byBus0RecBuf >>= 1;
+ 362   4              if(bBus0RecBit)
+ 363   4              { //为高电平
+ 364   5                byBus0RecBuf |= 0x80;
+ 365   5              } 
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 7   
+
+ 366   4            }
+ 367   3          }
+ 368   2        }
+ 369   1        /*******************************总线1接收处理***********************************/
+ 370   1        if(bBus1StartRec)                   //判断总线所处的状态,接收到起始位
+ 371   1        {     
+ 372   2          byBus1RecCount += 0x10;               //增加定时中断计数次数
+ 373   2          if(0x50 == (byBus1RecCount & 0xf0))         //到总线起始位检测时间
+ 374   2          {     
+ 375   3            bBus1StartRec = 0;
+ 376   3            byBus1RecCount = 0x00;              //重新开始计数      
+ 377   3            if(bBus1RecBit)     
+ 378   3            {   //无效起始位                                    
+ 379   4              if((!bBus1SendError)&&bBus1OnSendFreq)
+ 380   4              { //没有发生过总线发送错误,且有一帧数据正在发送,停止帧数据发送,置发送错误标志         
+ 381   5                byBus1State0 &= (~BUS1_SEND_CON);
+ 382   5                bBus1SendError = 1;
+ 383   5                Bus1SendPin = 1;            //释放总线          
+ 384   5              }       
+ 385   4              byBus1SendStopCount = 240;          
+ 386   4              byBus1RecSendCount = 0x00;          //接收出错，重置接收发送计数值
+ 387   4              EnableBus1RecInt();
+ 388   4            }
+ 389   3            else                      //有效起始位
+ 390   3            {
+ 391   4              bBus1OnRec = 1;               //开始接收数据位                      
+ 392   4            }
+ 393   3          }
+ 394   2        }
+ 395   1        else if(bBus1OnRec)
+ 396   1        {   
+ 397   2          byBus1RecCount += 0x10;               //增加定时中断计数次数      
+ 398   2          if(0xa0 == (byBus1RecCount & 0xf0))
+ 399   2          {
+ 400   3            byBus1RecCount &= 0x0f;             //清除定时中断计数次数
+ 401   3            byBus1RecCount += 0x01;
+ 402   3            if(0x0a == (byBus1RecCount & 0x0f)) 
+ 403   3            { //收到第10位,结束位           
+ 404   4              bBus1OnRec = 0;               //停止数据接收          
+ 405   4              if(bBus1RecBit)
+ 406   4              { //有效的结束位              
+ 407   5                if(((bit)(byBus1RecSendCount & 0xf0) == bBus1RecBit9)) 
+ 408   5                { //数据桢错误
+ 409   6                  byBus1RecTimeOut = 0;
+ 410   6                  byBus1RecSendCount &= 0x0f;                     
+ 411   6                }
+ 412   5                else 
+ 413   5                { //数据桢正确          
+ 414   6                  byBus1RecTimeOut = 230;
+ 415   6                  byBus1RecData[byBus1RecSendCount>>4] = byBus1RecBuf;
+ 416   6                  byBus1RecSendCount += 0x10;                                         
+ 417   6                  if((byBus1RecSendCount & 0xf0) >= BUS1_FREQ_SIZE_HI)
+ 418   6                  {                                           
+ 419   7                    byBus1RecSendCount &= 0x0f; 
+ 420   7                    if(!((bBus1OnSendFreq == 1)&&(bBus1ReqSend==0)))
+ 421   7                    { //如果接收到的这帧数据是自己发送的不置标志            
+ 422   8                      bBus1RecFinish = 1;                                                                             
+ 423   8                    }                                     
+ 424   7                    byBus1RecTimeOut = 0;
+ 425   7                    byBus1DisableCount = 10;
+ 426   7                    bBus1Disable = 1;       //禁止总线使用              
+ 427   7                  } 
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 8   
+
+ 428   6                }       
+ 429   5                byBus1SendStopCount = 240;
+ 430   5                EnableBus1RecInt();           
+ 431   5              }
+ 432   4              else              
+ 433   4              { //无效结束位
+ 434   5                bBus1Error = 1;                   
+ 435   5                if((!bBus1SendError) && bBus1OnSendFreq)
+ 436   5                { //没有发生过总线发送错误,且有一帧数据正在发送,停止帧数据发送,置发送错误标志
+ 437   6                  byBus1State0 &= (~BUS1_SEND_CON);
+ 438   6                  bBus1SendError = 1;             
+ 439   6                  Bus1SendPin = 1;          //释放总线
+ 440   6                }
+ 441   5                byBus1RecSendCount = 0x00;        //接收出错,重置接收发送计数值
+ 442   5              }
+ 443   4            }
+ 444   3            else if(0x09 == (byBus1RecCount & 0x0f))
+ 445   3            { //第9位数据
+ 446   4              bBus1RecBit9 = bBus1RecBit;         
+ 447   4            }
+ 448   3            else                      //有效数据位
+ 449   3            { 
+ 450   4              byBus1RecBuf >>= 1;
+ 451   4              if(bBus1RecBit)
+ 452   4              { //为高电平
+ 453   5                byBus1RecBuf |= 0x80;
+ 454   5              } 
+ 455   4            }
+ 456   3          }
+ 457   2        } 
+ 458   1        /*******************************总线0发送处理***********************************/
+ 459   1        if((byBus0State0 & BUS0_CAN_SEND) == BUS0_CAN_SEND)
+ 460   1        { //总线0上有数据发送请求,且总线允许发送    
+ 461   2          if(bBus0RecBit)
+ 462   2          { //总线正常,可以发送
+ 463   3            Bus0SendPin = 1;
+ 464   3            bBus0SendBit = 0;               //发送起始位数据      
+ 465   3            byBus0SendCount = 0;
+ 466   3            byBus0State0 &= (~BUS0_CAN_SEND);
+ 467   3            byBus0SendBuf = byBus0SendData[byBus0RecSendCount & 0x0f];
+ 468   3            bBus0OnSendBit = 1;               //取出待发送的数据并置正在发送标志    
+ 469   3          }
+ 470   2          else
+ 471   2          { //总线不正常,停止发送
+ 472   3            byBus0State0 &= (~BUS0_SEND_CON);
+ 473   3            bBus0SendError = 1;     
+ 474   3            byBus0RecSendCount &= 0xf0;
+ 475   3            Bus0SendPin = 0;
+ 476   3            byBus0SendStopCount = 240;      
+ 477   3          }
+ 478   2        }
+ 479   1        else if(bBus0OnSendBit)
+ 480   1        {   //有数据位正在发送,首先发送的是起始位 
+ 481   2          byBus0SendCount += 0x10;
+ 482   2          if(0x50 == (byBus0SendCount & 0xf0))
+ 483   2          {//处于一个数据位的中间
+ 484   3            if(bBus0SendBit == bBus0RecBit)  bBus0SndBitOk =1;
+ 485   3            else
+ 486   3            { //不相同,发送失败               
+ 487   4              byBus0State0 &= ~BUS0_SEND_CON;
+ 488   4              byBus0RecSendCount &= 0xf0;
+ 489   4              bBus0SendError = 1;         
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 9   
+
+ 490   4              Bus0SendPin = 0; 
+ 491   4              byBus0SendStopCount = 240;
+ 492   4              bBus0SndBitOk =0;
+ 493   4            }     
+ 494   3          }
+ 495   2          
+ 496   2          //if(bBus0SendBit == bBus0RecBit)   
+ 497   2          else if(bBus0SndBitOk==1)
+ 498   2          { //发送的数据和接收的数据相同
+ 499   3          //  byBus0SendCount += 0x10;
+ 500   3            if(0xa0 == (byBus0SendCount & 0xf0))
+ 501   3            { //一位数据发送完毕,首先发送的是起始位
+ 502   4              bBus0SndBitOk=0;
+ 503   4            
+ 504   4              byBus0SendCount &= 0x0f;
+ 505   4              byBus0SendCount += 0x01;        
+ 506   4              if(0x09 == (byBus0SendCount & 0x0f))
+ 507   4              { //发送到第9位了
+ 508   5                bBus0SendBit = !(bit)(byBus0RecSendCount & 0x0f);
+ 509   5                Bus0SendPin = !bBus0SendBit;            
+ 510   5              }
+ 511   4              else if(0x0a == (byBus0SendCount & 0x0f))
+ 512   4              { //发送到结束位了
+ 513   5                bBus0SendBit = 1;
+ 514   5                Bus0SendPin = 0;  
+ 515   5              }
+ 516   4              else if(0x0b == (byBus0SendCount & 0x0f))
+ 517   4              { //已经发送完结束位了
+ 518   5                bBus0OnSendBit = 0;           
+ 519   5                byBus0RecSendCount += 0x01;                 
+ 520   5                if((byBus0RecSendCount & 0x0f) >= BUS0_FREQ_SIZE)
+ 521   5                { //发送完一帧数据                        
+ 522   6                  byBus0RecSendCount &= 0xf0;     //重新进入数据帧的发送阶段
+ 523   6                  byBus0State0 &= (~BUS0_SEND_CON);
+ 524   6                  byBus0SendStopCount = 240;
+ 525   6                  byBus0State1 |= BUS0_SEND_FINISH;               
+ 526   6                  byBus0DisableCount = 10; 
+ 527   6                }
+ 528   5                else
+ 529   5                {             
+ 530   6                  byBus0SendStopCount = 10;
+ 531   6                  bBus0ReqSend = 1;
+ 532   6                }
+ 533   5                EnableBus0RecInt();           //再次使能接收中断
+ 534   5              }
+ 535   4              else
+ 536   4              {
+ 537   5                if(byBus0SendBuf & 0x01)
+ 538   5                { //发送高电平
+ 539   6                  bBus0SendBit = 1;
+ 540   6                  Bus0SendPin = 0;          
+ 541   6                }
+ 542   5                else
+ 543   5                { //发送低电平
+ 544   6                  bBus0SendBit = 0;
+ 545   6                  Bus0SendPin = 1;
+ 546   6                }
+ 547   5                byBus0SendBuf >>= 1;          //发送数据位移位操作
+ 548   5              }
+ 549   4            }
+ 550   3          }
+ 551   2      /*    else
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 10  
+
+ 552   2          { //不相同,发送失败               
+ 553   2            byBus0State0 &= ~BUS0_SEND_CON;
+ 554   2            byBus0RecSendCount &= 0xf0;
+ 555   2            bBus0SendError = 1;         
+ 556   2            Bus0SendPin = 0; 
+ 557   2            byBus0SendStopCount = 240;
+ 558   2          }*/
+ 559   2        }   
+ 560   1        /*******************************总线1发送处理***********************************/
+ 561   1        if((byBus1State0 & BUS1_CAN_SEND) == BUS1_CAN_SEND)
+ 562   1        { //总线0上有数据发送请求,且总线允许发送    
+ 563   2          if(bBus1RecBit)
+ 564   2          { //总线正常,可以发送
+ 565   3            Bus1SendPin = 0;
+ 566   3            bBus1SendBit = 0;       
+ 567   3            byBus1SendCount = 0;
+ 568   3            byBus1State0 &= (~BUS1_CAN_SEND);
+ 569   3            byBus1SendBuf = byBus1SendData[byBus1RecSendCount & 0x0f];
+ 570   3            bBus1OnSendBit = 1;     
+ 571   3          }
+ 572   2          else
+ 573   2          { //总线不正常,停止发送
+ 574   3            byBus1State0 &= (~BUS1_SEND_CON);
+ 575   3            bBus1SendError = 1;     
+ 576   3            byBus1RecSendCount &= 0xf0;
+ 577   3            Bus1SendPin = 1;
+ 578   3            byBus1SendStopCount = 240;
+ 579   3          }
+ 580   2        }
+ 581   1        else if(bBus1OnSendBit)
+ 582   1        {   //有数据位正在发送,首先发送的是起始位     
+ 583   2          if(bBus1SendBit == bBus1RecBit)       
+ 584   2          { //发送的数据和接收的数据相同
+ 585   3            byBus1SendCount += 0x10;
+ 586   3            if(0xa0 == (byBus1SendCount & 0xf0))
+ 587   3            { //一位数据发送完毕,首先发送的是起始位
+ 588   4              byBus1SendCount &= 0x0f;
+ 589   4              byBus1SendCount += 0x01;        
+ 590   4              if(0x09 == (byBus1SendCount & 0x0f))
+ 591   4              { //发送到第9位了
+ 592   5                bBus1SendBit = !(bit)(byBus1RecSendCount & 0x0f);
+ 593   5                Bus1SendPin = bBus1SendBit;           
+ 594   5              }
+ 595   4              else if(0x0a == (byBus1SendCount & 0x0f))
+ 596   4              { //发送到结束位了
+ 597   5                bBus1SendBit = 1;
+ 598   5                Bus1SendPin = 1;  
+ 599   5              }
+ 600   4              else if(0x0b == (byBus1SendCount & 0x0f))
+ 601   4              { //已经发送完结束位了
+ 602   5                bBus1OnSendBit = 0;           
+ 603   5                byBus1RecSendCount += 0x01;                 
+ 604   5                if((byBus1RecSendCount & 0x0f) >= BUS1_FREQ_SIZE)
+ 605   5                { //发送完一帧数据                        
+ 606   6                  byBus1RecSendCount &= 0xf0;     //重新进入数据帧的发送阶段
+ 607   6                  byBus1State0 &= (~BUS1_SEND_CON);
+ 608   6                  byBus1SendStopCount = 240;
+ 609   6                  byBus1State1 |= BUS1_SEND_FINISH;               
+ 610   6                  byBus1DisableCount = 10;                
+ 611   6                }
+ 612   5                else
+ 613   5                {             
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 11  
+
+ 614   6                  byBus1SendStopCount = 10;
+ 615   6                  bBus1ReqSend = 1;
+ 616   6                }
+ 617   5                EnableBus1RecInt();           //再次使能接收中断
+ 618   5              }
+ 619   4              else
+ 620   4              {
+ 621   5                if(byBus1SendBuf & 0x01)
+ 622   5                { //发送高电平
+ 623   6                  bBus1SendBit = 1;
+ 624   6                  Bus1SendPin = 1;          
+ 625   6                }
+ 626   5                else
+ 627   5                { //发送低电平
+ 628   6                  bBus1SendBit = 0;
+ 629   6                  Bus1SendPin = 0;
+ 630   6                }
+ 631   5                byBus1SendBuf >>= 1;          //发送数据位移位操作
+ 632   5              }
+ 633   4            }
+ 634   3          }
+ 635   2          else
+ 636   2          { //不相同,发送失败               
+ 637   3            byBus1State0 &= ~BUS1_SEND_CON;
+ 638   3            byBus1RecSendCount &= 0xf0;
+ 639   3            bBus1SendError = 1;         
+ 640   3            Bus1SendPin = 1; 
+ 641   3            byBus1SendStopCount = 240;
+ 642   3          }
+ 643   2        }   
+ 644   1        /*******************************总线0控制处理***********************************/
+ 645   1        if(0 == (byBus0State0 & BUS0_ON_REC))
+ 646   1        { 
+ 647   2          if(byBus0SendStopCount != 0)
+ 648   2          {
+ 649   3            if((--byBus0SendStopCount) == 0)
+ 650   3            {       
+ 651   4              bBus0Enable = 1;  
+ 652   4            }
+ 653   3          }   
+ 654   2          if(bBus0Error)
+ 655   2          {               
+ 656   3            bBus0Enable = 0;      
+ 657   3            if(bBus0RecBit)
+ 658   3            {       
+ 659   4              bBus0Error = 0;
+ 660   4              EnableBus0RecInt();
+ 661   4              byBus0SendStopCount = 240;
+ 662   4            }
+ 663   3          }
+ 664   2        }  
+ 665   1        /*******************************总线1控制处理***********************************/
+ 666   1        if(0 == (byBus1State0 & BUS1_ON_REC))
+ 667   1        {
+ 668   2          if(byBus1SendStopCount != 0)
+ 669   2          {
+ 670   3            if((--byBus1SendStopCount) == 0)
+ 671   3            {       
+ 672   4              bBus1Enable = 1;                
+ 673   4            }
+ 674   3          }   
+ 675   2          if(bBus1Error)
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 12  
+
+ 676   2          {               
+ 677   3            bBus1Enable = 0;      
+ 678   3            if(bBus1RecBit)
+ 679   3            {       
+ 680   4              bBus1Error = 0;
+ 681   4              EnableBus1RecInt();
+ 682   4              byBus1SendStopCount = 240;
+ 683   4            }
+ 684   3          }
+ 685   2        }   
+ 686   1        /*******************************总线0超时处理***********************************/
+ 687   1        if(byBus0RecTimeOut != 0)
+ 688   1        {
+ 689   2          if(--byBus0RecTimeOut == 0)             
+ 690   2          { //接收超时到
+ 691   3            byBus0RecSendCount &= 0x0f;
+ 692   3            MUT = bMUTState;                  //恢复语音功放的控制引脚
+ 693   3          }
+ 694   2        }
+ 695   1        if(byBus0DisableCount != 0)
+ 696   1        {
+ 697   2          if(--byBus0DisableCount == 0)           
+ 698   2          { //禁止超时到    
+ 699   3            bBus0Disable = 0;
+ 700   3          }
+ 701   2        } 
+ 702   1        /*******************************总线1超时处理***********************************/
+ 703   1        if(byBus1RecTimeOut != 0)
+ 704   1        {
+ 705   2          if(--byBus1RecTimeOut == 0)             
+ 706   2          { //接收超时到
+ 707   3            byBus1RecSendCount &= 0x0f;
+ 708   3          }
+ 709   2        }
+ 710   1        if(byBus1DisableCount != 0)
+ 711   1        {
+ 712   2          if(--byBus1DisableCount == 0)           
+ 713   2          { //禁止超时到    
+ 714   3            bBus1Disable = 0;
+ 715   3          }
+ 716   2        } 
+ 717   1        /***********总线0自动发送管理**********/   
+ 718   1        if((byBus0State0 & BUS0_ON_WORK) == 0x00)       
+ 719   1        { //总线0没有工作       
+ 720   2          if(bBus0SendError)            
+ 721   2          { //产生了发送错误,自动重发               
+ 722   3            bBus0SendError = 0;       
+ 723   3            byBus0State0 |= BUS0_REQ_SEND;    
+ 724   3          }
+ 725   2          else                  
+ 726   2          { //总线0无发送错误   
+ 727   3            if(!(bBus0SendFinish|bBus0Disable))
+ 728   3            { //总线0没有禁止使用,且发送结束处理已经完成
+ 729   4              if(Bus0TxBuffLen() >= BUS0_FREQ_SIZE)
+ 730   4              {   //有一帧完整的数据在发送队列中                                    
+ 731   5                byBus0SendData[0] = byBus0TxQ[byBus0TxHead];
+ 732   5                IncBus0TxPtr(byBus0TxHead);
+ 733   5                byBus0SendData[1] = byBus0TxQ[byBus0TxHead];
+ 734   5                IncBus0TxPtr(byBus0TxHead);
+ 735   5                byBus0SendData[2] = byBus0TxQ[byBus0TxHead];
+ 736   5                IncBus0TxPtr(byBus0TxHead);
+ 737   5                byBus0SendData[3] = byBus0TxQ[byBus0TxHead];
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 13  
+
+ 738   5                IncBus0TxPtr(byBus0TxHead);
+ 739   5                byBus0SendData[4] = byBus0TxQ[byBus0TxHead];
+ 740   5                IncBus0TxPtr(byBus0TxHead);
+ 741   5                byBus0SendData[5] = byBus0TxQ[byBus0TxHead];
+ 742   5                IncBus0TxPtr(byBus0TxHead);
+ 743   5                byBus0SendData[6] = byBus0TxQ[byBus0TxHead];
+ 744   5                IncBus0TxPtr(byBus0TxHead); 
+ 745   5                byBus0State0 |= BUS0_REQ_SEND;            
+ 746   5              }
+ 747   4              else
+ 748   4              { //没有一帧完整的数据在发送队列中了
+ 749   5                byBus0TxHead = byBus0TxTail = 0;
+ 750   5              }               
+ 751   4            }
+ 752   3          }
+ 753   2        } 
+ 754   1        /***********总线1自动发送管理**********/   
+ 755   1        if((byBus1State0 & BUS1_ON_WORK) == 0x00) 
+ 756   1        { //总线1没有工作       
+ 757   2          if(bBus1SendError)            
+ 758   2          { //产生了发送错误,自动重发               
+ 759   3            bBus1SendError = 0;       
+ 760   3            byBus1State0 |= BUS1_REQ_SEND;    
+ 761   3          }
+ 762   2          else                  
+ 763   2          { //总线1无发送错误   
+ 764   3            if(!(bBus1SendFinish|bBus1Disable))
+ 765   3            { //总线0没有禁止使用,且发送结束处理已经完成
+ 766   4              if(Bus1TxBuffLen() >= BUS1_FREQ_SIZE)
+ 767   4              { //有一帧完整的数据在发送队列中                                      
+ 768   5                byBus1SendData[0] = byBus1TxQ[byBus1TxHead];
+ 769   5                IncBus1TxPtr(byBus1TxHead);
+ 770   5                byBus1SendData[1] = byBus1TxQ[byBus1TxHead];
+ 771   5                IncBus1TxPtr(byBus1TxHead);
+ 772   5                byBus1SendData[2] = byBus1TxQ[byBus1TxHead];
+ 773   5                IncBus1TxPtr(byBus1TxHead);
+ 774   5                byBus1SendData[3] = byBus1TxQ[byBus1TxHead];
+ 775   5                IncBus1TxPtr(byBus1TxHead);
+ 776   5                byBus1SendData[4] = byBus1TxQ[byBus1TxHead];
+ 777   5                IncBus1TxPtr(byBus1TxHead);
+ 778   5                byBus1SendData[5] = byBus1TxQ[byBus1TxHead];
+ 779   5                IncBus1TxPtr(byBus1TxHead);
+ 780   5                byBus1SendData[6] = byBus1TxQ[byBus1TxHead];
+ 781   5                IncBus1TxPtr(byBus1TxHead); 
+ 782   5                byBus1State0 |= BUS1_REQ_SEND;            
+ 783   5              }
+ 784   4              else
+ 785   4              { //没有一帧完整的数据在发送队列中了
+ 786   5                byBus1TxHead = byBus1TxTail = 0;
+ 787   5              }               
+ 788   4            }
+ 789   3          }
+ 790   2        }   
+ 791   1      } 
+ 792          /**********************************************************
+ 793          *函数名称     :BcdToHex 
+ 794          *函数描述         :BCD转换成十六进制
+ 795          *输入参数       :byData:待转换的BCD码数据
+ 796          *返回值       :
+ 797          *全局变量     :
+ 798          *调用模块       :
+ 799          ***********************************************************
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 14  
+
+ 800          *创建人           :陈卫国
+ 801          *创建日期     :2008-9-22
+ 802          ***********************************************************
+ 803          *修改人         :
+ 804          *修改日期       :
+ 805          *注释           :
+ 806          **********************************************************/ 
+ 807          uint8 BcdToHex(uint8 byData)
+ 808          {
+ 809   1        uint8 xdata byRet;
+ 810   1      
+ 811   1        byRet = byData >> 4;
+ 812   1        byRet *= 10;
+ 813   1        byData &= 0x0f;
+ 814   1        byRet += byData;
+ 815   1        return(byRet);
+ 816   1      }
+ 817          
+ 818          /**********************************************************
+ 819          *函数名称     :Bus0OutputData 
+ 820          *函数描述         :单总线0将待发送数据放入缓冲区
+ 821          *输入参数       :pbyData:待发送的数据指针
+ 822          *返回值       :TRUE:发送成功,FALSE:队列满,发送失败  
+ 823          *全局变量     :
+ 824          *调用模块       :
+ 825          ***********************************************************
+ 826          *创建人           :尹运同
+ 827          *创建日期     :2008-9-22
+ 828          ***********************************************************
+ 829          *修改人         :
+ 830          *修改日期       :
+ 831          *注释           :
+ 832          **********************************************************/
+ 833          uint8 Bus0OutputData(uint8* pbyData)
+ 834          {
+ 835   1        uint8 byTemp = BUS0_FREQ_SIZE;
+ 836   1      
+ 837   1        OS_ENTER_CRITICAL();
+ 838   1        if(Bus0TxBuffLen() >= (BUS0_TX_Q_ZISE - 1))
+ 839   1        { //没有空间存储了,失败 
+ 840   2          OS_EXIT_CRITICAL();
+ 841   2          return(FALSE);
+ 842   2        } 
+ 843   1        while(byTemp--)
+ 844   1        { //数据入发送队列
+ 845   2          byBus0TxQ[byBus0TxTail] = *pbyData++;
+ 846   2          IncBus0TxPtr(byBus0TxTail);
+ 847   2        }
+ 848   1        OS_EXIT_CRITICAL(); 
+ 849   1        return(TRUE); 
+ 850   1      }
+ 851          /**********************************************************
+ 852          *函数名称     :Bus1OutputData 
+ 853          *函数描述         :单总线1将待发送数据放入缓冲区
+ 854          *输入参数       :pbyData:待发送的数据指针
+ 855          *返回值       :TRUE:发送成功,FALSE:队列满,发送失败  
+ 856          *全局变量     :
+ 857          *调用模块       :
+ 858          ***********************************************************
+ 859          *创建人           :陈卫国
+ 860          *创建日期     :2008-9-22
+ 861          ***********************************************************
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 15  
+
+ 862          *修改人         :
+ 863          *修改日期       :
+ 864          *注释           :
+ 865          **********************************************************/
+ 866          uint8 Bus1OutputData(uint8* pbyData)
+ 867          {
+ 868   1        uint8 byTemp = BUS1_FREQ_SIZE;
+ 869   1      
+ 870   1        OS_ENTER_CRITICAL();
+ 871   1        if(Bus1TxBuffLen() >= (BUS1_TX_Q_ZISE - 1))
+ 872   1        { //没有空间存储了,失败 
+ 873   2          OS_EXIT_CRITICAL();
+ 874   2          return(FALSE);
+ 875   2        }  
+ 876   1        while(byTemp--)
+ 877   1        { //数据入发送队列
+ 878   2          byBus1TxQ[byBus1TxTail] = *pbyData++;
+ 879   2          IncBus1TxPtr(byBus1TxTail);
+ 880   2        }
+ 881   1        OS_EXIT_CRITICAL(); 
+ 882   1        return(TRUE); 
+ 883   1      }
+ 884          
+ 885          
+ 886          /**********************************************************
+ 887          *函数名称     :AddrCompare  
+ 888          *函数描述         :比较地址(含广播地址)
+ 889          *输入参数       :pstBusFreq:待比较的数据帧指针
+ 890          *返回值       :1:发送到本机的数据,0:不是发送到本机的数据  
+ 891          *全局变量     :
+ 892          *调用模块       :
+ 893          ***********************************************************
+ 894          *创建人           :尹运同
+ 895          *创建日期     :2008-9-22
+ 896          ***********************************************************
+ 897          *修改人         :
+ 898          *修改日期       :
+ 899          *注释           :
+ 900          **********************************************************/
+ 901          bit AddrCompare(pSTBusFreq pstBusFreq)
+ 902          {
+ 903   1        if((pstBusFreq->byRecSecAddr != 0xff) && (pstBusFreq->byRecSecAddr != stLocalControl.stEepromCfgData.bySe
+             -lfSecAddr))
+ 904   1        { 
+ 905   2          return(0);
+ 906   2        } 
+ 907   1        if((pstBusFreq->byRecRoomAddr != 0xff) && (pstBusFreq->byRecRoomAddr != stLocalControl.stEepromCfgData.by
+             -SelfRoomAddr))
+ 908   1        { 
+ 909   2          return(0);
+ 910   2        }
+ 911   1        if((pstBusFreq->byRecBedAddr != 0xff) && (pstBusFreq->byRecBedAddr != stLocalControl.stEepromCfgData.bySe
+             -lfBedAddr))
+ 912   1        { 
+ 913   2          return(0);
+ 914   2        }
+ 915   1        return(1); 
+ 916   1      
+ 917   1      /*  if((pstBusFreq->byRecSecAddr  == 0xff)&&
+ 918   1           (pstBusFreq->byRecRoomAddr == 0xff)&&
+ 919   1           (pstBusFreq->byRecBedAddr  == 0xff))
+ 920   1          return(1);
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 16  
+
+ 921   1        else if((pstBusFreq->byRecSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr)&&
+ 922   1             (pstBusFreq->byRecRoomAddr== stLocalControl.stEepromCfgData.bySelfRoomAddr)&&
+ 923   1             (pstBusFreq->byRecBedAddr == stLocalControl.stEepromCfgData.bySelfBedAddr))
+ 924   1             return(1);
+ 925   1        else return(0);*/ 
+ 926   1      }
+ 927          /**********************************************************
+ 928          *函数名称     :DirAddrCompare 
+ 929          *函数描述         :绝对比较地址
+ 930          *输入参数       :pstBusFreq:待比较的数据帧指针
+ 931          *返回值       :1:发送到本机的数据,0:不是发送到本机的数据  
+ 932          *全局变量     :
+ 933          *调用模块       :
+ 934          ***********************************************************
+ 935          *创建人           :尹运同
+ 936          *创建日期     :2008-9-22
+ 937          ***********************************************************
+ 938          *修改人         :
+ 939          *修改日期       :
+ 940          *注释           :
+ 941          **********************************************************/
+ 942          bit DirAddrCompare(pSTBusFreq pstBusFreq)
+ 943          {
+ 944   1        if(pstBusFreq->byRecSecAddr != stLocalControl.stEepromCfgData.bySelfSecAddr)
+ 945   1        { 
+ 946   2          return(0);
+ 947   2        } 
+ 948   1        if(pstBusFreq->byRecRoomAddr != stLocalControl.stEepromCfgData.bySelfRoomAddr)
+ 949   1        { 
+ 950   2          return(0);
+ 951   2        }
+ 952   1        if(pstBusFreq->byRecBedAddr != stLocalControl.stEepromCfgData.bySelfBedAddr)
+ 953   1        { 
+ 954   2          return(0);
+ 955   2        }
+ 956   1        return(1); 
+ 957   1      }
+ 958          
+ 959          
+ 960          
+ 961          uint8 DirRFSerialCompare()  //序列号最高位忽略
+ 962          {
+ 963   1        if(stLocalControl.stEepromCfgData.byRFSerialNum1!= stLocalControl.stBusDealFreq.bySndSecAddr)
+ 964   1        { 
+ 965   2          return(0);
+ 966   2        } 
+ 967   1        if(stLocalControl.stEepromCfgData.byRFSerialNum2!= stLocalControl.stBusDealFreq.bySndRoomAddr)
+ 968   1        { 
+ 969   2          return(0);
+ 970   2        }
+ 971   1        if(stLocalControl.stEepromCfgData.byRFSerialNum3!= stLocalControl.stBusDealFreq.bySndBedAddr)
+ 972   1        { 
+ 973   2          return(0);
+ 974   2        }
+ 975   1        if(stLocalControl.stEepromCfgData.byRFSerialNum4!= stLocalControl.stBusDealFreq.byRecSecAddr)
+ 976   1        { 
+ 977   2          return(0);
+ 978   2        } 
+ 979   1        if(stLocalControl.stEepromCfgData.byRFSerialNum5!= stLocalControl.stBusDealFreq.byRecRoomAddr)
+ 980   1        { 
+ 981   2          return(0);
+ 982   2        }
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 17  
+
+ 983   1        if(stLocalControl.stEepromCfgData.byRFSerialNum6!= stLocalControl.stBusDealFreq.byRecBedAddr)
+ 984   1        { 
+ 985   2          return(0);
+ 986   2        }
+ 987   1        
+ 988   1        return(1);  
+ 989   1      }
+ 990          
+ 991          /**********************************************************
+ 992          *函数名称     :MakeCH0TimerOut  
+ 993          *函数描述         :设置通道0超时参数
+ 994          *输入参数       :byTimerOut:超时时间,byTimerOutCount:超时次数
+ 995          *返回值       :
+ 996          *全局变量     :stLocalControl
+ 997          *调用模块       :
+ 998          ***********************************************************
+ 999          *创建人           :尹运同
+1000          *创建日期     :2008-9-22
+1001          ***********************************************************
+1002          *修改人         :
+1003          *修改日期       :
+1004          *注释           :
+1005          **********************************************************/  
+1006          void MakeCH0TimerOut(uint8 byTimerOut, uint8 byTimerOutCount)
+1007          {
+1008   1        stLocalControl.stCH0TimerOut.byTimerOutSet = byTimerOut;
+1009   1        stLocalControl.stCH0TimerOut.byTimerOut = byTimerOut;
+1010   1        stLocalControl.stCH0TimerOut.byTimerOutCount = byTimerOutCount; 
+1011   1      }
+1012          /**********************************************************
+1013          *函数名称     :MakeCH1TimerOut  
+1014          *函数描述         :设置通道1超时参数
+1015          *输入参数       :byTimerOut:超时时间,byTimerOutCount:超时次数
+1016          *返回值       :
+1017          *全局变量     :stLocalControl
+1018          *调用模块       :
+1019          ***********************************************************
+1020          *创建人           :尹运同
+1021          *创建日期     :2008-9-22
+1022          ***********************************************************
+1023          *修改人         :
+1024          *修改日期       :
+1025          *注释           :
+1026          **********************************************************/   
+1027          void MakeCH1TimerOut(uint8 byTimerOut, uint8 byTimerOutCount)
+1028          {
+1029   1        stLocalControl.stCH1Timerout.byTimerOutSet = byTimerOut;
+1030   1        stLocalControl.stCH1Timerout.byTimerOut = byTimerOut;
+1031   1        stLocalControl.stCH1Timerout.byTimerOutCount = byTimerOutCount; 
+1032   1      } 
+1033          
+1034          uint8 ParaCrcCheck(uint16 addr)
+1035          {
+1036   1        uint8 crcResult=0;
+1037   1        uint8 crcData =0;
+1038   1        uint8 i;
+1039   1        uint8 paraData;
+1040   1        EnableIAP(IAP_READ);
+1041   1        for(i=0;i<sizeof(STEepromCfgData)-1;i++)
+1042   1        {
+1043   2          paraData = IapReadByte(addr);
+1044   2          crcResult +=paraData; 
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 18  
+
+1045   2          addr++;
+1046   2        }
+1047   1        crcData = IapReadByte(addr);
+1048   1        DisableIAP();
+1049   1        
+1050   1        if(crcData == crcResult) return 1;
+1051   1        else return 0;
+1052   1      }
+1053          
+1054          
+1055          //计算stLocalControl.stEepromCfgData中的数据校验和
+1056          uint8 CalcParaCrc(void)
+1057          {
+1058   1        uint8 crcResult=0;
+1059   1        uint8 i;
+1060   1        uint8 *addr= &(stLocalControl.stEepromCfgData.byInitFlag);
+1061   1      
+1062   1        for(i=0;i<sizeof(STEepromCfgData)-1;i++)
+1063   1        {
+1064   2          crcResult += *addr;
+1065   2          addr++;
+1066   2        }
+1067   1      
+1068   1        return crcResult;
+1069   1      }
+1070          
+1071          
+1072          /**********************************************************
+1073          *函数名称     :SaveIndicationData 
+1074          *函数描述         :保存信息指示数据内容
+1075          *输入参数       :pstBus0SendFreq:待保存的数据帧指针
+1076          *返回值       :
+1077          *全局变量     :stLocalControl
+1078          *调用模块       :
+1079          ***********************************************************
+1080          *创建人           :尹运同
+1081          *创建日期     :2008-9-22
+1082          ***********************************************************
+1083          *修改人         :
+1084          *修改日期       :
+1085          *注释           :
+1086          **********************************************************/
+1087          void SaveIndicationData(pSTBusFreq pstBus0SendFreq)
+1088          {   
+1089   1        stLocalControl.stIndicationData.stAddr.bySndSecAddr = pstBus0SendFreq->bySndSecAddr;
+1090   1        stLocalControl.stIndicationData.stAddr.bySndRoomAddr = pstBus0SendFreq->bySndRoomAddr;
+1091   1        stLocalControl.stIndicationData.stAddr.bySndBedAddr = pstBus0SendFreq->bySndBedAddr;
+1092   1        stLocalControl.stIndicationData.byCallCmd = pstBus0SendFreq->byRecSecAddr; 
+1093   1      //  stLocalControl.stIndicationData.byCallCmd = pstBus0SendFreq->byCmd;
+1094   1      
+1095   1      }
+1096          /**********************************************************
+1097          *函数名称     :SaveCallAddr 
+1098          *函数描述         :保存主动通话方地址
+1099          *输入参数       :pstBus0SendFreq:待保存的数据帧指针
+1100          *返回值       :
+1101          *全局变量     :stLocalControl
+1102          *调用模块       :
+1103          ***********************************************************
+1104          *创建人           :尹运同
+1105          *创建日期     :2008-9-22
+1106          ***********************************************************
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 19  
+
+1107          *修改人         :
+1108          *修改日期       :
+1109          *注释           :
+1110          **********************************************************/
+1111          void SaveCallAddr(pSTBusFreq pstBusFreq)
+1112          {   
+1113   1        stLocalControl.stCallAddr.bySndSecAddr = pstBusFreq->bySndSecAddr;
+1114   1        stLocalControl.stCallAddr.bySndRoomAddr = pstBusFreq->bySndRoomAddr;
+1115   1        stLocalControl.stCallAddr.bySndBedAddr = pstBusFreq->bySndBedAddr;
+1116   1      
+1117   1        stLocalControl.stCallAddr.byRecSecAddr = pstBusFreq->byRecSecAddr;
+1118   1        stLocalControl.stCallAddr.byRecRoomAddr = pstBusFreq->byRecRoomAddr;
+1119   1        stLocalControl.stCallAddr.byRecBedAddr = pstBusFreq->byRecBedAddr;  
+1120   1      }
+1121          /**********************************************************
+1122          *函数名称     :VoiceChannelCtx  
+1123          *函数描述         :语音通道切换处理函数
+1124          *输入参数       :
+1125          *返回值       :
+1126          *全局变量     :
+1127          *调用模块       :
+1128          ***********************************************************
+1129          *创建人           :尹运同
+1130          *创建日期     :2008-9-22
+1131          ***********************************************************
+1132          *修改人         :
+1133          *修改日期       :
+1134          *注释           :
+1135          **********************************************************/ 
+1136          void VoiceChannelCtx(void)  
+1137          { 
+1138   1      
+1139   1        if(bChannel1Talked)
+1140   1        { //通道1被动通话
+1141   2          CCAP1H = stLocalControl.stEepromCfgData.byCH1TalkedVol;
+1142   2          CloseCGB();
+1143   2          OpenCBD();
+1144   2          XTD = 0;
+1145   2          XTA = 1;
+1146   2          bMUTState = MUT = ON;     
+1147   2        }
+1148   1        else if(bChannel1Talk)
+1149   1        {   //通道1主动通话
+1150   2          CCAP1H = stLocalControl.stEepromCfgData.byCH1TalkVol;
+1151   2          CloseCGB();
+1152   2          OpenCBD();
+1153   2          XTD = 0;
+1154   2          XTA = 1;
+1155   2          bMUTState = MUT = ON; 
+1156   2        } 
+1157   1        else if((bSickRoomBroad|bOfficeBroad|bAllBroad))
+1158   1        { //广播状态
+1159   2          CCAP1H = stLocalControl.stEepromCfgData.byBroadVol;
+1160   2          CloseCBD();
+1161   2          OpenCGB();
+1162   2          XTA = XTD = 0;
+1163   2          bMUTState = MUT = ON;   
+1164   2        }
+1165   1        else if(bChannel0Talked)
+1166   1        { //通道0被叫通话状态
+1167   2          CCAP1H = stLocalControl.stEepromCfgData.byCH0TalkedVol;
+1168   2          CloseCBD();
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 20  
+
+1169   2          OpenCGB();
+1170   2          XTA = 0;
+1171   2          XTD = 1;
+1172   2          bMUTState = MUT = ON;   
+1173   2        }
+1174   1        else if(bChannel0Talk)
+1175   1        { //通道0主动通话状态
+1176   2          CCAP1H = stLocalControl.stEepromCfgData.byCH0TalkVol;
+1177   2          CloseCBD();
+1178   2          OpenCGB();
+1179   2          XTA = 0;
+1180   2          XTD = 1;
+1181   2          bMUTState = MUT = ON;     
+1182   2        } 
+1183   1        else if(bSelfBroad)
+1184   1        { //主动广播状态
+1185   2          CloseCGB();
+1186   2          CloseCBD();
+1187   2          XTA = 0;
+1188   2          XTD = 1;
+1189   2          bMUTState = MUT = OFF;
+1190   2        }
+1191   1        else if((bCalledRing|bWaitListen))
+1192   1        { //被呼叫振铃或者等待接听
+1193   2          CCAP1H = stLocalControl.stEepromCfgData.bySelfRingVol;
+1194   2          CloseCBD();
+1195   2          OpenCGB();
+1196   2          XTA = XTD = 0;
+1197   2          bMUTState = MUT = ON;   
+1198   2        }
+1199   1        else if((bEnSoundNote&bNurseIn&bIndicatingOther))
+1200   1        { //正在指示其它分机且护士到位
+1201   2          CCAP1H = stLocalControl.stEepromCfgData.byRingVol;
+1202   2          CloseCBD();
+1203   2          OpenCGB();
+1204   2          XTA = XTD = 0;
+1205   2          bMUTState = MUT = ON;   
+1206   2        }
+1207   1        else if(bMusicPlaying)
+1208   1        { //背景音乐播放状态
+1209   2          CCAP1H = stLocalControl.stEepromCfgData.byMusicVol;
+1210   2          CloseCGB();
+1211   2          OpenCBD();
+1212   2          XTA = XTD = 0;
+1213   2          bMUTState = MUT = ON;       
+1214   2        }
+1215   1        else if(bVoiceNoting)
+1216   1        { //语音提示
+1217   2          CCAP1H = stLocalControl.stEepromCfgData.byNoteVol;
+1218   2          CloseCGB();
+1219   2          OpenCBD();
+1220   2          XTA = XTD = 0;
+1221   2          bMUTState = MUT = ON;
+1222   2        }
+1223   1        else
+1224   1        { //没有任何语音状态存在    
+1225   2          CCAP1H = 10;
+1226   2          CloseCGB();
+1227   2          CloseCBD();
+1228   2          XTA = XTD =0;
+1229   2          bMUTState =MUT = OFF;   
+1230   2        } 
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 21  
+
+1231   1      }
+1232          /**********************************************************
+1233          *函数名称     :LedControl 
+1234          *函数描述         :指示灯显示状态控制
+1235          *输入参数       :
+1236          *返回值       :
+1237          *全局变量     :
+1238          *调用模块       :SetLedDealState,SetLedSetState
+1239          ***********************************************************
+1240          *创建人           :尹运同
+1241          *创建日期     :2008-9-22
+1242          ***********************************************************
+1243          *修改人         :
+1244          *修改日期       :
+1245          *注释           :
+1246          **********************************************************/ 
+1247          void LedControl(void)
+1248          {
+1249   1      
+1250   1      }
+1251          /**********************************************************
+1252          *函数名称     :SysReset 
+1253          *函数描述         :系统复位,该函数仅仅将通道0复位,将通道0
+1254                     恢复到空闲状态
+1255          *输入参数       :
+1256          *返回值       :
+1257          *全局变量     :
+1258          *调用模块       :
+1259          ***********************************************************
+1260          *创建人           :尹运同
+1261          *创建日期     :2008-9-22
+1262          ***********************************************************
+1263          *修改人         :
+1264          *修改日期       :
+1265          *注释           :
+1266          **********************************************************/
+1267          void SysReset(void)
+1268          {
+1269   1        //清除对应标志
+1270   1        if(!(bChannel1Talk|bChannel1Talked))
+1271   1        {//通道1空闲
+1272   2          Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1273   2        }   
+1274   1        bBusy = bWaitAck = bWaitListen = bCalledRing = 
+1275   1        bChannel0Talked = bChannel0Talk = 
+1276   1        bSickRoomBroad = bOfficeBroad = bAllBroad = bSelfBroad = 
+1277   1        bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting=
+1278   1        bIndicatingOther=0;   
+1279   1        MakeCH0TimerOut(0, 0);  
+1280   1        VoiceChannelCtx();
+1281   1        
+1282   1      /*  if(!(bChannel1Talk|bChannel1Talked))
+1283   1        {
+1284   1          if(bIndicatingOther)
+1285   1          { 
+1286   1            stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stIndicationData.stAddr.bySecAddr;
+1287   1            stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stIndicationData.stAddr.byRoomAddr;
+1288   1            stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stIndicationData.stAddr.byBedAddr;
+1289   1            stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stIndicationData.byCallCmd;
+1290   1            stLocalControl.stBusDealFreq.byCmd = CMD_INFO_INDICATION;
+1291   1            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1292   1          }
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 22  
+
+1293   1          else
+1294   1          {
+1295   1            stLocalControl.stBusDealFreq.byCmd = CMD_STOP_INDICATION;
+1296   1            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1297   1          } 
+1298   1        } */  
+1299   1      }
+1300          
+1301          /**********************************************************
+1302          *函数名称     :SaveParameter  
+1303          *函数描述         :存储配置参数,存储参数前先擦除整个扇区,
+1304                     然后将所有参数重新写入扇区
+1305          *输入参数       :
+1306          *返回值       :
+1307          *全局变量     :stLocalControl
+1308          *调用模块       :EnableIAP,IapErase,IapWriteByte,DisableIAP
+1309          ***********************************************************
+1310          *创建人           :尹运同
+1311          *创建日期     :2008-9-22
+1312          ***********************************************************
+1313          *修改人         :
+1314          *修改日期       :
+1315          *注释           :
+1316          **********************************************************/
+1317          void SaveParameter(uint16 addr)
+1318          {  
+1319   1        uint8 i;
+1320   1        uint16 addr_temp=addr;
+1321   1        uint8 *pbyData;
+1322   1        uint8 readtimes;
+1323   1        uint8 writetimes;
+1324   1        uint8 crc_temp;
+1325   1      
+1326   1        stLocalControl.stEepromCfgData.byCrc = CalcParaCrc();
+1327   1        WDT_CONTR = 0x3d; //喂狗
+1328   1        writetimes =3;
+1329   1        do
+1330   1        {
+1331   2      
+1332   2          EnableIAP(IAP_ERASE);
+1333   2          IapErase(addr); 
+1334   2      
+1335   2          
+1336   2          EnableIAP(IAP_WRITE); 
+1337   2          addr = addr_temp;
+1338   2          pbyData=&(stLocalControl.stEepromCfgData.byInitFlag);
+1339   2          for(i=0;i<sizeof(STEepromCfgData);i++)
+1340   2          {
+1341   3            IapWriteByte(addr,*pbyData);
+1342   3            pbyData++;
+1343   3            addr++;
+1344   3          }
+1345   2      
+1346   2          EnableIAP(IAP_READ);
+1347   2          readtimes=3;
+1348   2          do
+1349   2          {
+1350   3            pbyData=&(stLocalControl.stEepromCfgData.byInitFlag);
+1351   3            addr = addr_temp;
+1352   3      
+1353   3      
+1354   3            for(i=0;i<sizeof(STEepromCfgData);i++)
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 23  
+
+1355   3            {
+1356   4              if(*pbyData != IapReadByte(addr)) break;
+1357   4              
+1358   4              pbyData++;
+1359   4              addr++;
+1360   4            } 
+1361   3      
+1362   3            if(i>= sizeof(STEepromCfgData))
+1363   3            {//写进去的数据与读出来的数据相同
+1364   4      
+1365   4              break;
+1366   4            }
+1367   3          
+1368   3          }while(--readtimes);
+1369   2      
+1370   2          if(readtimes)
+1371   2          {
+1372   3            break;  //相同
+1373   3          }
+1374   2        }while(--writetimes);
+1375   1        
+1376   1      savaparameterRet:
+1377   1        DisableIAP();
+1378   1        //如果是在写参数命令中调用该函数,重新加载使能数据
+1379   1        byEnable1 = stLocalControl.stEepromCfgData.byEnable1;
+1380   1        byEnable2 = stLocalControl.stEepromCfgData.byEnable2;
+1381   1      
+1382   1      }
+*** WARNING C280 IN LINE 1324 OF SINGLEBUS.C: 'crc_temp': unreferenced local variable
+*** WARNING C280 IN LINE 1376 OF SINGLEBUS.C: 'savaparameterRet': unreferenced label
+1383          
+1384          /**********************************************************
+1385          *函数名称     :ReadParameter  
+1386          *函数描述         :将Flash中的配置数据读入到内存中
+1387          *输入参数       :
+1388          *返回值       :
+1389          *全局变量     :stLocalControl
+1390          *调用模块       :EnableIAP,IapReadByte,DisableIAP
+1391          ***********************************************************
+1392          *创建人           :尹运同
+1393          *创建日期     :2008-9-22
+1394          ***********************************************************
+1395          *修改人         :
+1396          *修改日期       :
+1397          *注释           :
+1398          **********************************************************/
+1399          void ReadParameter(uint16 addr)
+1400          {
+1401   1      
+1402   1        uint8 i=0;
+1403   1        uint8 *pbyData = &(stLocalControl.stEepromCfgData.byInitFlag);
+1404   1        
+1405   1        EnableIAP(IAP_READ); 
+1406   1        for(i=0;i<sizeof(STEepromCfgData);i++)
+1407   1        {
+1408   2          *pbyData = IapReadByte(addr);
+1409   2          pbyData++;
+1410   2          addr++;
+1411   2        }
+1412   1        DisableIAP();
+1413   1      
+1414   1        //如果是在读参数命令中调用该函数,重新加载使能数据
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 24  
+
+1415   1        byEnable1 = stLocalControl.stEepromCfgData.byEnable1;
+1416   1        byEnable2 = stLocalControl.stEepromCfgData.byEnable2;
+1417   1        
+1418   1        
+1419   1      }
+1420          
+1421          
+1422          /**********************************************************
+1423          *函数名称     :InitParameter  
+1424          *函数描述         :初始化Flash中的配置数据
+1425          *输入参数       :
+1426          *返回值       :
+1427          *全局变量     :stLocalControl
+1428          *调用模块       :EnableIAP,IapReadByte,DisableIAP
+1429          ***********************************************************
+1430          *创建人           :尹运同
+1431          *创建日期     :2008-9-22
+1432          ***********************************************************
+1433          *修改人         :
+1434          *修改日期       :
+1435          *注释           :
+1436          **********************************************************/
+1437          void InitParameter(void)
+1438          {
+1439   1        uint8 flagData;
+1440   1        uint8 readtimes=3;
+1441   1      CheckIapSec0: 
+1442   1      
+1443   1        do
+1444   1        {
+1445   2      
+1446   2          if(ParaCrcCheck(IAP0_ADDR) ==1)  break;
+1447   2            
+1448   2      
+1449   2        }while(--readtimes);
+1450   1      
+1451   1      
+1452   1        if(readtimes)
+1453   1        {//第一块校验和正确
+1454   2      
+1455   2          EnableIAP(IAP_READ);
+1456   2          flagData = IapReadByte(IAP0_ADDR);
+1457   2          DisableIAP();
+1458   2          
+1459   2          if(flagData == ParameterData[0])
+1460   2          {//数据已经初始化完毕了,读取数据参数
+1461   3      
+1462   3            ReadParameter(IAP0_ADDR);
+1463   3            return;
+1464   3          }
+1465   2          else  goto UseInitValue;  
+1466   2        }
+1467   1      
+1468   1        else
+1469   1        {//3次读取都失败或者未初始化，应用初始值，但不保存到内部EEPROM中去
+1470   2      UseInitValue:
+1471   2          stLocalControl.stEepromCfgData.byInitFlag = ParameterData[0];
+1472   2          stLocalControl.stEepromCfgData.bySelfSecAddr = ParameterData[1];
+1473   2          stLocalControl.stEepromCfgData.bySelfRoomAddr = ParameterData[2];
+1474   2          stLocalControl.stEepromCfgData.bySelfBedAddr = ParameterData[3];
+1475   2          stLocalControl.stEepromCfgData.byEnable1 = ParameterData[4];
+1476   2          stLocalControl.stEepromCfgData.byEnable2 = ParameterData[5];
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 25  
+
+1477   2          stLocalControl.stEepromCfgData.byPrio = ParameterData[6];
+1478   2          stLocalControl.stEepromCfgData.byRingTime = ParameterData[7];
+1479   2          stLocalControl.stEepromCfgData.byTalkTime = ParameterData[8];
+1480   2          stLocalControl.stEepromCfgData.byBroadTime = ParameterData[9];  
+1481   2          stLocalControl.stEepromCfgData.byListenDelay = ParameterData[10];
+1482   2          stLocalControl.stEepromCfgData.byVolumStep = ParameterData[11];
+1483   2          stLocalControl.stEepromCfgData.byRingVol = ParameterData[12];
+1484   2          stLocalControl.stEepromCfgData.byCH0TalkedVol = ParameterData[13];
+1485   2          stLocalControl.stEepromCfgData.byCH1TalkedVol = ParameterData[14];
+1486   2          stLocalControl.stEepromCfgData.byBroadVol = ParameterData[15];
+1487   2          stLocalControl.stEepromCfgData.byNoteVol = ParameterData[16];
+1488   2          stLocalControl.stEepromCfgData.byMusicVol = ParameterData[17];
+1489   2          stLocalControl.stEepromCfgData.byCH0TalkVol = ParameterData[18];
+1490   2          stLocalControl.stEepromCfgData.byCH1TalkVol = ParameterData[19];
+1491   2          stLocalControl.stEepromCfgData.bySelfRingVol = ParameterData[20];
+1492   2          stLocalControl.stEepromCfgData.byMaxVol = ParameterData[21];
+1493   2          stLocalControl.stEepromCfgData.byMinVol = ParameterData[22];
+1494   2          stLocalControl.stEepromCfgData.byReserve1 = ParameterData[23];
+1495   2          stLocalControl.stEepromCfgData.byReserve2 = ParameterData[24];
+1496   2          stLocalControl.stEepromCfgData.byReserve3 = ParameterData[25];
+1497   2          stLocalControl.stEepromCfgData.bySerialNum1= ParameterData[26];
+1498   2          stLocalControl.stEepromCfgData.bySerialNum2= ParameterData[27];
+1499   2          stLocalControl.stEepromCfgData.bySerialNum3= ParameterData[28];
+1500   2          stLocalControl.stEepromCfgData.byVersionHi = ParameterData[29];
+1501   2          stLocalControl.stEepromCfgData.byVersionLo= ParameterData[30];
+1502   2          stLocalControl.stEepromCfgData.byRFSerialNum1= ParameterData[31];
+1503   2          stLocalControl.stEepromCfgData.byRFSerialNum2= ParameterData[32]; 
+1504   2          stLocalControl.stEepromCfgData.byRFSerialNum3= ParameterData[33];
+1505   2          stLocalControl.stEepromCfgData.byRFSerialNum4= ParameterData[34];
+1506   2          stLocalControl.stEepromCfgData.byRFSerialNum5= ParameterData[35];
+1507   2          stLocalControl.stEepromCfgData.byRFSerialNum6= ParameterData[36];
+1508   2          stLocalControl.stEepromCfgData.byBedFjFlag = ParameterData[37];
+1509   2      
+1510   2          byEnable1 = stLocalControl.stEepromCfgData.byEnable1;
+1511   2          byEnable2 = stLocalControl.stEepromCfgData.byEnable2;
+1512   2      
+1513   2        }
+1514   1      
+1515   1      }
+*** WARNING C280 IN LINE 1441 OF SINGLEBUS.C: 'CheckIapSec0': unreferenced label
+1516          /**********************************************************
+1517          *函数名称     :Bus0RecDeal  
+1518          *函数描述         :单总线0收到一帧数据处理函数,该函数首先
+1519                     取出收到的数据,针对每条命令执行对应的控
+1520                     制动作
+1521          *输入参数       :
+1522          *返回值       :
+1523          *全局变量     :stLocalControl
+1524          *调用模块       :
+1525          ***********************************************************
+1526          *创建人           :尹运同
+1527          *创建日期     :2008-9-22
+1528          ***********************************************************
+1529          *修改人         :
+1530          *修改日期       :
+1531          *注释           :
+1532          **********************************************************/
+1533          void Bus0RecDeal(void)
+1534          {
+1535   1        //取出收到的数据帧      
+1536   1        OS_ENTER_CRITICAL();
+1537   1        memcpy(&(stLocalControl.stBusDealFreq), byBus0RecData, sizeof(STBusFreq));
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 26  
+
+1538   1        bBus0RecFinish = 0;
+1539   1        OS_EXIT_CRITICAL(); 
+1540   1      
+1541   1      //以下仅供测试用
+1542   1      #if DEBUG==1
+1543   1      //   Send_Data(&(stLocalControl.stBusDealFreq.bySndSecAddr),7);
+1544   1      #endif
+1545   1      /////////////////////////////////////////////////////////////////////////////////////
+1546   1      
+1547   1      
+1548   1      
+1549   1      /*  if(bLanding && (stLocalControl.stBusDealFreq.byCmd != CMD_ENTER))
+1550   1        { //如果是登记状态,收到的命令不是登记确认命令,不作处理
+1551   1          return;
+1552   1        }
+1553   1      */
+1554   1        switch(stLocalControl.stBusDealFreq.byCmd)
+1555   1        {
+1556   2          case CMD_ENTER:                   //确认登记命令        
+1557   2            if(bLanding)
+1558   2            { 
+1559   3              if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+1560   3              {   //发送到本机,关闭指示灯显示,取出系统状态  
+1561   4                bLanding=0;
+1562   4                byDevState1 = stLocalControl.stBusDealFreq.bySndSecAddr & 0x80;       
+1563   4                MakeCH0TimerOut(0, 0); 
+1564   4                if(stLocalControl.stBusDealFreq.bySndSecAddr & 0x40)  //PC机打开
+1565   4                {
+1566   5                  stLocalControl.stBusDealFreq.byCmd = CMD_PC_OPEN;
+1567   5                  Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1568   5                }         
+1569   4              }
+1570   3            }     
+1571   2            break;
+1572   2          case CMD_QUEST:                   //查询命令
+1573   2            if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+1574   2            {
+1575   3              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+1576   3              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+1577   3              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+1578   3              stLocalControl.stBusDealFreq.byCmd = CMD_QUEST_ANSWER; 
+1579   3              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.byPrio;
+1580   3              stLocalControl.stBusDealFreq.byRecRoomAddr = byDevState1; //设备状态信息1
+1581   3              stLocalControl.stBusDealFreq.byRecBedAddr = byDevState2;  //设备状态信息2
+1582   3              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1583   3            }
+1584   2            break;
+1585   2      /*    case CMD_NURSE_IN:              //护士到位命令      
+1586   2            if((stLocalControl.stBusDealFreq.byRecSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr) &&
+1587   2              ((stLocalControl.stBusDealFreq.byRecRoomAddr&0x7f) == (stLocalControl.stEepromCfgData.bySelfRoomAddr&0
+             -x7f)))
+1588   2            { //如确认的设备是本房的,表明护士到达本房,置到位标志  
+1589   2              bNurseIn = 1; 
+1590   2              VoiceChannelCtx();                
+1591   2            }
+1592   2            break;*/
+1593   2      /*    case CMD_NURSE_OUT:             //护士离开命令
+1594   2            if((stLocalControl.stBusDealFreq.byRecSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr) &&
+1595   2              ((stLocalControl.stBusDealFreq.byRecRoomAddr&0x7f) == (stLocalControl.stEepromCfgData.bySelfRoomAddr&0
+             -x7f)))
+1596   2            { //表明护士离开本房,清到位标志
+1597   2              bNurseIn = 0;         
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 27  
+
+1598   2              LedControl();
+1599   2              VoiceChannelCtx();        
+1600   2            }
+1601   2            break;*/          
+1602   2          case CMD_COMM_CALL:                 //普通呼叫命令
+1603   2            if(!bBusy)
+1604   2            { //通道0空闲       
+1605   3              bBusy = 1;
+1606   3              if(bIndicatingOther)
+1607   3              { //如果正在指示其他分机,停止指示
+1608   4                bIndicatingOther = 0;           
+1609   4                LedControl();
+1610   4                if(bNurseIn)
+1611   4                {
+1612   5                  VoiceChannelCtx();            
+1613   5                }
+1614   4              }
+1615   3              //保存主动呼叫方地址
+1616   3              SaveCallAddr(&(stLocalControl.stBusDealFreq));
+1617   3              //设置超时5s        
+1618   3              MakeCH0TimerOut(250, 0);
+1619   3              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1620   3              { //呼叫本机设备
+1621   4                if(!(bChannel1Talk|bChannel1Talked))
+1622   4                { //通道1空闲,则本机为空闲状态,返回应答命令 
+1623   5                  stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+1624   5                  stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+1625   5                  stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+1626   5                  stLocalControl.stBusDealFreq.byCmd = CMD_COMM_ANSWER;
+1627   5                  stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.bySndSecAddr;
+1628   5                  stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.bySndRoomAddr;
+1629   5                  stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.bySndBedAddr;
+1630   5                  Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); 
+1631   5                }       
+1632   4              }
+1633   3            }
+1634   2            break;
+1635   2          case CMD_COMM_ANSWER:                 //普通应答命令      
+1636   2            bBusy = 1; 
+1637   2            //设置振铃超时      
+1638   2            MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byRingTime);
+1639   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1640   2            { //应答本机,清等待应答,进入等待接听状态
+1641   3              bWaitAck = 0;       
+1642   3              bWaitListen = 1;                      
+1643   3              if((bChannel1Talk|bChannel1Talked)||(!bDealKeyDown))
+1644   3              { //如果通道1忙,或者本机主动通话条件不存在了,缩短超时时间       
+1645   4                MakeCH0TimerOut(5, 0);
+1646   4                break;
+1647   4              }
+1648   3              VoiceChannelCtx();
+1649   3              LedControl();         
+1650   3            }
+1651   2            break;
+1652   2          case CMD_CALL_LISTEN:                 //接听命令        
+1653   2            bBusy = 1;
+1654   2            //设置通话超时
+1655   2            MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byTalkTime);
+1656   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1657   2            { //接听本机,清等待接听,进入通道0主动通话状态       
+1658   3              bWaitListen = 0;      
+1659   3              bChannel0Talk = 1;                
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 28  
+
+1660   3              if((bChannel1Talk|bChannel1Talked)||(!bDealKeyDown))
+1661   3              { //如果通道1忙,或者本机主动通话条件不存在了,缩短超时时间         
+1662   4                MakeCH0TimerOut(5, 0);
+1663   4                break;
+1664   4              }
+1665   3              VoiceChannelCtx();
+1666   3              LedControl();
+1667   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1668   3            }
+1669   2            break;      
+1670   2          case CMD_BROADCAST1:                //收到病区广播命令
+1671   2          case CMD_BROADCAST2:                //收到办公区广播命令
+1672   2          case CMD_BROADCAST3:                //收到全区广播命令
+1673   2            if(!bBusy)
+1674   2            { //通道0空闲       
+1675   3              bBusy = 1;
+1676   3              //暂存命令        
+1677   3              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stBusDealFreq.byCmd;       
+1678   3              //设置广播超时
+1679   3              MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byBroadTime); 
+1680   3              //保存主动呼叫方地址        
+1681   3              SaveCallAddr(&(stLocalControl.stBusDealFreq));
+1682   3              if(bIndicatingOther)
+1683   3              { //如果正在指示其他分机,停止指示 
+1684   4                bIndicatingOther = 0;       
+1685   4                LedControl(); 
+1686   4                if(bNurseIn)
+1687   4                { 
+1688   5                  VoiceChannelCtx();          
+1689   5                }
+1690   4              }     
+1691   3              if((bChannel1Talk|bChannel1Talked))
+1692   3              { //通道1忙,不作处理  
+1693   4                break;
+1694   4              }     
+1695   3              switch(stLocalControl.stBusDealFreq.byRecSecAddr)
+1696   3              { //针对具体命令,看本机是否允许相应的广播
+1697   4                case CMD_BROADCAST1:
+1698   4                  bSickRoomBroad = bEnSickRoomBroad;
+1699   4                  if(bSickRoomBroad) Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1700   4                  break;
+1701   4                case CMD_BROADCAST2:
+1702   4                  bOfficeBroad = bEnOfficeBroad;
+1703   4                  if(bOfficeBroad) Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1704   4                  break;
+1705   4                case CMD_BROADCAST3:
+1706   4                  bAllBroad = bEnAllBroad; 
+1707   4                  if(bAllBroad) Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1708   4                  break;
+1709   4              }
+1710   3              VoiceChannelCtx();
+1711   3              LedControl();
+1712   3            }
+1713   2            break;      
+1714   2          case CMD_INFUSION_ENTER:                //输液呼叫确认命令
+1715   2          case CMD_SERVICE_ENTER:                 //服务呼叫确认命令
+1716   2          case CMD_HELP_ENTER:                  //求援呼叫确认命令
+1717   2          case CMD_EMERGENCY_ENTER:               //紧急呼叫确认命令      
+1718   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1719   2            { //确认本机的呼叫命令
+1720   3              switch(stLocalControl.stBusDealFreq.byCmd)
+1721   3              {
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 29  
+
+1722   4                case CMD_INFUSION_ENTER:
+1723   4                  bConfusionNoting = 1;             
+1724   4                  break;
+1725   4                case CMD_SERVICE_ENTER:
+1726   4                  bServiceNoting = 1;               
+1727   4                  break;
+1728   4                case CMD_HELP_ENTER:
+1729   4                  bHelpNoting = 1;              
+1730   4                  break;
+1731   4                case CMD_EMERGENCY_ENTER:
+1732   4                  bEmergencyNoting = 1;             
+1733   4                  break;
+1734   4              }       
+1735   3              if(bIndicatingOther)
+1736   3              { //如果正在指示其他分机,清指示其他分机             
+1737   4                bIndicatingOther = 0;
+1738   4                if(bNurseIn)
+1739   4                {           
+1740   5                  VoiceChannelCtx();              
+1741   5                }     
+1742   4              }         
+1743   3              LedControl();
+1744   3              //命令还是原来的命令
+1745   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1746   3            }
+1747   2            break;      
+1748   2          case CMD_INFO_INDICATION:               //收到呼叫指示命令 
+1749   2            if((stLocalControl.stBusDealFreq.bySndSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr) &&
+1750   2              ((stLocalControl.stBusDealFreq.bySndRoomAddr&0x7f) == (stLocalControl.stEepromCfgData.bySelfRoomAddr&0
+             -x7f)))
+1751   2            { //如果收到的是本房的呼叫指示,不需要作处理,清除上次的呼叫指示  
+1752   3              if(bIndicatingOther)
+1753   3              { 
+1754   4                bIndicatingOther = 0;
+1755   4                if(bNurseIn)
+1756   4                {             
+1757   5                  VoiceChannelCtx();
+1758   5                  LedControl();
+1759   5                }
+1760   4              }
+1761   3              if(stLocalControl.stBusDealFreq.bySndBedAddr==stLocalControl.stEepromCfgData.bySelfBedAddr)
+1762   3              {//是本床头分机,在屏上显示
+1763   4                //命令还是原来的命令
+1764   4                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1765   4                bIndicatingOther =1;
+1766   4      
+1767   4                if(stLocalControl.stEepromCfgData.byBedFjFlag & BedVoicePlay)
+1768   4                {
+1769   5                  CloseCBD();
+1770   5                  OpenCGB();    //打开SD 通道上的本机语言报号音
+1771   5                  XTA = XTD = 0;
+1772   5                  bMUTState = MUT = ON;
+1773   5                }
+1774   4      
+1775   4              }
+1776   3            }
+1777   2            else
+1778   2            { //收到的不是本房的呼叫指示,判断是否本机能够处理
+1779   3              if(!(bBusy|bConfusionNoting|bServiceNoting|bHelpNoting|bEmergencyNoting))
+1780   3              { //本机通道0处于空闲状态,可以指示其他分机的呼叫命令了
+1781   4                switch(stLocalControl.stBusDealFreq.byRecSecAddr & 0x1f)
+1782   4                {
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 30  
+
+1783   5                  case CMD_INFUSION_CALL:           //输液呼叫
+1784   5                    if(!bEnInfusionDeal)
+1785   5                    {
+1786   6                      return;                         
+1787   6                    }             
+1788   5                    break;
+1789   5                  case CMD_SERVICE_CALL:          //服务呼叫
+1790   5                    if(!bEnServiceDeal)
+1791   5                    {
+1792   6                      return;             
+1793   6                    }           
+1794   5                    break;
+1795   5                  case CMD_HELP_CALL:           //求援呼叫
+1796   5                    if(!bEnHelpDeal)
+1797   5                    {
+1798   6                      return;             
+1799   6                    }             
+1800   5                    break;
+1801   5                  case CMD_EMERGENCY_CALL:        //紧急呼叫
+1802   5                    if(!bEnEmergencyDeal)
+1803   5                    {
+1804   6                      return;           
+1805   6                    }             
+1806   5                    break;
+1807   5                  default:
+1808   5                    return;
+1809   5                }
+1810   4      //          SaveIndicationData(&(stLocalControl.stBusDealFreq));                        
+1811   4      //          bIndicatingOther = 1;
+1812   4                if((bChannel1Talked|bChannel1Talk))
+1813   4                { //如果通道1处于通话状态,不作处理
+1814   5                  return;
+1815   5                }           
+1816   4                if(bNurseIn)
+1817   4                { //护士在位,指示其他分机
+1818   5                  SaveIndicationData(&(stLocalControl.stBusDealFreq));                        
+1819   5                  bIndicatingOther = 1;         
+1820   5                  VoiceChannelCtx();
+1821   5                  LedControl(); 
+1822   5                  //命令还是原来的命令
+1823   5                  Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));           
+1824   5                } 
+1825   4              }
+1826   3            } 
+1827   2      
+1828   2      /*//测试时用
+1829   2            CloseCBD();
+1830   2            OpenCGB();
+1831   2            XTA = XTD = 0;
+1832   2            bMUTState = MUT = ON; 
+1833   2      */
+1834   2            break;
+1835   2          case CMD_INFUSION_ANSWER:             //处理输液呼叫命令
+1836   2          case CMD_SERVICE_ANSWER:              //处理服务呼叫命令
+1837   2          case CMD_EMERGENCY_ANSWER:              //处理紧急呼叫命令
+1838   2          case CMD_HELP_ANSWER:               //处理求援呼叫命令
+1839   2            if(!bBusy)
+1840   2            { //通道0不忙       
+1841   3              bBusy = 1;  
+1842   3              //保存主动呼叫方地址  
+1843   3              SaveCallAddr(&(stLocalControl.stBusDealFreq));  
+1844   3              //设置通道0超时         
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 31  
+
+1845   3              MakeCH0TimerOut(250, 0);
+1846   3              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1847   3              {   //处理本机的呼叫命令,清相应的标志   
+1848   4                if(stLocalControl.stBusDealFreq.byCmd == CMD_INFUSION_ANSWER)
+1849   4                {           
+1850   5                  bConfusionNoting = 0;
+1851   5                }
+1852   4                else if(stLocalControl.stBusDealFreq.byCmd == CMD_SERVICE_ANSWER)
+1853   4                {              
+1854   5                  bServiceNoting = 0;
+1855   5                }
+1856   4                else if(stLocalControl.stBusDealFreq.byCmd == CMD_EMERGENCY_ANSWER)
+1857   4                {           
+1858   5                  bEmergencyNoting = 0;
+1859   5                }
+1860   4                else if(stLocalControl.stBusDealFreq.byCmd == CMD_HELP_ANSWER)
+1861   4                {               
+1862   5                  bHelpNoting = 0;
+1863   5                }           
+1864   4                VoiceChannelCtx();        
+1865   4                LedControl();
+1866   4                bCalledRing = 1;
+1867   4                if(!(bChannel1Talk|bChannel1Talked))
+1868   4                { //如果通道1不处于通话状态,返回应答命令
+1869   5                  stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+1870   5                  stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+1871   5                  stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+1872   5                  stLocalControl.stBusDealFreq.byCmd = CMD_COMM_ANSWER;
+1873   5                  stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.bySndSecAddr;
+1874   5                  stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.bySndRoomAddr;
+1875   5                  stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.bySndBedAddr;
+1876   5                  Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); 
+1877   5                }
+1878   4                break;        
+1879   4              }
+1880   3              if(bIndicatingOther)
+1881   3              { //正在指示其他分机,清除标志           
+1882   4                bIndicatingOther = 0;
+1883   4                if(bNurseIn)
+1884   4                {           
+1885   5                  VoiceChannelCtx();            
+1886   5                  LedControl(); 
+1887   5                  //命令还是原来的命令
+1888   5                  Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1889   5      
+1890   5                }     
+1891   4              } 
+1892   3            }
+1893   2            break;
+1894   2          case CMD_STOP_INDICATION:             //停止指示命令
+1895   2            if(bIndicatingOther)
+1896   2            {
+1897   3              bIndicatingOther = 0;
+1898   3              if((stLocalControl.stBusDealFreq.bySndSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr) &&
+1899   3                ((stLocalControl.stBusDealFreq.bySndRoomAddr) == (stLocalControl.stEepromCfgData.bySelfRoomAddr))&&
+1900   3                (stLocalControl.stBusDealFreq.bySndBedAddr == stLocalControl.stEepromCfgData.bySelfBedAddr))
+1901   3              {//是本机
+1902   4                CloseCGB();
+1903   4                CloseCBD();
+1904   4                XTA = XTD =0;
+1905   4                bMUTState =MUT = OFF;           
+1906   4              }
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 32  
+
+1907   3              else
+1908   3              {
+1909   4                if(bNurseIn)
+1910   4                {
+1911   5                  VoiceChannelCtx();
+1912   5                  LedControl();           
+1913   5                }
+1914   4              }
+1915   3              //命令还是原来的命令
+1916   3              //Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));     //不再向单总线1发送   
+1917   3            }
+1918   2            break;
+1919   2          case CMD_INFUSION_CLEAR:              //清除输液呼叫命令
+1920   2          case CMD_SERVICE_CLEAR:               //清除服务呼叫命令
+1921   2          case CMD_HELP_CLEAR:                //清除求援呼叫命令
+1922   2          case CMD_EMERGENCY_CLEAR:               //清除紧急呼叫命令
+1923   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1924   2            { //清除本机的呼叫,清除相应的标志
+1925   3              switch(stLocalControl.stBusDealFreq.byCmd-0x0a) //查询对应的呼叫命令
+1926   3              {
+1927   4                case CMD_INFUSION_CALL:
+1928   4                  bConfusionNoting = 0;
+1929   4                  break;
+1930   4                case CMD_SERVICE_CALL:
+1931   4                  bServiceNoting = 0;
+1932   4                  break;
+1933   4                case CMD_HELP_CALL:
+1934   4                  bHelpNoting = 0;
+1935   4                  break;
+1936   4                case CMD_EMERGENCY_CALL:
+1937   4                  bEmergencyNoting = 0;
+1938   4                  break;
+1939   4              }
+1940   3              SysReset();
+1941   3              //VoiceChannelCtx();
+1942   3              //LedControl();               
+1943   3            }
+1944   2            else
+1945   2            { //将命令恢复成相应的呼叫命令  
+1946   3              //stLocalControl.stBusDealFreq.byCmd -= 0x0a;     
+1947   3              if(bIndicatingOther &&
+1948   3                (stLocalControl.stBusDealFreq.byRecSecAddr == stLocalControl.stIndicationData.stAddr.bySndSecAddr) &&
+1949   3                (stLocalControl.stBusDealFreq.byRecRoomAddr == stLocalControl.stIndicationData.stAddr.bySndRoomAddr) 
+             -&&
+1950   3                (stLocalControl.stBusDealFreq.byRecBedAddr == stLocalControl.stIndicationData.stAddr.bySndBedAddr) &&
+1951   3                ((stLocalControl.stBusDealFreq.byCmd-0x0a) == (stLocalControl.stIndicationData.byCallCmd & 0x1f)))
+1952   3              {   //清除本机正在指示的呼叫信息          
+1953   4                bIndicatingOther = 0;
+1954   4                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1955   4                if(bNurseIn)
+1956   4                {
+1957   5                  VoiceChannelCtx();
+1958   5                  LedControl();         
+1959   5                }                 
+1960   4              }
+1961   3            }
+1962   2            break;      
+1963   2          case CMD_SYSTERM_RESET:               //系统复位命令
+1964   2            SysReset();
+1965   2            break; 
+1966   2      
+1967   2          case CMD_SYSTERM_RESTART:
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 33  
+
+1968   2            bBusy = bWaitAck = bWaitListen = bCalledRing = 
+1969   2            bChannel0Talked = bChannel0Talk = 
+1970   2            bChannel1Talked = bChannel1Talk = 
+1971   2            bSickRoomBroad = bOfficeBroad = bAllBroad = bSelfBroad = 
+1972   2            bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting=
+1973   2            bIndicatingOther=0;   
+1974   2            MakeCH0TimerOut(0, 0);
+1975   2            MakeCH1TimerOut(0, 0);
+1976   2            VoiceChannelCtx();
+1977   2            break;
+1978   2        
+1979   2          case CMD_START_VOICE:               //启动播音命令
+1980   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1981   2            { 
+1982   3              if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+1983   3              {
+1984   4                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+1985   4                stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+1986   4                stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+1987   4                stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;
+1988   4                stLocalControl.stBusDealFreq.byRecSecAddr = CMD_START_VOICE;
+1989   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1990   4              }
+1991   3              bChannel1Talked = bChannel1Talk = 0;        
+1992   3              MakeCH1TimerOut(0, 0);        
+1993   3              bVoiceNoting = bEnVoiceNote;        
+1994   3              VoiceChannelCtx();
+1995   3              LedControl();
+1996   3            }
+1997   2            break;
+1998   2          case CMD_MUSIC_PLAY:                //背景音乐播放
+1999   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+2000   2            {
+2001   3              if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+2002   3              {
+2003   4                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2004   4                stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2005   4                stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2006   4                stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;
+2007   4                stLocalControl.stBusDealFreq.byRecSecAddr = CMD_MUSIC_PLAY;
+2008   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2009   4              }     
+2010   3              bChannel1Talked = bChannel1Talk = 0;
+2011   3              MakeCH1TimerOut(0, 0);        
+2012   3              bMusicPlaying = bEnMusicplay;         
+2013   3              VoiceChannelCtx();
+2014   3              LedControl();         
+2015   3            }
+2016   2            break;  
+2017   2          case CMD_STOP_VOICE:                //停止所有音乐播放
+2018   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+2019   2            {
+2020   3              if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+2021   3              {
+2022   4                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2023   4                stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2024   4                stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2025   4                stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;
+2026   4                stLocalControl.stBusDealFreq.byRecSecAddr = CMD_STOP_VOICE;
+2027   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2028   4              }   
+2029   3              bVoiceNoting = bMusicPlaying = 0;
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 34  
+
+2030   3              VoiceChannelCtx();          
+2031   3            }
+2032   2            break; 
+2033   2          case CMD_CHANNEL_CHANGE:              //通道切换命令
+2034   2            //将通道0的状态切换到通道1上,同时清除通道0的通话状态
+2035   2            bBusy = bWaitAck = bWaitListen = bCalledRing =  
+2036   2              bSickRoomBroad = bOfficeBroad = bAllBroad = bSelfBroad = 0;     
+2037   2            MakeCH0TimerOut(0, 0);                  
+2038   2            if((bChannel0Talked|bChannel0Talk))
+2039   2            {         
+2040   3              bChannel1Talked = bChannel0Talked;
+2041   3              bChannel1Talk = bChannel0Talk;
+2042   3              bChannel0Talked = bChannel0Talk = 0;        
+2043   3              //设置通道1通话超时           
+2044   3              MakeCH1TimerOut(50, stLocalControl.stEepromCfgData.byTalkTime);
+2045   3              if(bChannel1Talk&&(!bDealKeyDown))
+2046   3              { //本机主动通话条件不存在了,缩短超时时间                     
+2047   4                MakeCH1TimerOut(5, 0);
+2048   4                break;      
+2049   4              }
+2050   3              VoiceChannelCtx();
+2051   3              LedControl(); 
+2052   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2053   3            }             
+2054   2            break;
+2055   2          case CMD_CHANNEL_CLOSE:               //关闭通道切换命令
+2056   2            //清除通道1所有状态     
+2057   2            //bChannel1Talked = bChannel1Talk = bConfusionNoting =0; 
+2058   2            bChannel1Talked = bChannel1Talk  =0;
+2059   2            MakeCH1TimerOut(0, 0);  
+2060   2            VoiceChannelCtx();
+2061   2            LedControl();
+2062   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+2063   2            {
+2064   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2065   3            }
+2066   2            break;
+2067   2            
+2068   2          case CMD_NUMBER_SET:                //在线编房号，床号命令
+2069   2      /*      if(stLocalControl.stBusDealFreq.byRecSecAddr != stLocalControl.stEepromCfgData.bySerialNum1)
+2070   2            {
+2071   2              return;
+2072   2            }
+2073   2            if(stLocalControl.stBusDealFreq.byRecRoomAddr != stLocalControl.stEepromCfgData.bySerialNum2)
+2074   2            {
+2075   2              return;
+2076   2            }
+2077   2            if(stLocalControl.stBusDealFreq.byRecBedAddr != stLocalControl.stEepromCfgData.bySerialNum3)
+2078   2            {
+2079   2              return;
+2080   2            }
+2081   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2082   2            
+2083   2            //序列号正确,保存新的地址数据           
+2084   2            stLocalControl.stEepromCfgData.bySelfSecAddr = stLocalControl.stBusDealFreq.bySndSecAddr;
+2085   2            stLocalControl.stEepromCfgData.bySelfRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+2086   2            stLocalControl.stEepromCfgData.bySelfBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;         
+2087   2      
+2088   2            stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stBusDealFreq.byRecSecAddr;
+2089   2            stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stBusDealFreq.byRecRoomAddr;
+2090   2            stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stBusDealFreq.byRecBedAddr;
+2091   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 35  
+
+2092   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SET_BY_SERIAL;      
+2093   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));*/
+2094   2      
+2095   2            if((stLocalControl.stBusDealFreq.bySndRoomAddr >=250)||
+2096   2               (stLocalControl.stBusDealFreq.bySndBedAddr ==0x00) )
+2097   2            {//不是床头分机的地址范围
+2098   3              break;
+2099   3            }
+2100   2      
+2101   2      
+2102   2            //暂存主呼方地址数据中
+2103   2            stLocalControl.stCallAddr.bySndSecAddr=stLocalControl.stBusDealFreq.bySndSecAddr;
+2104   2            stLocalControl.stCallAddr.bySndRoomAddr=stLocalControl.stBusDealFreq.bySndRoomAddr;
+2105   2            stLocalControl.stCallAddr.bySndBedAddr =stLocalControl.stBusDealFreq.bySndBedAddr;
+2106   2            bNumSeting=1;
+2107   2            stLocalControl.byNumSetTime=250;      //编号5秒内有效
+2108   2            stLocalControl.stBusDealFreq.byRecSecAddr=0x01; //开始编号
+2109   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); //显示开始编号
+2110   2            break;
+2111   2            
+2112   2          case CMD_SYSTEM_SEC_SET:
+2113   2            stLocalControl.stEepromCfgData.bySelfSecAddr = stLocalControl.stBusDealFreq.byRecSecAddr;
+2114   2            
+2115   2            stLocalControl.stBusDealFreq.bySndSecAddr   = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2116   2            stLocalControl.stBusDealFreq.bySndRoomAddr  = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2117   2            stLocalControl.stBusDealFreq.bySndBedAddr   = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2118   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); //先送显示，手柄等子模块
+2119   2            
+2120   2      //      stLocalControl.stBusDealFreq.byCmd = CMD_GET_BUS;       
+2121   2      //      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); 
+2122   2            break;  
+2123   2            
+2124   2          case CMD_POWER_ON:                      //本机重新热启动    
+2125   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+2126   2            {//比较地址(含广播地址)
+2127   3              if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+2128   3              {//绝对地址
+2129   4                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2130   4                stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2131   4                stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2132   4                stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stBusDealFreq.byCmd;//原命令
+2133   4                stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;
+2134   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2135   4              }
+2136   3              else
+2137   3              {//广播地址
+2138   4                if((bOxSupplyState==1)/*&&(bEnableOxTimer==1)*/)
+2139   4                {//如果正处于供氧计时状态
+2140   5                
+2141   5                  memcpy(&(stLocalControl.stBusDealFreq.bySndSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr),
+             -3);
+2142   5                  stLocalControl.stBusDealFreq.byCmd= CMD_SUPPLY_OX_END;        
+2143   5                  memcpy(&(stLocalControl.stBusDealFreq.byRecSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr),
+             -3);
+2144   5                  Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2145   5                }
+2146   4                OSWait(K_TMO,200);
+2147   4                stLocalControl.stBusDealFreq.byCmd = CMD_POWER_ON;
+2148   4                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));       
+2149   4              }
+2150   3              
+2151   3            }       
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 36  
+
+2152   2            break;
+2153   2      
+2154   2            
+2155   2      /*    case CMD_OPEN_485BUS_IN:
+2156   2            if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+2157   2            {
+2158   2              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2159   2              
+2160   2              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2161   2              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2162   2              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2163   2              stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;  
+2164   2              stLocalControl.stBusDealFreq.byRecSecAddr = CMD_OPEN_485BUS_IN;
+2165   2              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2166   2              KDR=0;
+2167   2            }
+2168   2            break;*/
+2169   2            
+2170   2          /*case CMD_CLOSE_485BUS:
+2171   2            if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+2172   2            {
+2173   2              if(stLocalControl.stBusDealFreq.bySndSecAddr==CMD_SB_DISPLAY_DATA)
+2174   2              {//是发送到床头分机手柄上的数据
+2175   2                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2176   2              }
+2177   2            }     
+2178   2            //关闭所有
+2179   2            KDR=1;
+2180   2            break;*/
+2181   2          case CMD_OPEN_LCD:
+2182   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+2183   2            {//比较地址(含广播地址)
+2184   3      
+2185   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2186   3              
+2187   3              if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+2188   3              {//绝对地址
+2189   4                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2190   4                stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2191   4                stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2192   4                stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stBusDealFreq.byCmd;//原命令
+2193   4                stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;
+2194   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2195   4              }       
+2196   3            }
+2197   2            break;
+2198   2            
+2199   2          case CMD_CLOSE_LCD:
+2200   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+2201   2            {//比较地址(含广播地址)
+2202   3      
+2203   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2204   3              
+2205   3              if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+2206   3              {//绝对地址
+2207   4                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2208   4                stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2209   4                stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2210   4                stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stBusDealFreq.byCmd;//原命令
+2211   4                stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;
+2212   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2213   4              }       
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 37  
+
+2214   3            }
+2215   2            break;
+2216   2            
+2217   2          case CMD_CLEAR_LCD:           
+2218   2          case CMD_CLEAR_HANDLE_LCD:   
+2219   2            if(stLocalControl.stEepromCfgData.byBedFjFlag & bSecRoom) //需判断区号、房号
+2220   2            {
+2221   3              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+2222   3              {//比较地址(含广播地址)     
+2223   4                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2224   4                
+2225   4                if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+2226   4                {//绝对地址
+2227   5                  stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2228   5                  stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2229   5                  stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2230   5                  stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stBusDealFreq.byCmd;//原命令
+2231   5                  stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;
+2232   5                  Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2233   5                }
+2234   4                
+2235   4              }
+2236   3            }
+2237   2            else if(stLocalControl.stBusDealFreq.byRecBedAddr == stLocalControl.stEepromCfgData.bySelfBedAddr)  //床
+             -号相等
+2238   2            {
+2239   3              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2240   3              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;     
+2241   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2242   3              
+2243   3              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2244   3              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2245   3              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2246   3              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stBusDealFreq.byCmd;//原命令
+2247   3              stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;
+2248   3              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));       
+2249   3            }
+2250   2            break;
+2251   2          case CMD_DATE_SEND:
+2252   2            bEnableOxTimer=1; //开始允许供氧统计
+2253   2            
+2254   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2255   2            stLocalControl.stTime.bySec = BcdToHex(stLocalControl.stBusDealFreq.bySndSecAddr & 0x7f);
+2256   2            stLocalControl.stTime.byMin = BcdToHex(stLocalControl.stBusDealFreq.bySndRoomAddr & 0x7f);
+2257   2            stLocalControl.stTime.byHour = BcdToHex(stLocalControl.stBusDealFreq.bySndBedAddr & 0x3f);
+2258   2            stLocalControl.stTime.byDay = BcdToHex(stLocalControl.stBusDealFreq.byRecSecAddr & 0x3f);
+2259   2            stLocalControl.stTime.byMonth = BcdToHex(stLocalControl.stBusDealFreq.byRecRoomAddr & 0x1f);
+2260   2            stLocalControl.stTime.byYear = BcdToHex(stLocalControl.stBusDealFreq.byRecBedAddr);
+2261   2      
+2262   2            if(bWillSndOxSupplyStart==1)
+2263   2            {//上电(或者没收到时间数据之前)就处于供氧状态
+2264   3              memcpy(&(stLocalControl.stBusDealFreq.bySndSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr),3)
+             -;
+2265   3              stLocalControl.stBusDealFreq.byCmd= CMD_SUPPLY_OX_START;
+2266   3              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2267   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2268   3              bWillSndOxSupplyStart=0;
+2269   3              bOxSupplyState=1;
+2270   3            }
+2271   2            break;
+2272   2            
+2273   2          case CMD_RF_NUMSET_OK:    //此输液报警器的序列号已被别人占用
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 38  
+
+2274   2            if(DirRFSerialCompare())
+2275   2            {
+2276   3      
+2277   3              memset(&(stLocalControl.stEepromCfgData.byRFSerialNum1),0x00,6);
+2278   3              WDT_CONTR = 0x3d;   //喂狗
+2279   3              EA=0;
+2280   3              SaveParameter(IAP0_ADDR);
+2281   3              EA=1;
+2282   3              stLocalControl.stBusDealFreq.bySndSecAddr = 0x00;
+2283   3              stLocalControl.stBusDealFreq.bySndRoomAddr=0x00;
+2284   3              stLocalControl.stBusDealFreq.bySndBedAddr =0x00;
+2285   3              stLocalControl.stBusDealFreq.byCmd= CMD_TELL_RF_NUM;
+2286   3              stLocalControl.stBusDealFreq.byRecSecAddr = 0x00;
+2287   3              stLocalControl.stBusDealFreq.byRecRoomAddr=0x00;
+2288   3              stLocalControl.stBusDealFreq.byRecBedAddr =0x00;
+2289   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2290   3            }
+2291   2            break;
+2292   2            
+2293   2          case CMD_BUS_ANSWER:
+2294   2              if(( stLocalControl.stBusDealFreq.bySndSecAddr ==stLocalControl.stEepromCfgData.bySelfSecAddr)&&
+2295   2              (stLocalControl.stBusDealFreq.bySndRoomAddr==stLocalControl.stEepromCfgData.bySelfRoomAddr)&&
+2296   2              (stLocalControl.stBusDealFreq.bySndBedAddr ==stLocalControl.stEepromCfgData.bySelfBedAddr))
+2297   2              {//是本机应答信号
+2298   3                if(stLocalControl.uiWaitAckTimeSupplyOxEnd)
+2299   3                {
+2300   4                  if(stLocalControl.stBusDealFreq.byRecSecAddr == CMD_SUPPLY_OX_END)
+2301   4                {
+2302   5                  stLocalControl.uiWaitAckTimeSupplyOxEnd =0; //停止计时
+2303   5                  //bWillSndTotalOx =0;
+2304   5                }
+2305   4                }
+2306   3                if(stLocalControl.uiWaitAckTimeSupplyOxTotal)
+2307   3                {
+2308   4                  if(stLocalControl.stBusDealFreq.byRecSecAddr == CMD_SUPPLY_OX_TOTAL)
+2309   4                {
+2310   5                  stLocalControl.uiWaitAckTimeSupplyOxTotal =0; //停止计时
+2311   5                  //bWillSndTotalOx =0;
+2312   5                }
+2313   4                }
+2314   3              
+2315   3              }
+2316   2            break;
+2317   2          case CMD_PC_OPEN:
+2318   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+2319   2            {
+2320   3              if(bWillSndTotalOx)
+2321   3              {
+2322   4                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2323   4                stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2324   4                stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2325   4                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2326   4      
+2327   4              }
+2328   3            }
+2329   2            break;
+2330   2          case CMD_PC_CLOSE:
+2331   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+2332   2            {
+2333   3              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2334   3              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2335   3              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;     
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 39  
+
+2336   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2337   3            }
+2338   2            break;
+2339   2          case CMD_BUS0_CHECK:                  //外部总线测试命令
+2340   2            MUS=0;  //SD、SA通道正常
+2341   2            
+2342   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2343   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_BUS0_CHECK;
+2344   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2345   2            break;  
+2346   2            
+2347   2      /*    case CMD_SD_MS_TEST_START:  //SD通道主到从测试开始
+2348   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2349   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SD_MS_TEST_START;
+2350   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2351   2            XTD=0;
+2352   2            OpenCGB();
+2353   2            MUT =0; //打开功放34119
+2354   2            break;
+2355   2      
+2356   2          case CMD_SD_SM_TEST_START:  //SD通道从到主测试开始
+2357   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2358   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SD_SM_TEST_START;
+2359   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2360   2            XTD=1;
+2361   2            CloseCGB();
+2362   2            MUT =1; //关闭功放34119
+2363   2            break;
+2364   2            
+2365   2          case CMD_SD_TEST_END: //SD通道测试结束
+2366   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2367   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SD_TEST_END;
+2368   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2369   2            XTD=0;
+2370   2            CloseCGB();
+2371   2            MUT =1; //关闭功放34119
+2372   2            break;
+2373   2      
+2374   2          case CMD_SA_MS_TEST_START:  //SA通道主到从测试开始
+2375   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2376   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SA_MS_TEST_START;
+2377   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2378   2            XTA = 0;
+2379   2            OpenCBD();
+2380   2            MUT =0; //打开功放34119
+2381   2            break;
+2382   2      
+2383   2          case CMD_SA_SM_TEST_START:  //SA通道从到主测试开始
+2384   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2385   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SA_SM_TEST_START;
+2386   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2387   2            XTA = 1;
+2388   2            CloseCBD();
+2389   2            MUT =1; //关闭功放34119
+2390   2            break;
+2391   2            
+2392   2          case CMD_SA_TEST_END: //SA通道测试结束
+2393   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2394   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SA_TEST_END;
+2395   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2396   2            XTA = 0;
+2397   2            CloseCBD();
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 40  
+
+2398   2            MUT =1; //关闭功放34119
+2399   2            break;
+2400   2      */  
+2401   2          case CMD_SD_TAL_VOL_CHECK:
+2402   2            MUS=0;  //SD通道正常
+2403   2            
+2404   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2405   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SD_TAL_VOL_CHECK;
+2406   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2407   2            XTD=1;
+2408   2            OpenCGB();
+2409   2            MUT =ON;  //打开功放34119
+2410   2            break;
+2411   2          case CMD_SD_TAL_VOL_CHECK_END:
+2412   2            MUS=0;  //SD通道正常
+2413   2            
+2414   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2415   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SD_TAL_VOL_CHECK_END;
+2416   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));     
+2417   2            break;
+2418   2      
+2419   2          case CMD_SA_TAL_VOL_CHECK:
+2420   2            MUS=0;  //SD通道正常
+2421   2            
+2422   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2423   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SA_TAL_VOL_CHECK;
+2424   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2425   2            XTA = 1;
+2426   2            OpenCBD();
+2427   2            MUT =ON;  //打开功放34119
+2428   2            break;
+2429   2      
+2430   2          case CMD_SA_TAL_VOL_CHECK_END:
+2431   2            MUS=0;  //SD通道正常
+2432   2            
+2433   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2434   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SA_TAL_VOL_CHECK_END;
+2435   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2436   2            XTA = 0;
+2437   2            CloseCBD();
+2438   2            MUT =OFF; //关闭功放34119
+2439   2            break;      
+2440   2          case CMD_RS485_BRT_SET:
+2441   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));     
+2442   2            break;  
+2443   2      
+2444   2          case CMD_RS485_INFO_SEC_ROOM:
+2445   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));     
+2446   2            break;  
+2447   2            
+2448   2          case CMD_BED_VOICE_PLAY:
+2449   2            if(stLocalControl.stBusDealFreq.byRecSecAddr)
+2450   2              stLocalControl.stEepromCfgData.byBedFjFlag |= BedVoicePlay;
+2451   2            else stLocalControl.stEepromCfgData.byBedFjFlag &= ~BedVoicePlay;
+2452   2            SaveParameter(IAP0_ADDR);
+2453   2            break;
+2454   2      
+2455   2          case CMD_DISP_MODE:
+2456   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));           
+2457   2            break;
+2458   2      
+2459   2          case CMD_COLOR_CLEAR:
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 41  
+
+2460   2            if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+2461   2            {
+2462   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2463   3      
+2464   3              stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+2465   3              stLocalControl.stBusDealFreq.byRecSecAddr = CMD_COLOR_CLEAR;
+2466   3              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2467   3            }
+2468   2            break;
+2469   2            
+2470   2          default:
+2471   2            break;
+2472   2      
+2473   2        } 
+2474   1      }
+2475          
+2476          /**********************************************************
+2477          *函数名称     :Bus0SendDeal 
+2478          *函数描述         :单总线0发送完一帧数据处理函数,该函数首先
+2479                     取出收到的数据,针对每条命令执行对应的控
+2480                     制动作
+2481          *输入参数       :
+2482          *返回值       :
+2483          *全局变量     :stLocalControl
+2484          *调用模块       :
+2485          ***********************************************************
+2486          *创建人           :尹运同
+2487          *创建日期     :2008-9-22
+2488          ***********************************************************
+2489          *修改人         :
+2490          *修改日期       :
+2491          *注释           :
+2492          **********************************************************/
+2493          void Bus0SendDeal(void)
+2494          { 
+2495   1        //取出发送完成的数据帧
+2496   1        OS_ENTER_CRITICAL();
+2497   1        memcpy(&(stLocalControl.stBusDealFreq), byBus0SendData, sizeof(STBusFreq));   
+2498   1        bBus0SendFinish = 0;
+2499   1        OS_EXIT_CRITICAL(); 
+2500   1      
+2501   1        //以下仅供测试用
+2502   1        //调试用
+2503   1      #if DEBUG==1  
+2504   1      //    Send_Data(&(stLocalControl.stBusDealFreq.bySndSecAddr),7);
+2505   1      #endif
+2506   1        /////////////////////////////////////////////////////////////////////////////////////
+2507   1      
+2508   1        switch(stLocalControl.stBusDealFreq.byCmd)
+2509   1        {
+2510   2          case CMD_LANDING:                   //登记命令
+2511   2            if(bLanding)
+2512   2            { //本机确实处在登记状态,设置等待确认超时
+2513   3              MakeCH0TimerOut(150, 0);        
+2514   3            }     
+2515   2            break;
+2516   2          case CMD_INFUSION_CALL:
+2517   2          case CMD_SERVICE_CALL:
+2518   2          case CMD_EMERGENCY_CALL:
+2519   2          case CMD_HELP_CALL:
+2520   2            //命令还是原命令不变
+2521   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 42  
+
+2522   2            break;
+2523   2          case CMD_COMM_CALL:                 //普通呼叫命令              
+2524   2          case CMD_INFUSION_ANSWER:             //处理输液呼叫
+2525   2          case CMD_SERVICE_ANSWER:              //处理服务呼叫
+2526   2          case CMD_EMERGENCY_ANSWER:              //处理紧急呼叫
+2527   2          case CMD_HELP_ANSWER:               //处理求援呼叫
+2528   2            //停止正在指示的呼叫
+2529   2            if(bIndicatingOther)
+2530   2            { 
+2531   3              bIndicatingOther = 0; 
+2532   3              if(bNurseIn)
+2533   3              {         
+2534   4                VoiceChannelCtx();
+2535   4                LedControl();       
+2536   4              }     
+2537   3            }
+2538   2            if(!bBusy)
+2539   2            { //不忙,进入等待应答状态,保存主叫方地址,设置超时
+2540   3              bBusy = bWaitAck = 1;
+2541   3              SaveCallAddr(&(stLocalControl.stBusDealFreq));        
+2542   3              MakeCH0TimerOut(250, 0);            
+2543   3            }       
+2544   2            break;  
+2545   2          case CMD_COMM_ANSWER:                 //普通应答命令
+2546   2            if(bBusy)
+2547   2            {
+2548   3      
+2549   3              bCalledRing = 1;  
+2550   3              if((bChannel1Talk|bChannel1Talked))
+2551   3              { //本机已经处于通话状态了,缩短超时,退出            
+2552   4                MakeCH0TimerOut(5, 0);
+2553   4                break;
+2554   4              } 
+2555   3              
+2556   3              MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byRingTime);         
+2557   3              //VoiceChannelCtx();
+2558   3              LedControl();
+2559   3              if(bEnAutoListen)
+2560   3              { //自动接听
+2561   4                OSWait(K_TMO,50); //此处延时1000ms,以避免主机会莫名收不到CMD_CALL_LISTEN命令
+2562   4                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2563   4                stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2564   4                stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2565   4                stLocalControl.stBusDealFreq.byCmd = CMD_CALL_LISTEN;
+2566   4                stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.bySndSecAddr;
+2567   4                stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.bySndRoomAddr;
+2568   4                stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.bySndBedAddr;
+2569   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2570   4                
+2571   4              }             
+2572   3            }
+2573   2            break;
+2574   2          case CMD_CALL_LISTEN:               //接听命令
+2575   2            if(bBusy)
+2576   2            {
+2577   3              bCalledRing = 0;
+2578   3              bChannel0Talked = 1;              
+2579   3              if((bChannel1Talk|bChannel1Talked))
+2580   3              {   //本机已经处于通话状态了,缩短超时,退出            
+2581   4                MakeCH0TimerOut(5, 0);
+2582   4                break;
+2583   4              }
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 43  
+
+2584   3              //设置通话超时
+2585   3              MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byTalkTime);                     
+2586   3              VoiceChannelCtx();
+2587   3              LedControl();
+2588   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2589   3            }
+2590   2            break;
+2591   2          case CMD_BROADCAST1:
+2592   2          case CMD_BROADCAST2:
+2593   2          case CMD_BROADCAST3:                      //广播命令
+2594   2            //停止正在指示的呼叫
+2595   2            if(bIndicatingOther)
+2596   2            { 
+2597   3              bIndicatingOther = 0;
+2598   3              if(bNurseIn)
+2599   3              {
+2600   4                VoiceChannelCtx();
+2601   4                LedControl();           
+2602   4              }
+2603   3            }
+2604   2            if(!bBusy)
+2605   2            { 
+2606   3              bBusy = 1;  
+2607   3              //保存主动呼叫方地址(本机地址)        
+2608   3              SaveCallAddr(&(stLocalControl.stBusDealFreq));
+2609   3              bSelfBroad = 1;
+2610   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2611   3              if((bChannel1Talk|bChannel1Talked)||(!bDealKeyDown))
+2612   3              { //本机广播条件不存在了,缩短超时,退出        
+2613   4                MakeCH0TimerOut(5, 0);
+2614   4                break;
+2615   4              }
+2616   3              //设置广播超时
+2617   3              MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byBroadTime);
+2618   3              VoiceChannelCtx();
+2619   3              LedControl();
+2620   3            }
+2621   2            break;
+2622   2          case CMD_INFUSION_CLEAR:              //清除输液呼叫
+2623   2          case CMD_SERVICE_CLEAR:               //清除服务呼叫
+2624   2          case CMD_HELP_CLEAR:                //清除求援呼叫
+2625   2          case CMD_EMERGENCY_CLEAR:             //清除紧急呼叫
+2626   2            if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+2627   2            { //清除自己的呼叫,清除相应标志
+2628   3      
+2629   3              if(stLocalControl.stBusDealFreq.byCmd == CMD_INFUSION_CLEAR)
+2630   3              {       
+2631   4                bConfusionNoting = 0;
+2632   4              }
+2633   3              else if(stLocalControl.stBusDealFreq.byCmd == CMD_SERVICE_CLEAR)
+2634   3              {
+2635   4                bServiceNoting = 0;
+2636   4              }
+2637   3              else if(stLocalControl.stBusDealFreq.byCmd == CMD_HELP_CLEAR)
+2638   3              {
+2639   4                bHelpNoting = 0;
+2640   4              }
+2641   3              else
+2642   3              {
+2643   4                bEmergencyNoting = 0;
+2644   4              } 
+2645   3              SysReset();
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 44  
+
+2646   3              //VoiceChannelCtx();
+2647   3              //LedControl();         
+2648   3            }
+2649   2            else if(bIndicatingOther &&
+2650   2              (stLocalControl.stBusDealFreq.byRecSecAddr == stLocalControl.stIndicationData.stAddr.bySndSecAddr) &&
+2651   2              (stLocalControl.stBusDealFreq.byRecRoomAddr == stLocalControl.stIndicationData.stAddr.bySndRoomAddr) &
+             -&
+2652   2              (stLocalControl.stBusDealFreq.byRecBedAddr == stLocalControl.stIndicationData.stAddr.bySndBedAddr) &&
+2653   2              ((stLocalControl.stBusDealFreq.byCmd - 0x0a) == (stLocalControl.stIndicationData.byCallCmd & 0x1f)))//
+             -对应的呼叫命令
+2654   2            { //清除本机正在指示的呼叫            
+2655   3              bIndicatingOther = 0;
+2656   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));       
+2657   3              if(bNurseIn)
+2658   3              {
+2659   4                VoiceChannelCtx();
+2660   4                LedControl();         
+2661   4              }                 
+2662   3            }       
+2663   2            break;  
+2664   2      
+2665   2          case CMD_CHANNEL_CLOSE:               //关闭语音通道命令
+2666   2            bChannel1Talk = bChannel1Talked = 0;      
+2667   2            MakeCH1TimerOut(0, 0);
+2668   2            VoiceChannelCtx();
+2669   2            LedControl();
+2670   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2671   2            break;  
+2672   2          case CMD_GET_BUS:                 //占用总线
+2673   2            Bus0SendPin = 1;                //制造总线故障
+2674   2            SaveParameter(IAP0_ADDR);
+2675   2            Bus0SendPin = 0;                //释放总线
+2676   2            MUT = bMUTState;        
+2677   2            break;
+2678   2          case CMD_SYSTERM_RESET:               //系统复位命令
+2679   2            SysReset();
+2680   2            break; 
+2681   2          case CMD_BUS_ANSWER:
+2682   2            switch(stLocalControl.stBusDealFreq.byRecSecAddr)
+2683   2            {
+2684   3              case CMD_NUMBER_SET:
+2685   3              //发送占用总线命令
+2686   3                stLocalControl.stBusDealFreq.byCmd = CMD_GET_BUS;     
+2687   3                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2688   3                break;
+2689   3              case CMD_POWER_ON:
+2690   3                if((bOxSupplyState==1)/*&&(bEnableOxTimer==1)*/)
+2691   3                {//如果正处于供氧计时状态
+2692   4                  memcpy(&(stLocalControl.stBusDealFreq.bySndSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr),
+             -3);
+2693   4                  stLocalControl.stBusDealFreq.byCmd= CMD_SUPPLY_OX_END;        
+2694   4                  memcpy(&(stLocalControl.stBusDealFreq.byRecSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr),
+             -3);
+2695   4                  Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2696   4                }
+2697   3                OSWait(K_TMO,200);
+2698   3                stLocalControl.stBusDealFreq.byCmd = CMD_POWER_ON;
+2699   3                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); 
+2700   3                break; 
+2701   3                
+2702   3      /*        case CMD_OPEN_485BUS_IN:
+2703   3                stLocalControl.stBusDealFreq.byCmd = CMD_OPEN_485BUS_IN;
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 45  
+
+2704   3                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2705   3                break;          
+2706   3      */  
+2707   3      
+2708   3              case CMD_SD_TAL_VOL_CHECK_END:
+2709   3                XTD=0;
+2710   3                CloseCGB();
+2711   3                MUT =OFF; //关闭功放34119
+2712   3                break;
+2713   3      
+2714   3              case CMD_SD_TAL_VOL_CHECK:
+2715   3      //          LED_DEAL = bLedDealState=1; //灯亮
+2716   3                break;
+2717   3      
+2718   3              case CMD_SA_TAL_VOL_CHECK:
+2719   3                LED_DEAL = bLedDealState=1; //灯亮
+2720   3                break;
+2721   3            }
+2722   2            break;
+2723   2          case CMD_SUPPLY_OX_TOTAL:
+2724   2            bWillSndTotalOx=0;
+2725   2            break;
+2726   2            
+2727   2          default:
+2728   2            break;      
+2729   2      
+2730   2        } 
+2731   1      }
+2732          
+2733          
+2734          /**********************************************************
+2735          *函数名称     :BusManage  
+2736          *函数描述         :单总线0管理线程
+2737          *输入参数       :
+2738          *返回值       :
+2739          *全局变量     :byMainCmdQ
+2740          *调用模块       :OSQPost
+2741          ***********************************************************
+2742          *创建人           :尹运同
+2743          *创建日期     :2008-9-22
+2744          ***********************************************************
+2745          *修改人         :
+2746          *修改日期       :
+2747          *注释           :
+2748          **********************************************************/
+2749          void BusManage(void)
+2750          {   
+2751   1        while(TRUE)
+2752   1        {   
+2753   2          if(bBus0RecFinish)                  //总线0收到数据
+2754   2          {   
+2755   3            OSQPost(byMainCmdQ, BUS0_REC);        
+2756   3          }
+2757   2          if(bBus0SendFinish)                 //总线0发送完数据帧
+2758   2          {
+2759   3            OSQPost(byMainCmdQ, BUS0_SND);      
+2760   3          }
+2761   2          if(bBus1RecFinish)                  //总线1收到数据
+2762   2          {       
+2763   3            OSQPost(byMainCmdQ, BUS1_REC);        
+2764   3          }
+2765   2          if(bBus1SendFinish)                 //总线1发送完数据帧
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 46  
+
+2766   2          {
+2767   3            OSQPost(byMainCmdQ, BUS1_SND);      
+2768   3          }   
+2769   2          OSWait(K_TMO, 1); 
+2770   2          WDT_CONTR = 0x3d;   //@20MHz,1.25s
+2771   2        }
+2772   1      }
+2773          
+2774          
+2775          
+2776          /**********************************************************
+2777          *函数名称     :Bus0Manage 
+2778          *函数描述         :单总线0管理线程
+2779          *输入参数       :
+2780          *返回值       :
+2781          *全局变量     :byMainCmdQ
+2782          *调用模块       :OSQPost
+2783          ***********************************************************
+2784          *创建人           :尹运同
+2785          *创建日期     :2008-9-22
+2786          ***********************************************************
+2787          *修改人         :
+2788          *修改日期       :
+2789          *注释           :
+2790          **********************************************************/
+2791          /*void Bus0Manage(void)
+2792          {   
+2793            while(TRUE)
+2794            {   
+2795              if(bBus0RecFinish)                  //总线0收到数据
+2796              {   
+2797                OSQPost(byMainCmdQ, BUS0_REC);        
+2798              }
+2799              if(bBus0SendFinish)                 //总线0发送完数据帧
+2800              {
+2801                OSQPost(byMainCmdQ, BUS0_SND);      
+2802              } 
+2803              OSWait(K_TMO, 1);         
+2804            }
+2805          }
+2806           */
+2807          /**********************************************************
+2808          *函数名称     :Bus1RecDeal  
+2809          *函数描述         :单总线1收到一帧数据处理函数,该函数首先
+2810                     取出收到的数据,针对每条命令执行对应的控
+2811                     制动作
+2812          *输入参数       :
+2813          *返回值       :
+2814          *全局变量     :
+2815          *调用模块       :
+2816          ***********************************************************
+2817          *创建人           :陈卫国
+2818          *创建日期     :2008-9-22
+2819          ***********************************************************
+2820          *修改人         :
+2821          *修改日期       :
+2822          *注释           :
+2823          **********************************************************/
+2824          void Bus1RecDeal(void)
+2825          {
+2826   1        //取出单总线1收到的数据帧 
+2827   1        OS_ENTER_CRITICAL();
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 47  
+
+2828   1        memcpy(&(stLocalControl.stBusDealFreq), byBus1RecData, sizeof(STBusFreq));  
+2829   1        bBus1RecFinish = 0;
+2830   1        OS_EXIT_CRITICAL();
+2831   1      #if DEBUG==1  
+2832   1      //  Send_Data((uint8 *)&(stLocalControl.stBusDealFreq),7);
+2833   1      #endif
+2834   1      
+2835   1       
+2836   1      //  if(bLanding) return;  //上电状态
+2837   1        
+2838   1        switch(stLocalControl.stBusDealFreq.byCmd)
+2839   1        {
+2840   2          case CMD_LANDING:                   //登记命令  
+2841   2            if(bLanding == 0)
+2842   2            {//已经上电登记成功   
+2843   3              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2844   3              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2845   3              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2846   3              stLocalControl.stBusDealFreq.byCmd = CMD_ENTER;
+2847   3              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.byBedFjFlag;
+2848   3              stLocalControl.stBusDealFreq.byRecRoomAddr = 0x00;
+2849   3              stLocalControl.stBusDealFreq.byRecBedAddr = 0x00;     
+2850   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2851   3            }
+2852   2            break;  
+2853   2      
+2854   2      
+2855   2          case CALL_KEY_DOWN:
+2856   2            if(bLanding == 0)
+2857   2            {//已经上电登记成功
+2858   3              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2859   3              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2860   3              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2861   3              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stBusDealFreq.bySndSecAddr;
+2862   3              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+2863   3              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;        
+2864   3              if(!(bChannel1Talk|bChannel1Talked|bConfusionNoting|bServiceNoting|
+2865   3                bChannel0Talk|bChannel0Talked|bCalledRing))   
+2866   3              { //设备空闲状态
+2867   4                stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.byPrio;
+2868   4                stLocalControl.stBusDealFreq.byCmd = CMD_INFUSION_CALL;
+2869   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));       
+2870   4              }
+2871   3              else if((bConfusionNoting&&bEnHandDown))
+2872   3              { //设备正在呼叫中,且允许手柄挂断呼叫   
+2873   4                stLocalControl.stBusDealFreq.byCmd = CMD_INFUSION_CLEAR;        
+2874   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));       
+2875   4              }
+2876   3              
+2877   3              else if((bServiceNoting&&bEnHandDown))
+2878   3              { //设备正在服务呼叫中,且允许手柄挂断呼叫   
+2879   4                stLocalControl.stBusDealFreq.byCmd = CMD_SERVICE_CLEAR;       
+2880   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));       
+2881   4              }       
+2882   3              else if(bChannel1Talked&&bEnHandDown)
+2883   3              { //设备正中通道1中被动对讲,且允许手柄挂断            
+2884   4                stLocalControl.stBusDealFreq.byCmd = CMD_CHANNEL_CLOSE; 
+2885   4      /*          stLocalControl.stBusDealFreq.byRecSecAddr = 0xff;
+2886   4                stLocalControl.stBusDealFreq.byRecRoomAddr = 0xff;
+2887   4                stLocalControl.stBusDealFreq.byRecBedAddr = 0xff;
+2888   4      */
+2889   4                stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.bySndSecAddr;
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 48  
+
+2890   4                stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.bySndRoomAddr;;
+2891   4                stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.bySndBedAddr;
+2892   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));     
+2893   4              }
+2894   3              else if(bChannel0Talked&&bEnHandDown)
+2895   3              {   //设备正中通道0中被动对讲,且允许手柄挂断
+2896   4                stLocalControl.stBusDealFreq.byCmd = CMD_SYSTERM_RESET;
+2897   4                stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.bySndSecAddr;
+2898   4                stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.bySndRoomAddr;
+2899   4                stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.bySndBedAddr;
+2900   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));       
+2901   4              }
+2902   3            }
+2903   2            break;
+2904   2      
+2905   2            
+2906   2          case CALL_KEY_UP:
+2907   2          case CALL_KEY_ALWAYS:
+2908   2            break;
+2909   2            
+2910   2          case CMD_DATA_ERROR:
+2911   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2912   2            break;
+2913   2          case CMD_BUS_ANSWER:
+2914   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2915   2            if(stLocalControl.stBusDealFreq.byRecSecAddr == CMD_DISPLAY_DATA /*||stLocalControl.stBusDealFreq.byRec
+             -SecAddr == CMD_SB_DISPLAY_DATA*/)
+2916   2            {//只有床头信息才保存数据
+2917   3              //bit0=0:该床位有病人
+2918   3              stLocalControl.stEepromCfgData.byBedFjFlag &= 0xfe;     
+2919   3              stLocalControl.stBusDealFreq.byCmd = CMD_GET_BUS;
+2920   3              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2921   3            }     
+2922   2            break;  
+2923   2      
+2924   2      
+2925   2          case CMD_INFUSION_CALL:     //从输液报警器上无线传过来的信号
+2926   2            if(bLanding == 0)
+2927   2            {//已经上电登记成功
+2928   3              if(!(bChannel1Talk|bChannel1Talked|bConfusionNoting|
+2929   3                bChannel0Talk|bChannel0Talked|bCalledRing))   
+2930   3              { //设备空闲状态
+2931   4                stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2932   4                stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2933   4                stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2934   4        //        stLocalControl.stBusDealFreq.byCmd = CMD_INFUSION_CALL;
+2935   4                stLocalControl.stBusDealFreq.byCmd = CMD_SERVICE_CALL;
+2936   4                stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.byPrio;
+2937   4                stLocalControl.stBusDealFreq.byRecRoomAddr =0x00;
+2938   4                stLocalControl.stBusDealFreq.byRecBedAddr =0x00;
+2939   4                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));       
+2940   4              }
+2941   3            }
+2942   2            break;
+2943   2            case CMD_RF_NUMSET_START:
+2944   2            if(!(bChannel1Talk|bChannel1Talked|bConfusionNoting|
+2945   2              bChannel0Talk|bChannel0Talked|bCalledRing|bRFNumSeting))  
+2946   2            {//设备空闲状态 且没在输液报警器对码状态
+2947   3              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); //返回显示模块使其显示
+2948   3              memcpy(RFSerial,&(stLocalControl.stBusDealFreq.bySndSecAddr),3);
+2949   3              memcpy(&(RFSerial[3]),&(stLocalControl.stBusDealFreq.byRecSecAddr),3);
+2950   3              bRFNumSeting=1;
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 49  
+
+2951   3              stLocalControl.uiRFNumSetTime=250;      //编号10秒内有效        
+2952   3            }
+2953   2            break;
+2954   2          case CMD_SUPPLY_OX_END:
+2955   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2956   2            stLocalControl.uiWaitAckTimeSupplyOxEnd=250;    //5S内收到供氧结束信号的应答命令
+2957   2            break;
+2958   2            
+2959   2          case CMD_SUPPLY_OX_TOTAL:
+2960   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2961   2            stLocalControl.uiWaitAckTimeSupplyOxTotal=250;    //5S内收到供氧总计信号的应答命令
+2962   2            break;  
+2963   2      
+2964   2          case CMD_BUS1_TEST_ANSWER:  //来自显示模块的确认命令
+2965   2            bBus1Answer =1;
+2966   2            break;
+2967   2      
+2968   2          case CMD_BUS1_CHECK:       //单总线1检测命令
+2969   2            stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2970   2            stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2971   2            stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2972   2            stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER;
+2973   2            stLocalControl.stBusDealFreq.byRecSecAddr = CMD_BUS1_CHECK;
+2974   2            stLocalControl.stBusDealFreq.byRecRoomAddr = 0x00;
+2975   2            stLocalControl.stBusDealFreq.byRecBedAddr = 0x00;     
+2976   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2977   2            break; 
+2978   2      
+2979   2          case CMD_NURSE_IN:
+2980   2            stLocalControl.uiNurseInTime=NURSE_IN_TIME;       //如果5秒内未收到护士到位命令，即认为护士离开
+2981   2            if(bNurseIn==0)
+2982   2            {   
+2983   3              MoveFjNum = stLocalControl.stBusDealFreq.bySndBedAddr;
+2984   3              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));     
+2985   3            }
+2986   2            bNurseIn=1; 
+2987   2            VoiceChannelCtx();
+2988   2            break;
+2989   2      
+2990   2          case CMD_INSPECTOR_CALL:      //护士查房命令  
+2991   2            stLocalControl.uiNurseInTime=NURSE_IN_TIME;
+2992   2            MoveFjNum = stLocalControl.stBusDealFreq.bySndBedAddr;
+2993   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2994   2            break;
+2995   2            
+2996   2          default:
+2997   2            break;      
+2998   2        }   
+2999   1      
+3000   1      }
+3001          
+3002          
+3003          
+3004          void IrDATreat(void)  //数据处理函数
+3005          {
+3006   1      
+3007   1        OS_ENTER_CRITICAL();
+3008   1        memcpy(byIrDADealBuff,byIrDARecBuff,4);       //把数据从接收区复制到缓冲区
+3009   1        memset(byIrDARecBuff,0x00,4);           //将接收缓冲区清0
+3010   1        OS_EXIT_CRITICAL();
+3011   1        if(byIrDADealBuff[3]==(uint8)(byIrDADealBuff[0]+byIrDADealBuff[1]+byIrDADealBuff[2]))
+3012   1        {//校验和正确
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 50  
+
+3013   2          switch(byIrDADealBuff[2])
+3014   2          {
+3015   3          case IrDA_CMD_NURSE_IN:
+3016   3            bSetKeyDown = 1;                //保存设置键的状态
+3017   3            stLocalControl.uiNurseInTime=NURSE_IN_TIME;       //如果5秒内未收到护士到位命令，即认为护士离开
+3018   3            if(bNurseIn==0)
+3019   3            {
+3020   4              MoveFjNum = byIrDADealBuff[1];//移动分机号
+3021   4              
+3022   4              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+3023   4              stLocalControl.stBusDealFreq.bySndRoomAddr= MOVE_FJ;
+3024   4              stLocalControl.stBusDealFreq.bySndBedAddr= byIrDADealBuff[1];//移动分机号
+3025   4              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+3026   4              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3027   4              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;   
+3028   4              stLocalControl.stBusDealFreq.byCmd = CMD_NURSE_IN;
+3029   4              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3030   4              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3031   4            }
+3032   3            bNurseIn=1; 
+3033   3            VoiceChannelCtx();
+3034   3            break;
+3035   3          case IrDA_CMD_INSPECTION:     //护士查房命令  
+3036   3            if((stLocalControl.stEepromCfgData.byBedFjFlag & bDispMode)==0)
+3037   3            {//供氧信息显示模式
+3038   4                    //将查房操作视供氧计时开始与结束
+3039   4      
+3040   4              if(stLocalControl.stEepromCfgData.byBedFjFlag&OX_SUPPLY_STATE) //处于供氧状态
+3041   4              {//停止供氧计时
+3042   5                stLocalControl.stEepromCfgData.byBedFjFlag &= (~OX_SUPPLY_STATE);   //标志清0
+3043   5                SaveParameter(IAP0_ADDR);
+3044   5                bWillSndOxSupplyStart=0;
+3045   5                  
+3046   5                
+3047   5                if(bEnableOxTimer==1) //已接收到时间数据
+3048   5                {         
+3049   6                  
+3050   6                  memcpy(&(stLocalControl.stBusDealFreq.bySndSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr),
+             -3);
+3051   6                  stLocalControl.stBusDealFreq.byCmd= CMD_SUPPLY_OX_END;        
+3052   6                  memcpy(&(stLocalControl.stBusDealFreq.byRecSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr),
+             -3);
+3053   6                  Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); 
+3054   6                  bOxSupplyState=0;
+3055   6      //            bWillSndOxSupplyEnd =0;
+3056   6                }
+3057   5      //          else bWillSndOxSupplyEnd =1;
+3058   5              }
+3059   4              
+3060   4              else//处于未供氧状态
+3061   4              {//开始计时 
+3062   5                stLocalControl.stEepromCfgData.byBedFjFlag |= (OX_SUPPLY_STATE);   //标志置1
+3063   5                SaveParameter(IAP0_ADDR);
+3064   5      //          bWillSndOxSupplyEnd =0;
+3065   5                
+3066   5                if(bEnableOxTimer==1) //已接收到时间数据
+3067   5                {
+3068   6                  memcpy(&(stLocalControl.stBusDealFreq.bySndSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr),
+             -3);
+3069   6                  stLocalControl.stBusDealFreq.byCmd= CMD_SUPPLY_OX_START;
+3070   6                  Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3071   6                  Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 51  
+
+3072   6                  bWillSndOxSupplyStart=0;
+3073   6                  bOxSupplyState=1;
+3074   6            
+3075   6                }
+3076   5                else bWillSndOxSupplyStart=1;
+3077   5              }
+3078   4      
+3079   4      
+3080   4      
+3081   4      //不再执行查房操作
+3082   4      /*        stLocalControl.uiNurseInTime=NURSE_IN_TIME;
+3083   4              MoveFjNum = byIrDADealBuff[1];//移动分机号
+3084   4              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+3085   4              stLocalControl.stBusDealFreq.bySndRoomAddr= MOVE_FJ;
+3086   4              stLocalControl.stBusDealFreq.bySndBedAddr= byIrDADealBuff[1];//移动分机号 
+3087   4              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;;
+3088   4              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3089   4              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;   
+3090   4              stLocalControl.stBusDealFreq.byCmd = CMD_INSPECTOR_CALL;
+3091   4              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));*/
+3092   4            }
+3093   3            else 
+3094   3            {//色块模式
+3095   4      
+3096   4              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;;
+3097   4              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3098   4              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+3099   4              stLocalControl.stBusDealFreq.byCmd = CMD_COLOR_CLEAR;
+3100   4              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3101   4              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3102   4            }
+3103   3            break;
+3104   3            
+3105   3          }
+3106   2        }
+3107   1      }
+3108          
+3109          
+3110          
+3111          void IrDANumberSet(void)  //数据处理函数
+3112          {
+3113   1      
+3114   1        OS_ENTER_CRITICAL();
+3115   1        memcpy(byIrDADealBuff,byIrDARecBuff,6);       //把数据从接收区复制到缓冲区
+3116   1        memset(byIrDARecBuff,0x00,6);           //将接收缓冲区清0
+3117   1        OS_EXIT_CRITICAL();
+3118   1      
+3119   1        switch(byIrDADealBuff[4])
+3120   1        {
+3121   2          case 0x5a:
+3122   2            //暂存主呼方地址数据中
+3123   2            stLocalControl.stBusDealFreq.bySndSecAddr = byIrDADealBuff[1];
+3124   2            stLocalControl.stBusDealFreq.bySndRoomAddr = byIrDADealBuff[2];
+3125   2            stLocalControl.stBusDealFreq.bySndBedAddr = byIrDADealBuff[3];
+3126   2            stLocalControl.stBusDealFreq.byCmd    =   0x5a;
+3127   2              
+3128   2            stLocalControl.stCallAddr.bySndSecAddr=stLocalControl.stBusDealFreq.bySndSecAddr;
+3129   2            stLocalControl.stCallAddr.bySndRoomAddr=stLocalControl.stBusDealFreq.bySndRoomAddr;
+3130   2            stLocalControl.stCallAddr.bySndBedAddr =stLocalControl.stBusDealFreq.bySndBedAddr;
+3131   2            bNumSeting=1;
+3132   2            stLocalControl.byNumSetTime=250;      //编号5秒内有效
+3133   2            stLocalControl.stBusDealFreq.byRecSecAddr=0x01; //开始编号
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 52  
+
+3134   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); //显示开始编号
+3135   2            break;
+3136   2          default:
+3137   2            break;
+3138   2        }
+3139   1      }
+3140          
+3141          /**********************************************************
+3142          *函数名称     :Bus1SendDeal 
+3143          *函数描述         :单总线1发送完一帧数据处理函数,该函数首先
+3144                     取出收到的数据,针对每条命令执行对应的控
+3145                     制动作
+3146          *输入参数       :
+3147          *返回值       :
+3148          *全局变量     :
+3149          *调用模块       :
+3150          ***********************************************************
+3151          *创建人           :陈卫国
+3152          *创建日期     :2008-9-22
+3153          ***********************************************************
+3154          *修改人         :
+3155          *修改日期       :
+3156          *注释           :
+3157          **********************************************************/
+3158          void Bus1SendDeal(void)
+3159          { 
+3160   1        //取出数据帧
+3161   1        OS_ENTER_CRITICAL();
+3162   1        memcpy(&(stLocalControl.stBusDealFreq), byBus1SendData, sizeof(STBusFreq)); 
+3163   1        bBus1SendFinish = 0;
+3164   1        OS_EXIT_CRITICAL();
+3165   1        
+3166   1      #if DEBUG==1
+3167   1        Send_Data(byBus1SendData,7);
+3168   1      #endif
+3169   1      
+3170   1        switch(stLocalControl.stBusDealFreq.byCmd)
+3171   1        {
+3172   2      /*    case CMD_ENTER: 
+3173   2            OS_ENTER_CRITICAL();
+3174   2            memcpy(&(stLocalControl.stBusDealFreq.bySndSecAddr),&(stLocalControl.stEepromCfgData.byRFSerialNum1),3)
+             -;
+3175   2            stLocalControl.stBusDealFreq.byCmd = CMD_TELL_RF_NUM;
+3176   2            memcpy(&(stLocalControl.stBusDealFreq.byRecSecAddr),&(stLocalControl.stEepromCfgData.byRFSerialNum4),3)
+             -;
+3177   2      
+3178   2            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3179   2            OS_EXIT_CRITICAL();     
+3180   2            break;
+3181   2      */
+3182   2          case CMD_POWER_ON:
+3183   2            OS_ENTER_CRITICAL();
+3184   2            //关闭所有打开的中断
+3185   2            CCAPM0 = 0x00;
+3186   2            ET0 = 0;
+3187   2            TR0 = 0;
+3188   2            EX0 = 0;
+3189   2            ISP_CONTR = 0x20; 
+3190   2            break;
+3191   2          case CMD_OPEN_LCD:
+3192   2            //bit1=1:显示屏背光打开
+3193   2            stLocalControl.stEepromCfgData.byBedFjFlag |= 0x02;
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 53  
+
+3194   2            if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+3195   2            {//绝对地址
+3196   3              stLocalControl.stBusDealFreq.byCmd = CMD_GET_BUS;
+3197   3              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3198   3            }
+3199   2            else 
+3200   2            {//广播地址
+3201   3              Bus0SendPin = 1;                //制造总线故障
+3202   3              SaveParameter(IAP0_ADDR);
+3203   3              Bus0SendPin = 0;                //释放总线            
+3204   3            }
+3205   2            break;
+3206   2            
+3207   2          case CMD_CLOSE_LCD:
+3208   2            //bit1=0:显示屏背光关闭
+3209   2            stLocalControl.stEepromCfgData.byBedFjFlag &= 0xfd;
+3210   2            if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+3211   2            {//绝对地址
+3212   3              stLocalControl.stBusDealFreq.byCmd = CMD_GET_BUS;
+3213   3              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3214   3            }
+3215   2            else 
+3216   2            {//广播地址
+3217   3              Bus0SendPin = 1;                //制造总线故障
+3218   3              SaveParameter(IAP0_ADDR);
+3219   3              Bus0SendPin = 0;                //释放总线            
+3220   3            }
+3221   2            break;
+3222   2      
+3223   2          case CMD_OPEN_485BUS_IN:
+3224   2            //bit0=0:该床位有病人
+3225   2      //      stLocalControl.stEepromCfgData.byBedFjFlag &= 0xfe;
+3226   2      //      SaveParameter(IAP0_ADDR);
+3227   2            break;
+3228   2            
+3229   2          case CMD_CLEAR_LCD:
+3230   2            //bit0=1:该床位病人出院
+3231   2            stLocalControl.stEepromCfgData.byBedFjFlag |= 0x01;
+3232   2            if(DirAddrCompare(&(stLocalControl.stBusDealFreq)))
+3233   2            {//绝对地址
+3234   3              stLocalControl.stBusDealFreq.byCmd = CMD_GET_BUS;
+3235   3              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3236   3            }
+3237   2            else 
+3238   2            {//广播地址
+3239   3              Bus0SendPin = 1;                //制造总线故障
+3240   3              SaveParameter(IAP0_ADDR);
+3241   3              Bus0SendPin = 0;                //释放总线            
+3242   3            }
+3243   2            break;
+3244   2          case CMD_SYSTEM_SEC_SET:
+3245   2            stLocalControl.stBusDealFreq.byCmd = CMD_GET_BUS;     //为保存数据作准备    
+3246   2            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); 
+3247   2            break;
+3248   2            
+3249   2          case CMD_DISP_MODE:
+3250   2            if(stLocalControl.stBusDealFreq.byRecSecAddr)  stLocalControl.stEepromCfgData.byBedFjFlag |= bDispMode;
+3251   2            else stLocalControl.stEepromCfgData.byBedFjFlag &= ~bDispMode;
+3252   2            
+3253   2            //保存显示模式
+3254   2            WDT_CONTR = 0x3d;   //喂狗
+3255   2            EA=0;
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 54  
+
+3256   2            SaveParameter(IAP0_ADDR);
+3257   2            EA=1;
+3258   2            break;  
+3259   2      
+3260   2          case CMD_RS485_INFO_SEC_ROOM:
+3261   2            if(stLocalControl.stBusDealFreq.byRecSecAddr)  stLocalControl.stEepromCfgData.byBedFjFlag |= bSecRoom;
+3262   2            else stLocalControl.stEepromCfgData.byBedFjFlag &= ~bSecRoom;
+3263   2            
+3264   2            //保存是否判断区号房号
+3265   2            WDT_CONTR = 0x3d;   //喂狗
+3266   2            EA=0;
+3267   2            SaveParameter(IAP0_ADDR);
+3268   2            EA=1;
+3269   2            break;      
+3270   2      
+3271   2      //    case CMD_COLOR_CLEAR:
+3272   2      //      bColorSet=0;
+3273   2      //      break;
+3274   2            
+3275   2          default:
+3276   2            break;
+3277   2      
+3278   2      
+3279   2        }
+3280   1      }
+3281          /**********************************************************
+3282          *函数名称     :Bus1Manage 
+3283          *函数描述         :单总线1管理线程
+3284          *输入参数       :
+3285          *返回值       :
+3286          *全局变量     :
+3287          *调用模块       :
+3288          ***********************************************************
+3289          *创建人           :陈卫国
+3290          *创建日期     :2008-9-22
+3291          ***********************************************************
+3292          *修改人         :
+3293          *修改日期       :
+3294          *注释           :
+3295          **********************************************************/
+3296          /*void Bus1Manage(void)
+3297          {   
+3298            while(TRUE)
+3299            {   
+3300              if(bBus1RecFinish)                  //总线1收到数据
+3301              {       
+3302                OSQPost(byMainCmdQ, BUS1_REC);        
+3303              }
+3304              if(bBus1SendFinish)                 //总线1发送完数据帧
+3305              {
+3306                OSQPost(byMainCmdQ, BUS1_SND);      
+3307              } 
+3308              OSWait(K_TMO, 1);         
+3309            }
+3310          } */
+3311          
+3312          
+3313          
+3314          /**********************************************************
+3315          
+3316          
+3317          
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 55  
+
+3318          
+3319          /**********************************************************
+3320          *函数名称     :TimerOutDeal 
+3321          *函数描述         :超时处理函数
+3322          *输入参数       :
+3323          *返回值       :
+3324          *全局变量     :stLocalControl
+3325          *调用模块       :Bus0OutputData,Bus1OutputData,VoiceChannelCtx,
+3326                     LedControl,SetHandLedState
+3327          ***********************************************************
+3328          *创建人           :尹运同
+3329          *创建日期     :2008-9-22
+3330          ***********************************************************
+3331          *修改人         :
+3332          *修改日期       :
+3333          *注释           :
+3334          **********************************************************/
+3335          void TimerOutDeal(void)
+3336          { 
+3337   1        if(stLocalControl.stCH0TimerOut.byTimerOut != 0)
+3338   1        { //有超时设置存在
+3339   2          stLocalControl.stCH0TimerOut.byTimerOut--;
+3340   2          if(stLocalControl.stCH0TimerOut.byTimerOut == 0)
+3341   2          { //超时一次到了 
+3342   3            if(stLocalControl.stCH0TimerOut.byTimerOutCount == 0x00)
+3343   3            {   //所有超时完成
+3344   4              goto TIMER0OUTDEAL;
+3345   4            }
+3346   3            else
+3347   3            { //超时次数没有完
+3348   4              stLocalControl.stCH0TimerOut.byTimerOutCount--;
+3349   4              if(stLocalControl.stCH0TimerOut.byTimerOutCount == 0x00)
+3350   4              {   //所有超时完成
+3351   5      TIMER0OUTDEAL:
+3352   5                if(bLanding)
+3353   5                { //上电状态
+3354   6                  stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+3355   6                  stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3356   6                  stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+3357   6                  stLocalControl.stBusDealFreq.byCmd = CMD_LANDING;
+3358   6                  stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySerialNum1;
+3359   6                  stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySerialNum2;
+3360   6                  stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySerialNum3;
+3361   6                  Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));           
+3362   6                }
+3363   5                else if((bWaitAck|bWaitListen|bChannel0Talk|bSelfBroad))
+3364   5                { //等待应答，等待接听，主动通话，主动广播状态        
+3365   6                  stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+3366   6                  stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3367   6                  stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+3368   6                  stLocalControl.stBusDealFreq.byCmd = CMD_SYSTERM_RESET;
+3369   6                  stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.byRecSecAddr;
+3370   6                  stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.byRecRoomAddr;
+3371   6                  stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.byRecBedAddr;
+3372   6                  Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3373   6                }               
+3374   5                else
+3375   5                {
+3376   6                  bBusy = bCalledRing = bChannel0Talked = bSickRoomBroad = bOfficeBroad = bAllBroad = 0;
+3377   6                  VoiceChannelCtx();
+3378   6                  LedControl();           
+3379   6                }
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 56  
+
+3380   5              }
+3381   4              else
+3382   4              {   //超时次数没有完成，重新加载单位超时时间        
+3383   5                stLocalControl.stCH0TimerOut.byTimerOut = stLocalControl.stCH0TimerOut.byTimerOutSet;
+3384   5              }
+3385   4            }     
+3386   3          }
+3387   2        }
+3388   1        //通道1超时处理
+3389   1        if(stLocalControl.stCH1Timerout.byTimerOut != 0)
+3390   1        { //有超时设置存在
+3391   2          stLocalControl.stCH1Timerout.byTimerOut--;
+3392   2          if(stLocalControl.stCH1Timerout.byTimerOut == 0)
+3393   2          { //超时一次到了 
+3394   3            if(stLocalControl.stCH1Timerout.byTimerOutCount == 0x00)
+3395   3            {   //所有超时完成
+3396   4              goto TIMER1OUTDEAL;
+3397   4            }
+3398   3            else
+3399   3            { //超时次数没有完
+3400   4              stLocalControl.stCH1Timerout.byTimerOutCount--;
+3401   4              if(stLocalControl.stCH1Timerout.byTimerOutCount == 0x00)
+3402   4              {   //所有超时完成
+3403   5      TIMER1OUTDEAL:
+3404   5                if(bChannel1Talk)
+3405   5                { //主动通话状态，发送切换命令            
+3406   6                  stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+3407   6                  stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3408   6                  stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;           
+3409   6                  stLocalControl.stBusDealFreq.byCmd = CMD_CHANNEL_CLOSE; 
+3410   6      /*            
+3411   6                  stLocalControl.stBusDealFreq.byRecSecAddr = 0xff;
+3412   6                  stLocalControl.stBusDealFreq.byRecRoomAddr = 0xff;
+3413   6                  stLocalControl.stBusDealFreq.byRecBedAddr = 0xff; 
+3414   6      */
+3415   6                  stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.byRecSecAddr;
+3416   6                  stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.byRecRoomAddr;;
+3417   6                  stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.byRecBedAddr;
+3418   6                  Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); 
+3419   6                }
+3420   5                else if(bChannel1Talked)
+3421   5                { //被动通话状态，自己复位
+3422   6                  bChannel1Talked = 0;              
+3423   6                  VoiceChannelCtx();
+3424   6                  LedControl();
+3425   6                }
+3426   5              }
+3427   4              else
+3428   4              {   //超时次数没有完成，重新加载单位超时时间        
+3429   5                stLocalControl.stCH1Timerout.byTimerOut = stLocalControl.stCH1Timerout.byTimerOutSet;
+3430   5              }
+3431   4            }     
+3432   3          }
+3433   2        } 
+3434   1        if(stLocalControl.uiNurseInTime)
+3435   1        {
+3436   2          if(--stLocalControl.uiNurseInTime == 0x00)  
+3437   2          { //检测护士到位的定时时间到  定为5S
+3438   3            stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;;
+3439   3            stLocalControl.stBusDealFreq.bySndRoomAddr= MOVE_FJ;
+3440   3            stLocalControl.stBusDealFreq.bySndBedAddr= MoveFjNum;//移动分机号
+3441   3            stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 57  
+
+3442   3            stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3443   3            stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;   
+3444   3            stLocalControl.stBusDealFreq.byCmd = CMD_NURSE_OUT;
+3445   3            Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3446   3            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3447   3            bNurseIn=0;
+3448   3      
+3449   3            if(bIndicatingOther)
+3450   3            {
+3451   4      
+3452   4              if((stLocalControl.stIndicationData.stAddr.bySndSecAddr == stLocalControl.stEepromCfgData.bySelfSecAdd
+             -r) &&
+3453   4                ((stLocalControl.stIndicationData.stAddr.bySndRoomAddr) == (stLocalControl.stEepromCfgData.bySelfRoom
+             -Addr))&&
+3454   4                (stLocalControl.stIndicationData.stAddr.bySndBedAddr == stLocalControl.stEepromCfgData.bySelfBedAddr)
+             -)
+3455   4              {//是本机
+3456   5                
+3457   5              }
+3458   4              else
+3459   4              {//信息指示分机不是本机
+3460   5                if(bServiceNoting || bConfusionNoting || bHelpNoting ||bEmergencyNoting||bChannel0Talk||bChannel1Talk
+             -||bChannel0Talked||bChannel1Talked)
+3461   5                {//分机呼叫状态
+3462   6                }
+3463   5      
+3464   5                else
+3465   5                {       
+3466   6                  bIndicatingOther = 0;       
+3467   6      
+3468   6                  //VoiceChannelCtx();
+3469   6                  LedControl(); 
+3470   6                  
+3471   6                  stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stIndicationData.stAddr.bySndSecAddr;
+3472   6                  stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stIndicationData.stAddr.bySndRoomAddr;
+3473   6                  stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stIndicationData.stAddr.bySndBedAddr;
+3474   6                  stLocalControl.stBusDealFreq.byCmd = CMD_STOP_INDICATION; 
+3475   6                  stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+3476   6                  stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3477   6                  stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+3478   6      
+3479   6                  Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3480   6                }
+3481   5                
+3482   5              }
+3483   4        
+3484   4            }     
+3485   3            VoiceChannelCtx();
+3486   3          }
+3487   2        }
+3488   1        //灯状态控制
+3489   1        if(--stLocalControl.byLedFlashTime == 0x00)
+3490   1        {
+3491   2          stLocalControl.byLedFlashTime = stLocalControl.byLedTimeSet;
+3492   2          if((stLocalControl.byLedState & 0x0f) == LED_FLASH)
+3493   2          {   //红灯闪烁状态
+3494   3            bLedDealState = !bLedDealState;
+3495   3            LED_DEAL = bLedDealState;
+3496   3          } 
+3497   2        }
+3498   1        if(stLocalControl.byIrDataIntervalTimer)
+3499   1        {
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 58  
+
+3500   2          if(--stLocalControl.byIrDataIntervalTimer==0x00)  //间隔时间到
+3501   2          {
+3502   3            if(IrDataPosit==4)  
+3503   3            {
+3504   4              if(byIrDARecBuff[3]==(uint8)(byIrDARecBuff[0]+byIrDARecBuff[1]+byIrDARecBuff[2]))
+3505   4              {
+3506   5                bFourByteRec=1;
+3507   5      
+3508   5              }
+3509   4            }
+3510   3      
+3511   3            else if(IrDataPosit==6)
+3512   3            {
+3513   4              if(byIrDARecBuff[5]==(uint8)(byIrDARecBuff[0]+byIrDARecBuff[1]+byIrDARecBuff[2]+byIrDARecBuff[3]+byIrD
+             -ARecBuff[4]))
+3514   4              {
+3515   5      
+3516   5                bSixByteRec =1;
+3517   5              }
+3518   4      
+3519   4            }
+3520   3            
+3521   3            IrDataPosit=0x00;
+3522   3            
+3523   3          }
+3524   2        }
+3525   1      
+3526   1      
+3527   1        if(stLocalControl.byNumSetTime)
+3528   1        {
+3529   2          if(--stLocalControl.byNumSetTime==0)        //编号时间到
+3530   2          {
+3531   3            bNumSeting=0;
+3532   3            stLocalControl.stBusDealFreq.byCmd =CMD_NUMBER_SET;
+3533   3            stLocalControl.stBusDealFreq.byRecSecAddr =0x00;  //退出编号
+3534   3            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3535   3          }
+3536   2        }
+3537   1        if(stLocalControl.uiRFNumSetTime)
+3538   1        {
+3539   2          if(--stLocalControl.uiRFNumSetTime==0)        //编号时间到
+3540   2          {
+3541   3            bRFNumSeting=0;
+3542   3            stLocalControl.stBusDealFreq.byCmd =CMD_RF_NUMSET_END;
+3543   3            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3544   3          }
+3545   2        }
+3546   1        
+3547   1      /*  if(stLocalControl.uiWaitAckTimeSupplyOxEnd)
+3548   1        {
+3549   1          if(--stLocalControl.uiWaitAckTimeSupplyOxEnd==0)
+3550   1          {//供氧计时结束的等待应答时间到
+3551   1            bWillSndTotalOx =1;
+3552   1          }
+3553   1        }
+3554   1      
+3555   1        if(stLocalControl.uiWaitAckTimeSupplyOxTotal)
+3556   1        {
+3557   1          if(--stLocalControl.uiWaitAckTimeSupplyOxTotal==0)
+3558   1          {//供氧计时总计的等待应答时间到
+3559   1            bWillSndTotalOx =1;
+3560   1          }
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 59  
+
+3561   1        }
+3562   1      */
+3563   1      
+3564   1        stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+3565   1        stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3566   1        stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+3567   1        if(stLocalControl.uiBus1TestTime)
+3568   1        {
+3569   2          if(--stLocalControl.uiBus1TestTime==0)
+3570   2          {//总线1测试间隔时间到
+3571   3            stLocalControl.stBusDealFreq.byCmd = CMD_BUS1_TEST;
+3572   3            Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3573   3            stLocalControl.uiBus1TestTime = BUS1_TEST_TIME;
+3574   3            stLocalControl.byBus1AnswerTime = 250;
+3575   3          }
+3576   2        }
+3577   1      
+3578   1        if(stLocalControl.byBus1AnswerTime)
+3579   1        {
+3580   2          if(--stLocalControl.byBus1AnswerTime==0)
+3581   2          {//总线1测试应答时间到
+3582   3            if(bBus1Answer)
+3583   3            {
+3584   4              bBus1Answer = 0;
+3585   4            }
+3586   3            else
+3587   3            {
+3588   4              if((bOxSupplyState==1)/*&&(bEnableOxTimer==1)*/)
+3589   4              {//如果正处于供氧计时状态
+3590   5                memcpy(&(stLocalControl.stBusDealFreq.bySndSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr),3
+             -);
+3591   5                stLocalControl.stBusDealFreq.byCmd= CMD_SUPPLY_OX_END;        
+3592   5                memcpy(&(stLocalControl.stBusDealFreq.byRecSecAddr),&(stLocalControl.stEepromCfgData.bySelfSecAddr),3
+             -);
+3593   5                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3594   5              }
+3595   4              OSWait(K_TMO,200);      
+3596   4              stLocalControl.stBusDealFreq.byCmd = CMD_POWER_ON;
+3597   4              Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3598   4            }
+3599   3          }
+3600   2        }
+3601   1      
+3602   1      
+3603   1        
+3604   1        if(Bus0RecPin ==1)  //总线正常
+3605   1        {
+3606   2          BusLowDTime = 100;  //20ms*100=2s   
+3607   2        }
+3608   1        else
+3609   1        {//Bus0RecPin =0
+3610   2          if(BusLowDTime)
+3611   2          {
+3612   3            if(--BusLowDTime ==0)
+3613   3            {
+3614   4              MUS =1; //断开SD到总线
+3615   4              Bus0SendPin =0; //使SD为高电平
+3616   4              OSWait(K_TMO,100);
+3617   4              WDT_CONTR = 0x3d;
+3618   4              if(Bus0RecPin ==0)
+3619   4              {//本机有故障
+3620   5                stLocalControl.stBusDealFreq.byCmd = CMD_SEND_PIN_BUG;
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 60  
+
+3621   5                stLocalControl.stBusDealFreq.byRecSecAddr = 0x00;
+3622   5                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3623   5                while(Bus0RecPin==0)  //一直等待为高
+3624   5                {
+3625   6                  if(bBus1RecFinish)
+3626   6                  {
+3627   7                    memcpy(&(stLocalControl.stBusDealFreq), byBus1RecData, sizeof(STBusFreq));  
+3628   7                    bBus1RecFinish = 0; 
+3629   7                    if(stLocalControl.stBusDealFreq.byCmd==CMD_LANDING)
+3630   7                    {
+3631   8                      stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+3632   8                      stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3633   8                      stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+3634   8                      stLocalControl.stBusDealFreq.byCmd = CMD_ENTER;
+3635   8                      stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.byBedFjFlag;
+3636   8                      stLocalControl.stBusDealFreq.byRecRoomAddr = 0x00;
+3637   8                      stLocalControl.stBusDealFreq.byRecBedAddr = 0x00;     
+3638   8                      Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));             
+3639   8                    }
+3640   7                    
+3641   7                  }
+3642   6                  Bus0SendPin =0; //使SD为高电平
+3643   6                  MUS =1; //断开SD到总线
+3644   6      
+3645   6                  OSWait(K_TMO,50); //延时200ms－－－－快闪
+3646   6                  bLedDealState = !bLedDealState;
+3647   6                  LED_DEAL = bLedDealState;
+3648   6                  WDT_CONTR = 0x3d;   //@20MHz,1.25s
+3649   6                }         
+3650   5                MUS = 0;  //使SD线路连通
+3651   5                Bus0SendPin =0; //使SD为高电平
+3652   5                bLedDealState = 0;
+3653   5                LED_DEAL = 0;
+3654   5      
+3655   5                BusLowDTime = 100;
+3656   5                stLocalControl.stBusDealFreq.byCmd = CMD_SEND_PIN_BUG;
+3657   5                stLocalControl.stBusDealFreq.byRecSecAddr = 0x01;
+3658   5                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));         
+3659   5              }
+3660   4      
+3661   4              
+3662   4              else 
+3663   4              {//是外部总线引起
+3664   5                //总线故障
+3665   5                stLocalControl.stBusDealFreq.byCmd = CMD_SEND_PIN_BUG;
+3666   5                stLocalControl.stBusDealFreq.byRecSecAddr = 0x02;
+3667   5                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3668   5      
+3669   5      
+3670   5              
+3671   5                MUS = 0;  //使SD线路连通
+3672   5                Bus0SendPin=0;
+3673   5                OSWait(K_TMO,100);
+3674   5                WDT_CONTR = 0x3d;
+3675   5                
+3676   5                do
+3677   5                {
+3678   6                  MUS = 0;  //使SD线路连通
+3679   6                  Bus0SendPin=0;
+3680   6      
+3681   6      
+3682   6                  OSWait(K_TMO,150);  //延时600ms－－－－慢闪
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 61  
+
+3683   6                  bLedDealState = !bLedDealState;
+3684   6                  LED_DEAL = bLedDealState;
+3685   6                  WDT_CONTR = 0x3d;   //@20MHz,1.25s
+3686   6              
+3687   6                  
+3688   6                  if(bBus1RecFinish)
+3689   6                  {
+3690   7                    memcpy(&(stLocalControl.stBusDealFreq), byBus1RecData, sizeof(STBusFreq));  
+3691   7                    bBus1RecFinish = 0; 
+3692   7                    if(stLocalControl.stBusDealFreq.byCmd==CMD_LANDING)
+3693   7                    {
+3694   8                      stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+3695   8                      stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+3696   8                      stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+3697   8                      stLocalControl.stBusDealFreq.byCmd = CMD_ENTER;
+3698   8                      stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.byBedFjFlag;
+3699   8                      stLocalControl.stBusDealFreq.byRecRoomAddr = 0x00;
+3700   8                      stLocalControl.stBusDealFreq.byRecBedAddr = 0x00;     
+3701   8                      Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));             
+3702   8                    }
+3703   7                    
+3704   7                  }           
+3705   6                }while(Bus0RecPin==0);  //等待SD线路一直为高
+3706   5                
+3707   5                bLedDealState = 0;
+3708   5                LED_DEAL = 0;
+3709   5      
+3710   5                stLocalControl.stBusDealFreq.byCmd = CMD_SEND_PIN_BUG;
+3711   5                stLocalControl.stBusDealFreq.byRecSecAddr = 0x03;
+3712   5                Bus1OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+3713   5      Bus0BugRet:         
+3714   5                MUS = 0;  //使SD线路连通          
+3715   5                BusLowDTime = 100;
+3716   5              }       
+3717   4            }
+3718   3          }
+3719   2        } 
+3720   1      }
+*** WARNING C280 IN LINE 3713 OF SINGLEBUS.C: 'Bus0BugRet': unreferenced label
+3721          /**********************************************************
+3722          *函数名称     :TimerOutManager  
+3723          *函数描述         :超时管理线程
+3724          *输入参数       :
+3725          *返回值       :
+3726          *全局变量     :stLocalControl,byMainCmdQ
+3727          *调用模块       :OSQPost        
+3728          ***********************************************************
+3729          *创建人           :尹运同
+3730          *创建日期     :2008-9-22
+3731          ***********************************************************
+3732          *修改人         :
+3733          *修改日期       :
+3734          *注释           :
+3735          **********************************************************/ 
+3736          void TimerOutManager(void)   
+3737          {   
+3738   1        while(1)
+3739   1        {   
+3740   2          OSWait(K_TMO, 4);                 //设置20ms超时
+3741   2          WDT_CONTR = 0x3d;   //@20MHz,1.25s
+3742   2          if(stLocalControl.stCH0TimerOut.byTimerOut)
+3743   2          { 
+C51 COMPILER V9.00   SINGLEBUS                                                             02/15/2019 08:58:13 PAGE 62  
+
+3744   3            OSQPost(byMainCmdQ, TIMER_OUT);       
+3745   3          }
+3746   2          else
+3747   2          {   
+3748   3            OSQPost(byMainCmdQ, TIMER_OUT); 
+3749   3          }     
+3750   2        }
+3751   1      }     
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   9251    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    199      32
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     29    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  4 WARNING(S),  0 ERROR(S)

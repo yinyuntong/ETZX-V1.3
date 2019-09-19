@@ -1,0 +1,19 @@
+"EPH1660.obj",
+"GT23.obj",
+"IAP.obj",
+"LCD.obj",
+"main.obj",
+"parameter.obj",
+"SingleBus.obj",
+"SPI.obj",
+"Uart.obj",
+"PCT25VF.obj",
+".\OS_CORE.obj",
+".\OS_MEM.obj",
+".\OS_Q.obj",
+".\OS_SEM.obj",
+".\OS_CPU_C.obj",
+".\OS_CPU_A.obj" 
+TO "CTFJ-DISP-V35" 
+RAMSIZE(256) 
+CODE( ?CO?parameter(0xaa00) )

@@ -1,0 +1,31 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+D:\ETZX-V1.3\WXZJ\无线主机(20140516)\无线主机.uv2
+Project File Date:  05/10/2011
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling CC1101.c...
+compiling 无线主机.c...
+compiling 单总线接口.c...
+compiling uart.c...
+assembling STARTUP.A51...
+A51 MACRO ASSEMBLER V8.01 - SN: T1NMC-HFG1RC
+COPYRIGHT KEIL ELEKTRONIK GmbH 1987 - 2007
+"C:\Keil\C51\BIN\A51.EXE" "..\加床分机\STARTUP.A51" SET (COMPACT) DEBUG PRINT(.\STARTUP.lst) OBJECT(.\STARTUP.obj) EP
+A51 FATAL ERROR -
+  FILE:       ..\加床分机\STARTUP.A51
+  ERROR:      FILE DOES NOT EXIST
+A51 TERMINATED.
+Target not created
+Build target 'Target 1'
+linking...
+Program Size: data=13.1 xdata=213 code=3550
+creating hex file from "无线主机"...
+"无线主机" - 0 Error(s), 0 Warning(s).
+</pre>
+</body>
+</html>

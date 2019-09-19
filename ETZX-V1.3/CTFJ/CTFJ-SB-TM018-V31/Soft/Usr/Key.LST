@@ -1,0 +1,358 @@
+C51 COMPILER V9.00   KEY                                                                   02/18/2019 11:57:07 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE KEY
+OBJECT MODULE PLACED IN Key.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Key.c LARGE BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  湖南一特电子股份有限公司
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称               :Key.c
+   9          *文件描述               :按键驱动程序
+  10          *创建人                 :尹运同
+  11          *创建日期               :2008-9-22
+  12          *版本号                 :V1.0
+  13          *注释                   :采用按键与灯显示控制共用一个I/O口的方式                                        
+  14          *----------------------------------------------------------
+  15          *修改人                         :
+  16          *修改日期                       :
+  17          *版本号                 :
+  18          *注释                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_KEY_
+  22          #include "config.h"
+  23                                                  
+  24          extern uint8    OS_Q_MEM_SEL    byMainCmdQ[];     
+  25          extern STLocalControl   xdata stLocalControl;
+  26          
+  27          uint8 xdata MainMenuSelect;
+  28          
+  29          /**********************************************************
+  30          *函数名称                       :SetLedDealState        
+  31          *函数描述               :设置处理灯状态
+  32          *输入参数               :byState:灯状态
+  33          *返回值                         :       
+  34          *全局变量                       :
+  35          *调用模块                       :
+  36          ***********************************************************
+  37          *创建人                 :尹运同
+  38          *创建日期                       :2008-9-22
+  39          ***********************************************************
+  40          *修改人                         :
+  41          *修改日期               :
+  42          *注释                   :
+  43          **********************************************************/
+  44          void SetLedState(uint8 byState)
+  45          {
+  46   1              LED = (bit)byState;
+  47   1              FLED = (bit)byState;
+  48   1              stLocalControl.byLedState = byState;
+  49   1      }
+  50          
+  51          
+  52          /**********************************************************
+  53          *函数名称                       :KeyScan        
+  54          *函数描述               :按键扫描函数
+  55          *输入参数               :
+C51 COMPILER V9.00   KEY                                                                   02/18/2019 11:57:07 PAGE 2   
+
+  56          *返回值                         :NO_KEY:无按键按下,SET_KEY:设置键按下
+  57                                                   DEAL_KEY:处置键按下    
+  58          *全局变量                       :
+  59          *调用模块                       :
+  60          ***********************************************************
+  61          *创建人                 :尹运同
+  62          *创建日期                       :2008-9-22
+  63          ***********************************************************
+  64          *修改人                         :
+  65          *修改日期               :
+  66          *注释                   :
+  67          **********************************************************/
+  68          uint8 KeyScan(void)
+  69          {
+  70   1              if(0 == CALL_KEY)
+  71   1              {
+  72   2                      return(CALL_KEY_VAL);
+  73   2              }
+  74   1              
+  75   1      
+  76   1              _nop_(); 
+  77   1              _nop_();                                                
+  78   1              if(0 == UP_KEY)
+  79   1              {       
+  80   2      
+  81   2                      return(DIET_KEY_VAL);
+  82   2              }
+  83   1      
+  84   1              _nop_();
+  85   1              _nop_();
+  86   1              if(0 == DOWN_KEY)
+  87   1              {                 
+  88   2                      return(PRESCRIPTION_KEY_VAL);
+  89   2              }       
+  90   1      
+  91   1              _nop_();
+  92   1              _nop_();        
+  93   1              if(0 == ENTER_KEY)
+  94   1              {                 
+  95   2                      return(PROMPT_KEY_VAL);
+  96   2              }
+  97   1      
+  98   1              _nop_();
+  99   1              _nop_();        
+ 100   1              if(0 == ESC_KEY)
+ 101   1              {                 
+ 102   2                      return(ESC_KEY_VAL);
+ 103   2              } 
+ 104   1      
+ 105   1              return(NO_KEY_VAL);     
+ 106   1      } 
+ 107          /**********************************************************
+ 108          *函数名称                       :KeyManager     
+ 109          *函数描述               :按键管理线程
+ 110          *输入参数               :
+ 111          *返回值                         :       
+ 112          *全局变量                       :byMainCmdQ
+ 113          *调用模块                       :KeyScan,OSQPost
+ 114          ***********************************************************
+ 115          *创建人                 :尹运同
+ 116          *创建日期                       :2008-9-22
+ 117          ***********************************************************
+C51 COMPILER V9.00   KEY                                                                   02/18/2019 11:57:07 PAGE 3   
+
+ 118          *修改人                         :
+ 119          *修改日期               :
+ 120          *注释                   :
+ 121          **********************************************************/
+ 122          void KeyManager(void)
+ 123          {       
+ 124   1              static uint8 byKeyValue;
+ 125   1              static uint8 byKeyDelay;
+ 126   1              
+ 127   1          while(TRUE)
+ 128   1          {
+ 129   2              WDT_CONTR = 0x3d;       //喂狗
+ 130   2              OSWait(K_TMO, OS_TICKS_PER_SEC/50);                             //20ms延时                                                 
+ 131   2              byKeyValue = KeyScan();                                 
+ 132   2              if(NO_KEY_VAL== byKeyValue)
+ 133   2              {                               
+ 134   3                      continue;
+ 135   3              }        
+ 136   2              OSWait(K_TMO, OS_TICKS_PER_SEC/50);                             //20ms延时消抖                                          
+ 137   2              if(byKeyValue != KeyScan())
+ 138   2              {                       
+ 139   3                  continue;
+ 140   3              }
+ 141   2              OSQPost(byMainCmdQ, KEY_DOWN|byKeyValue);
+ 142   2      
+ 143   2                      byKeyDelay = KEY_DELAY;
+ 144   2                      while(byKeyDelay--)
+ 145   2                      {
+ 146   3                              WDT_CONTR = 0x3d;       //喂狗
+ 147   3                              if(byKeyValue == KeyScan())
+ 148   3                              {       
+ 149   4                                      OSWait(K_TMO, OS_TICKS_PER_SEC/50); 
+ 150   4                              }
+ 151   3                              else
+ 152   3                              {       
+ 153   4                                      goto KeyUp;
+ 154   4                              }
+ 155   3                      }               
+ 156   2                      OSQPost(byMainCmdQ, KEY_ALWAYS|byKeyValue);                                                                           
+ 157   2              while(byKeyValue == KeyScan())
+ 158   2              {       
+ 159   3                      WDT_CONTR = 0x3d;       //喂狗
+ 160   3                              OSWait(K_TMO, OS_TICKS_PER_SEC/20);                            
+ 161   3              }
+ 162   2      KeyUp:
+ 163   2                      OSQPost(byMainCmdQ, KEY_UP|byKeyValue);                 
+ 164   2          }
+ 165   1      }
+ 166          /**********************************************************
+ 167          *函数名称                       :KeyDownDeal    
+ 168          *函数描述               :按键按下处理函数
+ 169          *输入参数               :byKey:按下键的键值
+ 170          *返回值                         :       
+ 171          *全局变量                       :stLocalControl
+ 172          *调用模块                       :Bus0OutputData
+ 173          ***********************************************************
+ 174          *创建人                 :尹运同
+ 175          *创建日期                       :2008-9-22
+ 176          ***********************************************************
+ 177          *修改人                         :
+ 178          *修改日期               :
+ 179          *注释                   :
+C51 COMPILER V9.00   KEY                                                                   02/18/2019 11:57:07 PAGE 4   
+
+ 180          **********************************************************/
+ 181          void KeyDownDeal(uint8 byKey)
+ 182          { 
+ 183   1              byKey&= 0x0f;
+ 184   1              
+ 185   1      
+ 186   1              stLocalControl.uiLcdDisplayOnTime=250;
+ 187   1              BL_SW =1;
+ 188   1              
+ 189   1              if(bLanding)
+ 190   1              {       //登记状态,不处理       
+ 191   2                      return;
+ 192   2              }
+ 193   1      
+ 194   1      
+ 195   1              switch(byKey)
+ 196   1              {
+ 197   2                      case DIET_KEY_VAL:      //饮食键
+ 198   2                              if(stLocalControl.byDisplayFace!= DIET_FACE)  DisplayedLen=0;  //之前是别的界面         
+ 199   2                              ShowFace(DIET_FACE);
+ 200   2                              stLocalControl.uiLcdDisplayInfoTime = LCD_DISPLAY_INFO_TIME;
+ 201   2                              break;
+ 202   2      
+ 203   2                      case PRESCRIPTION_KEY_VAL:      //医嘱键
+ 204   2                              if(stLocalControl.byDisplayFace!= PRESCRIPTION_FACE) DisplayedLen=0;
+ 205   2                              ShowFace(PRESCRIPTION_FACE);
+ 206   2                              stLocalControl.uiLcdDisplayInfoTime = LCD_DISPLAY_INFO_TIME;
+ 207   2                              break;  
+ 208   2      
+ 209   2                      case PROMPT_KEY_VAL:
+ 210   2                              if(stLocalControl.byDisplayFace!= PROMPT_INFO_FACE) DisplayedLen=0;
+ 211   2                              ShowFace(PROMPT_INFO_FACE);
+ 212   2                              stLocalControl.uiLcdDisplayInfoTime = LCD_DISPLAY_INFO_TIME;
+ 213   2                              break;  
+ 214   2      
+ 215   2                      case ESC_KEY_VAL:
+ 216   2                              if(stLocalControl.byDisplayFace != LAND_FACE)
+ 217   2                              {
+ 218   3                                      CurrentPage =0;
+ 219   3                                      stLocalControl.uiLcdDisplayInfoTime =0;
+ 220   3                                      ShowLandingFace();
+ 221   3                              }
+ 222   2                              break;
+ 223   2                              
+ 224   2                      case CALL_KEY_VAL:
+ 225   2                              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 226   2                              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 227   2                              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 228   2                              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 229   2                              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 230   2                              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 231   2                              stLocalControl.stBusDealFreq.byCmd = byKey|KEY_DOWN;
+ 232   2                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 233   2                              break;                  
+ 234   2              
+ 235   2              }               
+ 236   1      }
+ 237          /**********************************************************
+ 238          *函数名称                       :KeyUpDeal      
+ 239          *函数描述               :按键弹起处理函数
+ 240          *输入参数               :byKey:弹起键的键值
+ 241          *返回值                         :       
+C51 COMPILER V9.00   KEY                                                                   02/18/2019 11:57:07 PAGE 5   
+
+ 242          *全局变量                       :
+ 243          *调用模块                       :MakeCH0TimerOut,MakeCH1TimerOut
+ 244          ***********************************************************
+ 245          *创建人                 :尹运同
+ 246          *创建日期                       :2008-9-22
+ 247          ***********************************************************
+ 248          *修改人                         :
+ 249          *修改日期               :
+ 250          *注释                   :
+ 251          **********************************************************/
+ 252          void KeyUpDeal(uint8 byKey)
+ 253          {
+ 254   1              byKey&= 0x0f;
+ 255   1      
+ 256   1              if(bLanding)
+ 257   1              {       //登记状态,不处理       
+ 258   2                      return;
+ 259   2              }
+ 260   1      
+ 261   1              switch(byKey)
+ 262   1              {
+ 263   2                      case DIET_KEY_VAL:
+ 264   2                      case PRESCRIPTION_KEY_VAL:
+ 265   2                      case PROMPT_KEY_VAL:
+ 266   2                      case ESC_KEY_VAL:
+ 267   2                              break;
+ 268   2                      case CALL_KEY_VAL:      
+ 269   2                              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 270   2                              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 271   2                              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 272   2                              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 273   2                              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 274   2                              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 275   2                              stLocalControl.stBusDealFreq.byCmd = byKey|KEY_UP;
+ 276   2                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 277   2                              break;
+ 278   2                      }
+ 279   1      
+ 280   1      }
+ 281          /**********************************************************
+ 282          *函数名称                       :KeyAlwaysDeal  
+ 283          *函数描述               :按键长按下处理函数
+ 284          *输入参数               :byKey:长按键的键值
+ 285          *返回值                         :       
+ 286          *全局变量                       :stLocalControl
+ 287          *调用模块                       :
+ 288          ***********************************************************
+ 289          *创建人                 :尹运同
+ 290          *创建日期                       :2008-9-22
+ 291          ***********************************************************
+ 292          *修改人                         :
+ 293          *修改日期               :
+ 294          *注释                   :
+ 295          **********************************************************/
+ 296          void KeyAlwaysDeal(uint8 byKey)
+ 297          {
+ 298   1              byKey&= 0x0f;
+ 299   1      
+ 300   1      #if DEBUG ==0   
+ 301   1              if(bLanding)
+ 302   1              {       //登记状态,不处理       
+ 303   2                      return;
+C51 COMPILER V9.00   KEY                                                                   02/18/2019 11:57:07 PAGE 6   
+
+ 304   2              } 
+ 305   1      #endif  
+ 306   1              switch(byKey)
+ 307   1              {
+ 308   2                      case DIET_KEY_VAL:
+ 309   2                      case PRESCRIPTION_KEY_VAL:
+ 310   2                      case PROMPT_KEY_VAL:
+ 311   2                      case ESC_KEY_VAL:
+ 312   2                              break;
+ 313   2                      case CALL_KEY_VAL:      
+ 314   2                              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 315   2                              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 316   2                              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 317   2                              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 318   2                              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 319   2                              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 320   2                              stLocalControl.stBusDealFreq.byCmd = byKey|KEY_ALWAYS;
+ 321   2                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 322   2                              break;
+ 323   2              }
+ 324   1      
+ 325   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    550    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      3       1
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

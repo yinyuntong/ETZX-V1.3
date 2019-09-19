@@ -1,0 +1,17 @@
+"GT23.obj",
+"IAP.obj",
+"Key.obj",
+"lcd.obj",
+"main.obj",
+"SingleBus.obj",
+"SPI.obj",
+"Usart.obj",
+"PCT25VF.obj",
+".\OS_CORE.obj",
+".\OS_MEM.obj",
+".\OS_Q.obj",
+".\OS_SEM.obj",
+".\OS_CPU_C.obj",
+".\OS_CPU_A.obj" 
+TO "CTFJ-SB-(TS7017)" 
+RAMSIZE(256) 

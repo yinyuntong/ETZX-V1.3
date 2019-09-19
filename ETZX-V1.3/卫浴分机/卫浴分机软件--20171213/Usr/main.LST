@@ -1,0 +1,294 @@
+C51 COMPILER V9.00   MAIN                                                                  12/14/2017 14:08:24 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  湖南一特电子股份有限公司
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称               :main.c
+   9          *文件描述               :主函数
+  10          *创建人                 :尹运同
+  11          *创建日期               :2008-9-22
+  12          *版本号                 :V1.0
+  13          *注释                   :                                       
+  14          *----------------------------------------------------------
+  15          *修改人                         :
+  16          *修改日期                       :
+  17          *版本号                 :
+  18          *注释                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_MAIN_
+  22          
+  23          #include "config.h"
+  24          #include "absacc.h"
+  25          
+  26          uint16  uiIsrTimerCount = ISR_INC_COUNT;                                        //系统时钟定时值
+  27          uint8   OS_Q_MEM_SEL    byMainCmdQ[16];                                         //主线程消息队列
+  28          STLocalControl  xdata stLocalControl;                                           //全局变量结构体
+  29          
+  30          
+  31          
+  32          void Send_Data(uint8 *Databuf,uint8 xdata l)
+  33          { 
+  34   1              uint8 xdata i;
+  35   1          ES=0;
+  36   1              for(i=0;i<l;i++)
+  37   1              {
+  38   2                      SBUF=*Databuf;
+  39   2                      while(!TI);
+  40   2                      TI=0;
+  41   2                      Databuf++;
+  42   2              }
+  43   1              ES=1;
+  44   1       }
+  45          
+  46          void Send_Data_Byte(uint8 SendData)
+  47          {
+  48   1              ES=0;
+  49   1          SBUF=SendData;
+  50   1          while(!TI);
+  51   1          TI=0;
+  52   1              ES=1;
+  53   1      }
+  54          
+  55          /**********************************************************
+C51 COMPILER V9.00   MAIN                                                                  12/14/2017 14:08:24 PAGE 2   
+
+  56          *函数名称                       :Init   
+  57          *函数描述               :硬件初始化操作
+  58          *输入参数               :
+  59          *返回值                         :       
+  60          *全局变量                       :
+  61          *调用模块                       :
+  62          ***********************************************************
+  63          *创建人                 :尹运同
+  64          *创建日期                       :2008-9-22
+  65          ***********************************************************
+  66          *修改人                         :
+  67          *修改日期               :
+  68          *注释                   :
+  69          **********************************************************/
+  70          void Init(void)
+  71          {
+  72   1              CMOD = 0x02;
+  73   1              CCON = 0x00;    
+  74   1              CL = 0x00;
+  75   1              CH = 0x00;
+  76   1              CCAP0L = (uint8)uiIsrTimerCount;
+  77   1              CCAP0H = (uint8)(uiIsrTimerCount>>8);
+  78   1              //设置PCA模块0为16位软件定时器，ECCF0=1允许PCA模块0中断
+  79   1              CCAPM0 = 0x49;  
+  80   1              //开PCA中断和LVD(低压检测)中断共享的总中断控制位
+  81   1              EPCA_LVD = 1;
+  82   1              //启动PCA计数器计数
+  83   1              CR = 1; 
+  84   1              //复位看门狗
+  85   1              WDT_CONTR = 0x3d; 
+  86   1              //P1M1 |= 0xC0;
+  87   1              //P1M0 &= 0x3F;
+  88   1              P1M1 |= 0xC8;
+  89   1              P1M0 &= 0x37;   
+  90   1              //读取系统配置字
+  91   1              //ReadParameter(); 
+  92   1              //--------------------------------------------------
+  93   1              //--------------------------------------------------
+  94   1              //继电器控制端复位
+  95   1              RST_BUS=0;
+  96   1              //--------------------------------------------------
+  97   1              InitParameter();
+  98   1              
+  99   1              //单总线初始化 
+ 100   1              SingleBusInit();
+ 101   1              //红外接收初始化 
+ 102   1              IRInit();
+ 103   1              //状态初始化
+ 104   1              bLanding = 0;
+ 105   1              bCalling = 0;
+ 106   1              //设置灯的状态和闪烁时间,设置上电超时   
+ 107   1              stLocalControl.byLedTime = stLocalControl.byLedDelay = 50;        
+ 108   1              if(stLocalControl.stEepromCfgData.byFlag&0x01)
+ 109   1          {   //设定为灯长亮
+ 110   2                      SetLedRedState(LED_ON); 
+ 111   2              }
+ 112   1              else
+ 113   1              {       //设定为灯灭
+ 114   2                      SetLedRedState(LED_OFF);        
+ 115   2              }                               
+ 116   1              MakeCH0TimerOut(0, 0); 
+ 117   1              BusLowDTime=100;
+C51 COMPILER V9.00   MAIN                                                                  12/14/2017 14:08:24 PAGE 3   
+
+ 118   1      
+ 119   1              Send_Data_Byte(stLocalControl.stEepromCfgData.byVersionHi);
+ 120   1              Send_Data_Byte(stLocalControl.stEepromCfgData.byVersionLo);
+ 121   1      
+ 122   1      
+ 123   1      /*      Send_Data((uint8 *)(&stLocalControl.stEepromCfgData),sizeof(STEepromCfgData));
+ 124   1              
+ 125   1              ReadParameter(IAP0_ADDR);
+ 126   1              Send_Data((uint8 *)(&stLocalControl.stEepromCfgData),sizeof(STEepromCfgData));
+ 127   1      
+ 128   1              ReadParameter(IAP1_ADDR);
+ 129   1              Send_Data((uint8 *)(&stLocalControl.stEepromCfgData),sizeof(STEepromCfgData));
+ 130   1      
+ 131   1              ReadParameter(IAP2_ADDR);
+ 132   1              Send_Data((uint8 *)(&stLocalControl.stEepromCfgData),sizeof(STEepromCfgData));*/        
+ 133   1      }
+ 134          /**********************************************************
+ 135          *函数名称                       :GetMessage     
+ 136          *函数描述               :获取主线程消息队列中的消息(无消息则挂起自身)
+ 137          *输入参数               :Msg:存储消息指针
+ 138          *返回值                         :       
+ 139          *全局变量                       :
+ 140          *调用模块                       :
+ 141          ***********************************************************
+ 142          *创建人                 :尹运同
+ 143          *创建日期                       :2008-9-22
+ 144          ***********************************************************
+ 145          *修改人                         :
+ 146          *修改日期               :
+ 147          *注释                   :
+ 148          **********************************************************/
+ 149          void GetMessage(uint8 data *Msg)
+ 150          {
+ 151   1              OSQPend(Msg, byMainCmdQ, 0);
+ 152   1      }
+ 153          /**********************************************************
+ 154          *函数名称                       :DispatchMessage        
+ 155          *函数描述               :分发处理获取的主线程消息
+ 156          *输入参数               :Msg:消息,高4位是命令类型,低4位是命令数据
+ 157          *返回值                         :       
+ 158          *全局变量                       :
+ 159          *调用模块                       :
+ 160          ***********************************************************
+ 161          *创建人                 :尹运同
+ 162          *创建日期                       :2008-9-22
+ 163          ***********************************************************
+ 164          *修改人                         :
+ 165          *修改日期               :
+ 166          *注释                   :
+ 167          **********************************************************/
+ 168          void DispatchMessage(uint8 Msg)
+ 169          {
+ 170   1              switch(Msg&0xf0)
+ 171   1              {
+ 172   2                      case BUS0_REC:                                                                          //总线0收到数据帧
+ 173   2                               Bus0RecDeal();
+ 174   2                              break;
+ 175   2                      case BUS0_SND:                                                                          //总线0数据发送完成
+ 176   2                              Bus0SendDeal();
+ 177   2                              break;                          
+ 178   2                      case KEY_DOWN:                                                                          //键按下处理 
+ 179   2                              KeyDownDeal(Msg&0x0f);
+C51 COMPILER V9.00   MAIN                                                                  12/14/2017 14:08:24 PAGE 4   
+
+ 180   2                              break;                          
+ 181   2                      case TIMER_OUT:                                                                         //超时处理
+ 182   2                              TimerOutDeal();
+ 183   2                              break;
+ 184   2                      default:
+ 185   2                              break;
+ 186   2              }       
+ 187   1      }
+ 188          /**********************************************************
+ 189          *函数名称                       :MainTask       
+ 190          *函数描述               :系统主线程,负责整个系统的消息处理
+ 191          *输入参数               :
+ 192          *返回值                         :       
+ 193          *全局变量                       :
+ 194          *调用模块                       :
+ 195          ***********************************************************
+ 196          *创建人                 :尹运同
+ 197          *创建日期                       :2008-9-22
+ 198          ***********************************************************
+ 199          *修改人                         :
+ 200          *修改日期               :
+ 201          *注释                   :
+ 202          **********************************************************/
+ 203          void MainTask(void)
+ 204          {
+ 205   1              static uint8 data Msg;   
+ 206   1              
+ 207   1              //系统硬件初始化
+ 208   1              Init();
+ 209   1              //创建主线程消息队列
+ 210   1              OSQCreate(byMainCmdQ, 16);
+ 211   1      
+ 212   1              WDT_CONTR = 0x3d;       
+ 213   1              //以下为创建任务线程 
+ 214   1              OSTaskCreate(Bus0Manage, NULL, 1);      
+ 215   1              OSTaskCreate(KeyManager, NULL, 2);
+ 216   1              OSTaskCreate(TimerOutManager, NULL, 3); 
+ 217   1              //进入消息循环
+ 218   1              WDT_CONTR = 0x3d;       
+ 219   1              while(TRUE)
+ 220   1              {
+ 221   2                      GetMessage(&Msg);
+ 222   2                      DispatchMessage(Msg);
+ 223   2                      WDT_CONTR = 0x3d;
+ 224   2                      if(bFourByteRec==1)
+ 225   2                      {
+ 226   3                              bFourByteRec=0;
+ 227   3                              IrDATreat();                    
+ 228   3                      }
+ 229   2      
+ 230   2                      if(bSixByteRec ==1)
+ 231   2                      {
+ 232   3                              bSixByteRec =0;
+ 233   3                              IrDANumberSet();
+ 234   3                      }
+ 235   2      
+ 236   2              }
+ 237   1      } 
+ 238          /**********************************************************
+ 239          *函数名称                       :main   
+ 240          *函数描述               :系统主函数,整个软件的入口
+ 241          *输入参数               :
+C51 COMPILER V9.00   MAIN                                                                  12/14/2017 14:08:24 PAGE 5   
+
+ 242          *返回值                         :       
+ 243          *全局变量                       :
+ 244          *调用模块                       :
+ 245          ***********************************************************
+ 246          *创建人                 :尹运同
+ 247          *创建日期                       :2008-9-22
+ 248          ***********************************************************
+ 249          *修改人                         :
+ 250          *修改日期               :
+ 251          *注释                   :
+ 252          **********************************************************/
+ 253          void main(void)
+ 254          {                               
+ 255   1              //操作系统初始化                        
+ 256   1              OSInit();                
+ 257   1              //创建系统主线程
+ 258   1              OSTaskCreate(MainTask, NULL, 0);                 
+ 259   1              while(1)
+ 260   1          {
+ 261   2             PCON = PCON | 0x01;                    //CPU进入休眠状态   
+ 262   2          }    
+ 263   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    302    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     34       1
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3       1
+   IDATA SIZE       =     16    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

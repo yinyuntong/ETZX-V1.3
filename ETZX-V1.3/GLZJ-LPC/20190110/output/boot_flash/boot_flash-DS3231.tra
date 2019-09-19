@@ -1,0 +1,24 @@
+*** Creating Trace Output File '.\output\boot_flash\boot_flash-DS3231.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '".\output\boot_flash\core_cm3.o"'
+### List of Objects: adding '".\output\boot_flash\startup_lpc17xx.o"'
+### List of Objects: adding '".\output\boot_flash\system_lpc17xx.o"'
+### List of Objects: adding '".\output\boot_flash\main.o"'
+### List of Objects: adding '".\output\boot_flash\inflash.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M3 ".\output\boot_flash\core_cm3.o" ".\output\boot_flash\startup_lpc17xx.o" ".\output\boot_flash\system_lpc17xx.o" ".\output\boot_flash\main.o" ".\output\boot_flash\inflash.o" 
+--strict --scatter ".\output\boot_flash\boot_flash-DS3231.sct" 
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\output\boot_flash\list\boot_flash-DS3231.map" -o .\output\boot_flash\boot_flash-DS3231.axf### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: '.\output\boot_flash\boot_flash-DS3231.axf'
+### ADS-LD Command File: '.\output\boot_flash\boot_flash-DS3231.lnp'
+### Checking for dirty Components...
+### Creating CmdFile '.\output\boot_flash\boot_flash-DS3231.lnp', Handle=0x00000464
+### Writing '.lnp' file
+### ADS-LD Command file '.\output\boot_flash\boot_flash-DS3231.lnp' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.

@@ -1,0 +1,27 @@
+C51 COMPILER V8.08   ALLOCMEM                                                              02/17/2011 13:47:41 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE ALLOCMEM
+OBJECT MODULE PLACED IN allocmem.OBJ
+COMPILER INVOKED BY: D:\Program Files\Keil\C51\BIN\C51.EXE allocmem.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          
+   2          
+   3          #include "config.h"
+   4          uint8                   xdata                   byMallocMem[MALLOC_MEM_SIZE] /*_at_ 980*/;      //stc сп1280 XDATA
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    300    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

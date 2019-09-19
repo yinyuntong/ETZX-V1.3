@@ -1,0 +1,37 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+D:\ETZX-V1.3\MKFJ\MKFJ-3\Usr\MKTFT.uv2
+Project File Date:  05/06/2015
+
+<h2>Output:</h2>
+Build target '门口分机显示'
+compiling Key.c...
+compiling IAP.c...
+compiling LcdDriver.c...
+compiling main.c...
+compiling SingleBus.c...
+compiling SPI.c...
+compiling uart.c...
+UART.C(480): warning C280: 'i': unreferenced local variable
+assembling Data.asm...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?SHOWLANDINGFACE?LCDDRIVER
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_ADDRCOMPARECHECK?SINGLEBUS
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_FMWRITEBYTE1?SPI
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?WREN?SPI
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_SECTOR_ERASE?SPI
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?FRAM_TEST?SPI
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_SEND_DATA_BYTE?UART
+Program Size: data=151.5 xdata=575 code=60869
+creating hex file from "MKTFT"...
+"MKTFT" - 0 Error(s), 8 Warning(s).

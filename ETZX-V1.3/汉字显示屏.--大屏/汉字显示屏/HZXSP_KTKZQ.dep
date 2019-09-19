@@ -1,0 +1,80 @@
+Dependencies for Project 'HZXSP', Target 'KTKZQ': (DO NOT MODIFY !)
+F (.\CM0\core_cm0.c)(0x4C8CF83A)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\core_cm0.o" --omf_browse ".\DebugInFlash\core_cm0.crf" --depend ".\DebugInFlash\core_cm0.d")
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdint.h)(0x50F96150)
+F (.\LPC11xx\system_LPC11xx.c)(0x4F3F0DD6)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\system_lpc11xx.o" --omf_browse ".\DebugInFlash\system_lpc11xx.crf" --depend ".\DebugInFlash\system_lpc11xx.d")
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdint.h)(0x50F96150)
+I (LPC11xx\LPC11xx.h)(0x4DA5662E)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+F (.\LPC11xx\startup\startup_LPC11xx.s)(0x5018813A)(--cpu Cortex-M0 -g --apcs=interwork -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx --list ".\DebugInFlash\startup_LPC11xx.lst" --xref -o ".\DebugInFlash\startup_LPC11xx.o" --depend ".\DebugInFlash\startup_LPC11xx.d")
+F (.\USER_CODE\E2PROM.c)(0x50BD8A0E)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\e2prom.o" --omf_browse ".\DebugInFlash\e2prom.crf" --depend ".\DebugInFlash\e2prom.d")
+I (USER_CODE\E2PROM.h)(0x50BD8A16)
+I (.\LPC11xx\LPC11xx.h)(0x4DA5662E)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdint.h)(0x50F96150)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdio.h)(0x50F96150)
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdlib.h)(0x50F96150)
+F (.\USER_CODE\main.c)(0x5452DBD4)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\main.o" --omf_browse ".\DebugInFlash\main.crf" --depend ".\DebugInFlash\main.d")
+I (.\LPC11xx\LPC11xx.h)(0x4DA5662E)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdint.h)(0x50F96150)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\HZXSP.h)(0x50BD9BE6)
+I (USER_CODE\spi.h)(0x50AB3E22)
+I (USER_CODE\E2PROM.h)(0x50BD8A16)
+I (USER_CODE\led.h)(0x50C05DE4)
+I (USER_CODE\uart.h)(0x50C805BB)
+I (USER_CODE\singlebus.h)(0x515A3C14)
+F (.\USER_CODE\SPI.c)(0x50B700E4)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\spi.o" --omf_browse ".\DebugInFlash\spi.crf" --depend ".\DebugInFlash\spi.d")
+I (.\LPC11xx\LPC11xx.h)(0x4DA5662E)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdint.h)(0x50F96150)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\HZXSP.h)(0x50BD9BE6)
+I (USER_CODE\spi.h)(0x50AB3E22)
+I (USER_CODE\util.h)(0x50AB3D6B)
+F (.\USER_CODE\util.c)(0x50B4775C)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\util.o" --omf_browse ".\DebugInFlash\util.crf" --depend ".\DebugInFlash\util.d")
+I (.\LPC11xx\LPC11xx.h)(0x4DA5662E)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdint.h)(0x50F96150)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+F (.\USER_CODE\LED.C)(0x56B2DEC7)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\led.o" --omf_browse ".\DebugInFlash\led.crf" --depend ".\DebugInFlash\led.d")
+I (.\LPC11xx\LPC11xx.h)(0x4DA5662E)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdint.h)(0x50F96150)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\HZXSP.h)(0x50BD9BE6)
+I (USER_CODE\led.h)(0x50C05DE4)
+I (USER_CODE\spi.h)(0x50AB3E22)
+I (USER_CODE\uart.h)(0x50C805BB)
+F (.\USER_CODE\SingleBus.c)(0x515A4FF8)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\singlebus.o" --omf_browse ".\DebugInFlash\singlebus.crf" --depend ".\DebugInFlash\singlebus.d")
+I (.\LPC11xx\LPC11xx.h)(0x4DA5662E)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdint.h)(0x50F96150)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\singlebus.h)(0x515A3C14)
+I (USER_CODE\hzxsp.h)(0x50BD9BE6)
+I (USER_CODE\led.h)(0x50C05DE4)
+F (.\USER_CODE\uart.c)(0x5424E3BE)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\uart.o" --omf_browse ".\DebugInFlash\uart.crf" --depend ".\DebugInFlash\uart.d")
+I (.\LPC11xx\LPC11xx.h)(0x4DA5662E)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdint.h)(0x50F96150)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\HZXSP.h)(0x50BD9BE6)
+I (USER_CODE\singlebus.h)(0x515A3C14)
+I (USER_CODE\uart.h)(0x50C805BB)
+F (.\USER_CODE\CC1101.c)(0x50AC6422)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\cc1101.o" --omf_browse ".\DebugInFlash\cc1101.crf" --depend ".\DebugInFlash\cc1101.d")
+I (.\LPC11xx\LPC11xx.h)(0x4DA5662E)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil\ARM\ARMCC\bin\..\include\stdint.h)(0x50F96150)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\HZXSP.h)(0x50BD9BE6)
+I (USER_CODE\cc1101.h)(0x50AC524C)

@@ -1,0 +1,10 @@
+---- TimerCount10S Matches (9 in 2 files) ----
+Main.c:uint xdata TimerCount10S;	 //10S计时器，用于液晶显示屏背光的计时
+Main.c:	TimerCount10S=0;
+Main.c:		if(TimerCount10S)
+Main.c:			if(--TimerCount10S ==0)
+Main.c:	TimerCount10S=5;
+Main.c:				if(TimerCount10S == 0)
+Main.c:					TimerCount10S=5;
+Main.c:					TimerCount10S=5;	//重新赋值，使灯亮5秒
+Main.h:extern uint xdata TimerCount10S;	 //10S计时器，用于液晶显示屏背光的计时

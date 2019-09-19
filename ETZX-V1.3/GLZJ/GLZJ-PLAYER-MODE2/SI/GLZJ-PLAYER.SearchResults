@@ -1,0 +1,13 @@
+---- byVoiceSize Matches (12 in 3 files) ----
+Config.h (usr):    uint8  byVoiceSize;										//需要播放的语音长度   
+Player.c (usr):				(stLocalControl.stVoicePlay.byVoicePosition + 1) % stLocalControl.stVoicePlay.byVoiceSize;
+SingleBus.c (usr):			stLocalControl.stVoicePlay.byVoiceSize = byPosition;					
+SingleBus.c (usr):			stLocalControl.stVoicePlay.byVoiceSize = byPosition;			
+SingleBus.c (usr):			stLocalControl.stVoicePlay.byVoiceSize = byPosition;			
+SingleBus.c (usr):				stLocalControl.stVoicePlay.byVoiceSize = byPosition;				
+SingleBus.c (usr):			stLocalControl.stVoicePlay.byVoiceSize = byPosition;			
+SingleBus.c (usr):			stLocalControl.stVoicePlay.byVoiceSize = byPosition;			
+SingleBus.c (usr):			stLocalControl.stVoicePlay.byVoiceSize = byPosition;			
+SingleBus.c (usr):				stLocalControl.stVoicePlay.byVoiceSize = byPosition;				
+SingleBus.c (usr):			stLocalControl.stVoicePlay.byVoiceSize = byPosition;			
+SingleBus.c (usr):			if(stLocalControl.stVoicePlay.byVoiceSize)

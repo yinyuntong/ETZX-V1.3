@@ -1,0 +1,9 @@
+.\DebugInFlash\zlg_can.o: USER_CODE\zlg_can.c
+.\DebugInFlash\zlg_can.o: .\LPC11xx\LPC11xx.h
+.\DebugInFlash\zlg_can.o: .\CM0\core_cm0.h
+.\DebugInFlash\zlg_can.o: C:\Keil\ARM\RV31\INC\stdint.h
+.\DebugInFlash\zlg_can.o: .\LPC11xx\system_LPC11xx.h
+.\DebugInFlash\zlg_can.o: USER_CODE\zlg_can.h
+.\DebugInFlash\zlg_can.o: USER_CODE\dataType.h
+.\DebugInFlash\zlg_can.o: USER_CODE\can.h
+.\DebugInFlash\zlg_can.o: USER_CODE\can_reg_cfg.h

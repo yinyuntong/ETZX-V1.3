@@ -1,0 +1,6 @@
+"CC1101.obj",
+"无线主机.obj",
+"单总线接口.obj",
+"uart.obj" 
+TO "无线主机" 
+RAMSIZE(256) 

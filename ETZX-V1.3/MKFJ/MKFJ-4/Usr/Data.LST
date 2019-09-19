@@ -1,0 +1,139 @@
+A51 MACRO ASSEMBLER  DATA                                                                 12/17/2015 14:36:02 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.01
+OBJECT MODULE PLACED IN Data.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE Data.asm SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     
+                       2     
+                       3     
+                       4     
+                       5     
+                       6     
+                       7     
+                       8     
+                       9     
+                      10     
+                      11     
+                      12     
+                      13     
+                      14     
+                      15     
+                      16     
+                      17     
+                      18     
+                      19     
+                      20     
+                      21             name Data_Asm  
+----                  22             cseg at 0x2800
+2800                  23     SelfSecAddr:
+2800 01               24             db              0x01                             
+2801                  25     SelfRoomAddr:
+2801 01               26             db              0x01                             
+2802                  27     SelfBedAddr:
+2802 00               28             db              0x00                             
+2803                  29     cEnable1:
+2803 FF               30             db              0xFF                             
+2804                  31     cEnable2:
+2804 3F               32             db              0x3F                             
+2805                  33     cPrio:
+2805 60               34             db              0x60                             
+2806                  35     cRingTime:
+2806 0E               36             db              0x0E                             
+2807                  37     cTalkTime:
+2807 40               38             db              0x40                             
+2808                  39     cBroadTime:
+2808 80               40             db              0x80                             
+2809                  41     cListenDelay:
+2809 03               42             db              0x03                             
+280A                  43     cVolumStep:
+280A 04               44             db              0x04                             
+280B                  45     cRingVol:
+280B D0               46             db              0xD0                             
+280C                  47     cCH0TalkedVol:
+280C D0               48             db              0xD0                             
+280D                  49     cCH1TalkedVol:
+280D D0               50             db              0xD0                             
+280E                  51     cBroadVol:
+280E D0               52             db              0xD0                             
+280F                  53     cNoteVol:
+280F D0               54             db              0xD0                             
+2810                  55     cMusicVol:
+2810 D0               56             db              0xD0                             
+2811                  57     cCH0TalkVol:
+2811 D0               58             db              0xD0                             
+A51 MACRO ASSEMBLER  DATA                                                                 12/17/2015 14:36:02 PAGE     2
+
+2812                  59     cCH1TalkVol:
+2812 D0               60             db              0xD0                             
+2813                  61     cSelfRingVol:
+2813 D0               62             db              0xD0                             
+2814                  63     cMaxVol:
+2814 F9               64             db              0xF9                             
+2815                  65     cMinVol:
+2815 0A               66             db              0x0A                             
+2816                  67     cReserve1:
+2816 FF               68             db              0xFF                             
+2817                  69     cReserve2:
+2817 FF               70             db              0xFF                             
+2818                  71     cReserve3:
+2818 FF               72             db              0xFF                             
+2819                  73     cSerialNum1:
+2819 FF               74             db              0xFF                             
+281A                  75     cSerialNum2:
+281A FF               76             db              0xFF                             
+281B                  77     cSerialNum3:
+281B FF               78             db              0xFF                             
+281C                  79     cVersionHi:
+281C 10               80             db              0x10                             
+281D                  81     cVersionLo:
+281D 0B               82             db              0x0B                             
+                      83             end     
+A51 MACRO ASSEMBLER  DATA                                                                 12/17/2015 14:36:02 PAGE     3
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+CBROADTIME . . . .  C ADDR   2808H   A   
+CBROADVOL. . . . .  C ADDR   280EH   A   
+CCH0TALKEDVOL. . .  C ADDR   280CH   A   
+CCH0TALKVOL. . . .  C ADDR   2811H   A   
+CCH1TALKEDVOL. . .  C ADDR   280DH   A   
+CCH1TALKVOL. . . .  C ADDR   2812H   A   
+CENABLE1 . . . . .  C ADDR   2803H   A   
+CENABLE2 . . . . .  C ADDR   2804H   A   
+CLISTENDELAY . . .  C ADDR   2809H   A   
+CMAXVOL. . . . . .  C ADDR   2814H   A   
+CMINVOL. . . . . .  C ADDR   2815H   A   
+CMUSICVOL. . . . .  C ADDR   2810H   A   
+CNOTEVOL . . . . .  C ADDR   280FH   A   
+CPRIO. . . . . . .  C ADDR   2805H   A   
+CRESERVE1. . . . .  C ADDR   2816H   A   
+CRESERVE2. . . . .  C ADDR   2817H   A   
+CRESERVE3. . . . .  C ADDR   2818H   A   
+CRINGTIME. . . . .  C ADDR   2806H   A   
+CRINGVOL . . . . .  C ADDR   280BH   A   
+CSELFRINGVOL . . .  C ADDR   2813H   A   
+CSERIALNUM1. . . .  C ADDR   2819H   A   
+CSERIALNUM2. . . .  C ADDR   281AH   A   
+CSERIALNUM3. . . .  C ADDR   281BH   A   
+CTALKTIME. . . . .  C ADDR   2807H   A   
+CVERSIONHI . . . .  C ADDR   281CH   A   
+CVERSIONLO . . . .  C ADDR   281DH   A   
+CVOLUMSTEP . . . .  C ADDR   280AH   A   
+DATA_ASM . . . . .  N NUMB   -----       
+SELFBEDADDR. . . .  C ADDR   2802H   A   
+SELFROOMADDR . . .  C ADDR   2801H   A   
+SELFSECADDR. . . .  C ADDR   2800H   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

@@ -1,0 +1,18 @@
+---- volumn Matches (22 in 3 files) ----
+Config.h (usr):extern uint8 	data volumn;
+Main.c (usr):uint8 data volumn =0;
+Vs10xx.c (usr):  Mp3WriteRegister(0x0b,volumn,volumn);
+Vs10xx.c (usr):	  //add the volumn
+Vs10xx.c (usr):	  if(volumn+vol > 0)
+Vs10xx.c (usr):		  volumn += vol;
+Vs10xx.c (usr):		  Mp3WriteRegister(0x0b,volumn,volumn);
+Vs10xx.c (usr):	  if(volumn+vol < 0xff)
+Vs10xx.c (usr):		  volumn += vol;
+Vs10xx.c (usr):		  Mp3WriteRegister(0x0b,volumn,volumn);
+Vs10xx.c (usr):  if(volumn+2 < 0xff)
+Vs10xx.c (usr):	  volumn += 2;
+Vs10xx.c (usr):	  Mp3WriteRegister(0x0b,volumn,volumn);
+Vs10xx.c (usr)://add the volumn
+Vs10xx.c (usr):  if(volumn-2 > 0)
+Vs10xx.c (usr):	  volumn -= 2;
+Vs10xx.c (usr):	  Mp3WriteRegister(0x0b,volumn,volumn);

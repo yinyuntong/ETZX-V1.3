@@ -1,0 +1,425 @@
+C51 COMPILER V9.00   MAIN                                                                  06/23/2017 13:33:25 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c OPTIMIZE(SIZE) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  湖南熙旺达科技有限公司
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称               :main.c
+   9          *文件描述               :主函数
+  10          *创建人                 :陈卫国
+  11          *创建日期               :2008-9-22
+  12          *版本号                 :V1.0
+  13          *注释                   :                                       
+  14          *----------------------------------------------------------
+  15          *修改人                         :
+  16          *修改日期                       :
+  17          *版本号                 :
+  18          *注释                   :
+  19          ***********************************************************
+  20          */
+  21          #include "config.h"
+  22          #include "absacc.h"     
+  23          
+  24          uint16  uiIsrTimerCount = ISR_INC_COUNT;                                        //系统时钟定时值
+  25          
+  26          STLocalControl  xdata stLocalControl;                                           //全局变量结构体
+  27          extern bit   NUMBER_SET_STOP_FLAG;
+  28          extern bit   SerchRoomFlag;
+  29          extern bit   SET_BY_SERIAL_OK_FLAG;
+  30          extern bit   BusLow_Flag;
+  31          extern bit   Self_BusLow_Flag;
+  32          extern bit   BusLowRenewOK_Flag;
+  33          
+  34          extern bit bBus0RecFinish;
+  35          extern bit  bBus0SendFinish;
+  36          
+  37          bit   CheckBusLow_Flag;
+  38          bit   Display_BusLow_Flag;
+  39          bit   bUsartRecFrame=0;
+  40          bit   bTimer0OutDeal=0;
+  41          
+  42          
+  43          bit   bDealKeyShortDown=0;
+  44          bit   bDealKeyAlwaysDown=0;
+  45          bit   bDealKeyUp=0;
+  46          //extern xdata Self_BusLow_Count;
+  47          
+  48          bit  bLcdOn=0;
+  49          
+  50          uint8 xdata msTimer=0;
+  51          uint8 xdata byDealKeyErrorDownTime=0;
+  52          uint8 xdata byDealKeyShortDownTime=0;
+  53          uint8 xdata byDealKeyAlwaysDownTime=0;
+  54          
+  55          
+C51 COMPILER V9.00   MAIN                                                                  06/23/2017 13:33:25 PAGE 2   
+
+  56          uint8 xdata byKeyValue;
+  57          
+  58          
+  59          #define OS_TIME_ISR     7                                       /* 系统定时器使用的中断                   
+             -      */
+  60          
+  61          
+  62          #define UserTickTimer()         {uiIsrTimerCount+=ISR_INC_COUNT;CCAP0L = (uint8)uiIsrTimerCount;CCAP0H = (uint8)(
+             -uiIsrTimerCount>>8);CCF0=0;/*WDT_CONTR = 0x3a;*/}   /* 系统定时中断中调用的用户函                                                              */
+  63          
+  64          void OSTickISR(void) interrupt OS_TIME_ISR
+  65          {       
+  66   1      
+  67   1          UserTickTimer();                                    /* 用户函数                                       
+             -          */
+  68   1      
+  69   1               
+  70   1              
+  71   1              if(++msTimer==4)        //20ms定时到
+  72   1              {
+  73   2                      msTimer=0;
+  74   2                      bTimer0OutDeal=1;
+  75   2              }
+  76   1              
+  77   1              if(byDealKeyErrorDownTime)      //处于消抖状态
+  78   1              {
+  79   2                      byKeyValue=KeyScan();
+  80   2                      if(DEAL_KEY != byKeyValue)
+  81   2                      {//不相等,退出消抖状态
+  82   3                              byDealKeyErrorDownTime=0;
+  83   3                      }
+  84   2                      
+  85   2                      else if(--byDealKeyErrorDownTime==0)    //20ms消抖时间到
+  86   2                      {
+  87   3                              bDealKeyShortDown=1;
+  88   3                              byDealKeyShortDownTime =200;                    //低于1S时间属短按
+  89   3      
+  90   3                      }
+  91   2              }
+  92   1      
+  93   1              else if(byDealKeyShortDownTime) //处于短按状态
+  94   1              {
+  95   2                      byKeyValue=KeyScan();
+  96   2                      if(DEAL_KEY != byKeyValue)
+  97   2                      {//不相等,退出短按状态
+  98   3                              byDealKeyShortDownTime=0;
+  99   3                              bDealKeyUp=1;
+ 100   3                      }
+ 101   2                      else if(--byDealKeyShortDownTime==0)    //1s短按时间到
+ 102   2                      {
+ 103   3                              bDealKeyShortDown=0;
+ 104   3                              bDealKeyAlwaysDown=1;
+ 105   3                              byDealKeyAlwaysDownTime =1;                     //为一个真值表示进入长按状态
+ 106   3                      }               
+ 107   2              }
+ 108   1      
+ 109   1              else if(byDealKeyAlwaysDownTime)        //处于长按状态
+ 110   1              {
+ 111   2                      byKeyValue=KeyScan();
+ 112   2                      if(DEAL_KEY != byKeyValue)
+ 113   2                      {//不相等，退出长按状态
+ 114   3                              byDealKeyAlwaysDownTime=0;
+C51 COMPILER V9.00   MAIN                                                                  06/23/2017 13:33:25 PAGE 3   
+
+ 115   3                              bDealKeyUp =1;
+ 116   3                      }
+ 117   2              }
+ 118   1      }
+ 119          
+ 120          
+ 121          
+ 122          /*---------------------------------------------------------------------------
+ 123          函数原型: void Delayms(uint16 ms)
+ 124          参数说明: ms--需要延时的值
+ 125          返 回 值: 无
+ 126          函数功能：延时程序(对于18.432M晶振单指令周期延时1mS)
+ 127          ----------------------------------------------------------------------------*/
+ 128          void Delayms(uint16 ms)   
+ 129          {
+ 130   1         uint16 xdata i;
+ 131   1         for(;ms!=0;ms--)
+ 132   1              {
+ 133   2                      for(i=900;i!=0;i--);
+ 134   2                      WDT_CONTR =0x3d;
+ 135   2              }
+ 136   1         
+ 137   1      }
+ 138          
+ 139          /**********************************************************
+ 140          *函数名称                       :Init   
+ 141          *函数描述               :硬件初始化操作
+ 142          *输入参数               :
+ 143          *返回值                         :       
+ 144          *全局变量                       :
+ 145          *调用模块                       :
+ 146          ***********************************************************
+ 147          *创建人                 :陈卫国
+ 148          *创建日期                       :2008-9-22
+ 149          ***********************************************************
+ 150          *修改人                         :
+ 151          *修改日期               :
+ 152          *注释                   :
+ 153          **********************************************************/
+ 154          void Init(void)
+ 155          {               
+ 156   1              memset(&(stLocalControl.byLedState),0x00,sizeof(STLocalControl));               //将变量数据清0
+ 157   1              NUMBER_SET_STOP_FLAG=0;
+ 158   1              SerchRoomFlag=0;
+ 159   1              SET_BY_SERIAL_OK_FLAG=0;
+ 160   1              BusLow_Flag=0;
+ 161   1              Self_BusLow_Flag=0;
+ 162   1              BusLowRenewOK_Flag=0;
+ 163   1              
+ 164   1              bBus0RecFinish=0;
+ 165   1              bBus0SendFinish=0;
+ 166   1              
+ 167   1              CheckBusLow_Flag=0;
+ 168   1              Display_BusLow_Flag=0;
+ 169   1              bUsartRecFrame=0;
+ 170   1              bTimer0OutDeal=0;
+ 171   1              
+ 172   1              
+ 173   1              bDealKeyShortDown=0;
+ 174   1              bDealKeyAlwaysDown=0;
+ 175   1              bDealKeyUp=0;
+ 176   1              //extern xdata Self_BusLow_Count;
+C51 COMPILER V9.00   MAIN                                                                  06/23/2017 13:33:25 PAGE 4   
+
+ 177   1              
+ 178   1              
+ 179   1              
+ 180   1              msTimer=0;
+ 181   1              byDealKeyErrorDownTime=0;
+ 182   1              byDealKeyShortDownTime=0;
+ 183   1              byDealKeyAlwaysDownTime=0;
+ 184   1              
+ 185   1              
+ 186   1              byKeyValue=0;
+ 187   1      
+ 188   1      
+ 189   1              
+ 190   1              CMOD = 0x02;
+ 191   1              CCON = 0x00;    
+ 192   1              CL = 0x00;
+ 193   1              CH = 0x00;      
+ 194   1              CCAP0L = (uint8)uiIsrTimerCount;
+ 195   1              CCAP0H = (uint8)(uiIsrTimerCount>>8);
+ 196   1              //设置PCA模块0为16位软件定时器，ECCF0=1允许PCA模块0中断
+ 197   1              CCAPM0 = 0x49;  
+ 198   1              //开PCA中断和LVD(低压检测)中断共享的总中断控制位
+ 199   1              CR = 1; 
+ 200   1      
+ 201   1              //复位看门狗
+ 202   1              WDT_CONTR = 0x3d; 
+ 203   1              EA=1;
+ 204   1      
+ 205   1      
+ 206   1              P4SW=0x70;      
+ 207   1              //P4M1 &= 0xAE; //XTD、MDR、MUT设置为推挽输出
+ 208   1          //P4M0 |= 0x51;
+ 209   1              //--------------------------------------------------
+ 210   1              //--------------------------------------------------
+ 211   1      #ifdef DL_SWAP
+                      P4M1 &= 0x3E; //XTD、MUT、RESETB设置为推挽输出 MDR 开漏
+                  P4M0 |= 0xD1;
+              #else
+ 215   1              P4M1 &= 0x2E; //XTD、MDR、MUT、RESETB设置为推挽输出
+ 216   1          P4M0 |= 0xD1;
+ 217   1      #endif
+ 218   1              //--------------------------------------------------
+ 219   1              //--------------------------------------------------
+ 220   1      #ifdef DL_SWAP
+                      P5M1 &= 0xFb; //XTA设置为推挽输出 MDB、MDG 开漏
+                  P5M0 |= 0x07;
+              #else
+ 224   1              P5M1 &= 0xF8; //XTA、MDB、MDG设置为推挽输出
+ 225   1          P5M0 |= 0x07;
+ 226   1      #endif
+ 227   1      
+ 228   1      
+ 229   1      
+ 230   1              P3M0 |= 0x08;                                                                      //LED_DEAL灯设置成强上拉输出模式     
+ 231   1              P3M1 &= 0xF7;
+ 232   1      
+ 233   1      
+ 234   1              //--------------------------------------------------
+ 235   1              //--------------------------------------------------
+ 236   1              //继电器控制端复位
+ 237   1              RST_BUS=0;
+ 238   1              //--------------------------------------------------
+C51 COMPILER V9.00   MAIN                                                                  06/23/2017 13:33:25 PAGE 5   
+
+ 239   1              //--------------------------------------------------
+ 240   1              SingleBusInit(); 
+ 241   1              SpiInit();      
+ 242   1              //UartInit();   
+ 243   1              SetLedDealState(LED_ON);        
+ 244   1              SetMDLedState((LED_ON<<4)|(LED_ON<<2)|LED_ON); //检查所有门灯的情况
+ 245   1      
+ 246   1      
+ 247   1              ParameterInit();  
+ 248   1      
+ 249   1              
+ 250   1              //-----------------------
+ 251   1              //-----------------------
+ 252   1              //2012/4/9添加波特率可变
+ 253   1              UartInit();      
+ 254   1              Send_Data_Byte(0x55);
+ 255   1      
+ 256   1              
+ 257   1              //-----------------------
+ 258   1              //-----------------------
+ 259   1              LcmInit();      
+ 260   1      
+ 261   1      //      FRAM_TEST();
+ 262   1              
+ 263   1              PW = 1;
+ 264   1              VOL= 1;
+ 265   1              CGB = 0;        
+ 266   1              CBD = 0;
+ 267   1              CTA = 0;
+ 268   1              CTD = 0;                
+ 269   1              //KDR = 1;  
+ 270   1              //--------------------------------------------------
+ 271   1              //--------------------------------------------------
+ 272   1              //RS485总线一直处于接收状态
+ 273   1              KDR = 0;
+ 274   1              //--------------------------------------------------
+ 275   1              //--------------------------------------------------            
+ 276   1              //参数初始化
+ 277   1              byDevState1 = 0;
+ 278   1              byDevState2 = 0;
+ 279   1              byDevState3 = 0;
+ 280   1              byDevState4 = 0;
+ 281   1              bPWState=1;
+ 282   1              //设置上电指示灯状态    
+ 283   1              //SetLedDealState(LED_ON);
+ 284   1              //SetMDLedState((LED_ON<<4)|(LED_ON<<2)|LED_ON);
+ 285   1              //设置上电登记标志,灯闪烁时间初始化,超时设置(超时后自动发送上电登记命令)
+ 286   1              stLocalControl.byLedFlashDelay = 25;    
+ 287   1              stLocalControl.byLedFlashTime = 50;
+ 288   1              bLanding = 0;
+ 289   1              byDevState1 = stLocalControl.stEepromCfgData.bySelfSecAddr & 0x80;      
+ 290   1              MakeCH0TimerOut(0, 0);
+ 291   1      }
+ 292          
+ 293          
+ 294          
+ 295          /**********************************************************
+ 296          *函数名称                       :main   
+ 297          *函数描述               :系统主函数,整个软件的入口
+ 298          *输入参数               :
+ 299          *返回值                         :       
+ 300          *全局变量                       :
+C51 COMPILER V9.00   MAIN                                                                  06/23/2017 13:33:25 PAGE 6   
+
+ 301          *调用模块                       :
+ 302          ***********************************************************
+ 303          *创建人                 :陈卫国
+ 304          *创建日期                       :2008-9-22
+ 305          ***********************************************************
+ 306          *修改人                         :
+ 307          *修改日期               :
+ 308          *注释                   :
+ 309          **********************************************************/
+ 310          void Main(void)
+ 311          {       
+ 312   1              unsigned short iii=0;
+ 313   1              //系统硬件初始化
+ 314   1              Init();          
+ 315   1              while(1)
+ 316   1          {
+ 317   2      
+ 318   2                      
+ 319   2                  //复位看门狗
+ 320   2                      WDT_CONTR = 0x3d;
+ 321   2                  if(SerchRoomFlag)
+ 322   2                      {
+ 323   3                          SerchRoomFlag=0;
+ 324   3                              SetLcdState(1);
+ 325   3                          ShowPage();                 
+ 326   3                      }
+ 327   2                      if(NUMBER_SET_STOP_FLAG)
+ 328   2                      {                                                               
+ 329   3                         NUMBER_SET_STOP_FLAG=0;
+ 330   3                         SetLcdState(1);
+ 331   3                         ShowPage();
+ 332   3                      }
+ 333   2                      else if(SET_BY_SERIAL_OK_FLAG)
+ 334   2                      {
+ 335   3                         SET_BY_SERIAL_OK_FLAG=0;
+ 336   3                         SetLcdState(1);
+ 337   3                         ReadPageColour();
+ 338   3                         ShowPage();
+ 339   3                      }
+ 340   2      
+ 341   2      
+ 342   2                 if(bBus0RecFinish)
+ 343   2                      {
+ 344   3                              Bus0RecDeal();
+ 345   3                      }
+ 346   2                 if(bBus0SendFinish)                                                                  //总线0发送完数据帧
+ 347   2                      {
+ 348   3                              Bus0SendDeal();
+ 349   3                      }
+ 350   2      
+ 351   2                 if(bUsartRecFrame)
+ 352   2                      {
+ 353   3                              bUsartRecFrame=0;
+ 354   3                              UartDeal();
+ 355   3                      }
+ 356   2                 if(bTimer0OutDeal)
+ 357   2                      {
+ 358   3                              bTimer0OutDeal=0;
+ 359   3                              TimerOutDeal();
+ 360   3                      }
+ 361   2      
+ 362   2      
+C51 COMPILER V9.00   MAIN                                                                  06/23/2017 13:33:25 PAGE 7   
+
+ 363   2                      if(bDealKeyShortDown)
+ 364   2                      {
+ 365   3                              bDealKeyShortDown=0;
+ 366   3                              KeyDownDeal(DEAL_KEY);
+ 367   3                      }
+ 368   2      
+ 369   2                      if(bDealKeyAlwaysDown)
+ 370   2                      {
+ 371   3                              bDealKeyAlwaysDown=0;
+ 372   3                              KeyAlwaysDeal(DEAL_KEY);
+ 373   3                      }
+ 374   2      
+ 375   2                      if(bDealKeyUp)
+ 376   2                      {
+ 377   3                              bDealKeyUp=0;
+ 378   3                              KeyUpDeal(DEAL_KEY);
+ 379   3                      }
+ 380   2      
+ 381   2                      if((byDealKeyErrorDownTime==0)&&(byDealKeyShortDownTime==0)&&(byDealKeyAlwaysDownTime==0))
+ 382   2                      {
+ 383   3                              KeyScan();
+ 384   3                      }
+ 385   2                      //由于背光驱动有可能出现误保护的情况
+ 386   2          }    
+ 387   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    570    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     69       2
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      8    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

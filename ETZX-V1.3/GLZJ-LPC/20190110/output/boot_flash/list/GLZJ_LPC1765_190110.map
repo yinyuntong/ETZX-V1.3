@@ -1,0 +1,2194 @@
+ARM Linker, 5.03 [Build 24] [MDK-ARM Professional]
+
+==============================================================================
+
+Section Cross References
+
+    startup_lpc17xx.o(RESET) refers to startup_lpc17xx.o(STACK) for __initial_sp
+    startup_lpc17xx.o(RESET) refers to startup_lpc17xx.o(.text) for Reset_Handler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.NMI_Handler) for NMI_Handler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.HardFault_Handler) for HardFault_Handler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.MemManage_Handler) for MemManage_Handler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.WDT_IRQHandler) for WDT_IRQHandler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.TIMER0_IRQHandler) for TIMER0_IRQHandler
+    startup_lpc17xx.o(RESET) refers to singlebus.o(i.TIMER1_IRQHandler) for TIMER1_IRQHandler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.TIMER2_IRQHandler) for TIMER2_IRQHandler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.UART0_IRQHandler) for UART0_IRQHandler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.UART1_IRQHandler) for UART1_IRQHandler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.UART2_IRQHandler) for UART2_IRQHandler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.UART3_IRQHandler) for UART3_IRQHandler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.EINT0_IRQHandler) for EINT0_IRQHandler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.EINT1_IRQHandler) for EINT1_IRQHandler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.EINT2_IRQHandler) for EINT2_IRQHandler
+    startup_lpc17xx.o(RESET) refers to interrupt.o(i.EINT3_IRQHandler) for EINT3_IRQHandler
+    startup_lpc17xx.o(.text) refers to entry.o(.ARM.Collect$$$$00000000) for __main
+    system_lpc17xx.o(i.SystemInit) refers to system_lpc17xx.o(.data) for SystemFrequency
+    main.o(i.led_pin_config) refers to wpa_cli.o(.data) for WpaState
+    main.o(i.main) refers to system_lpc17xx.o(i.SystemInit) for SystemInit
+    main.o(i.main) refers to wpa_cli.o(i.esp8266_pin_config) for esp8266_pin_config
+    main.o(i.main) refers to main.o(i.led_pin_config) for led_pin_config
+    main.o(i.main) refers to fm62429.o(i.fm62429_pincfg) for fm62429_pincfg
+    main.o(i.main) refers to uart.o(i.init_uart0) for init_uart0
+    main.o(i.main) refers to uart.o(i.init_uart1) for init_uart1
+    main.o(i.main) refers to uart.o(i.init_uart2) for init_uart2
+    main.o(i.main) refers to uart.o(i.init_uart3) for init_uart3
+    main.o(i.main) refers to tel.o(i.AM79R70_pincfg) for AM79R70_pincfg
+    main.o(i.main) refers to pct25vf.o(i.init_sst25vfxxx_spi) for init_sst25vfxxx_spi
+    main.o(i.main) refers to pct25vf.o(i.read_id) for read_id
+    main.o(i.main) refers to voice_play.o(i.dac_pin_config) for dac_pin_config
+    main.o(i.main) refers to fm62429.o(i.set_play_voice_volue) for set_play_voice_volue
+    main.o(i.main) refers to fm62429.o(i.set_talk_voice_volue) for set_talk_voice_volue
+    main.o(i.main) refers to timer.o(i.init_timer0) for init_timer0
+    main.o(i.main) refers to timer.o(i.init_timer1) for init_timer1
+    main.o(i.main) refers to timer.o(i.init_timer2) for init_timer2
+    main.o(i.main) refers to global.o(i.channel_pin_config) for channel_pin_config
+    main.o(i.main) refers to singlebus.o(i.SingleBusInit) for SingleBusInit
+    main.o(i.main) refers to singlebus.o(i.init_parameter) for init_parameter
+    main.o(i.main) refers to voice_play.o(i.voice_play_word) for voice_play_word
+    main.o(i.main) refers to wdt.o(i.init_wdt) for init_wdt
+    main.o(i.main) refers to tel.o(i.init_tel) for init_tel
+    main.o(i.main) refers to tel.o(i.init_msm7512) for init_msm7512
+    main.o(i.main) refers to tel.o(i.init_mt8870) for init_mt8870
+    main.o(i.main) refers to extint.o(i.eint2Init) for eint2Init
+    main.o(i.main) refers to ds3231.o(i.DS3231_init) for DS3231_init
+    main.o(i.main) refers to tel.o(i.init_phone_key_buf) for init_phone_key_buf
+    main.o(i.main) refers to ds3231.o(i.init_black_light_status) for init_black_light_status
+    main.o(i.main) refers to wpa_cli.o(i.init_ssid) for init_ssid
+    main.o(i.main) refers to wpa_cli.o(i.get_right_ssid) for get_right_ssid
+    main.o(i.main) refers to uart.o(i.uart2_send_str) for uart2_send_str
+    main.o(i.main) refers to wpa_cli.o(i.crc32) for crc32
+    main.o(i.main) refers to wpa_cli.o(i.init_pwd) for init_pwd
+    main.o(i.main) refers to printf8.o(i.__0sprintf$8) for __2sprintf
+    main.o(i.main) refers to uart.o(i.uart2_send_byte) for uart2_send_byte
+    main.o(i.main) refers to wpa_cli.o(i.esp8266_rst) for esp8266_rst
+    main.o(i.main) refers to global.o(i.soft_delay_half_ms) for soft_delay_half_ms
+    main.o(i.main) refers to wpa_cli.o(i.init_esp8266) for init_esp8266
+    main.o(i.main) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    main.o(i.main) refers to wdt.o(i.feed_wdt) for feed_wdt
+    main.o(i.main) refers to pct25vf.o(i.sst_read) for sst_read
+    main.o(i.main) refers to singlebus.o(i.reset_parameter) for reset_parameter
+    main.o(i.main) refers to wpa_cli.o(i.check_esp8266) for check_esp8266
+    main.o(i.main) refers to ds3231.o(i.ReadDS3231_time) for ReadDS3231_time
+    main.o(i.main) refers to ds3231.o(i.check_black_light_status) for check_black_light_status
+    main.o(i.main) refers to ds3231.o(i.BCDtoHEX) for BCDtoHEX
+    main.o(i.main) refers to tel.o(i.mt8870_received_treat) for mt8870_received_treat
+    main.o(i.main) refers to tel.o(i.make_msm7512_data) for make_msm7512_data
+    main.o(i.main) refers to singlebus.o(.data) for stCallPointer
+    main.o(i.main) refers to singlebus.o(.bss) for stIndicationData
+    main.o(i.main) refers to wpa_cli.o(.bss) for ssid
+    main.o(i.main) refers to wpa_cli.o(.data) for check_esp8266_time
+    main.o(i.main) refers to voice_play.o(.data) for voice_play_state
+    main.o(i.main) refers to voice_play.o(.bss) for voice_buff
+    main.o(i.main) refers to tel.o(.data) for tel_pickup_time
+    main.o(i.main) refers to global.o(.data) for KeyState
+    main.o(i.main) refers to ds3231.o(.data) for read_ds3231_delay
+    main.o(i.main) refers to tel.o(i.tel_hungdown_treat) for tel_hungdown_treat
+    main.o(i.main) refers to tel.o(i.stop_tel_ring) for stop_tel_ring
+    main.o(i.main) refers to tel.o(i.tel_pickup_treat) for tel_pickup_treat
+    main.o(i.main) refers to singlebus.o(i.Bus0Manager) for Bus0Manager
+    main.o(i.main) refers to singlebus.o(i.TimerOutDeal) for TimerOutDeal
+    main.o(i.main) refers to memcpya.o(.text) for __aeabi_memcpy
+    main.o(i.main) refers to voice_play.o(i.voice_play_treat) for voice_play_treat
+    main.o(i.main) refers to uart.o(i.Usart2RecDeal) for Usart2RecDeal
+    main.o(i.main) refers to strstr.o(.text) for strstr
+    main.o(i.main) refers to atoi.o(.text) for atoi
+    main.o(i.main) refers to wpa_cli.o(i.wifi_rec_deal) for wifi_rec_deal
+    main.o(i.main) refers to uart.o(i.uart1_send_str) for uart1_send_str
+    main.o(i.main) refers to uart.o(i.uart1_send_byte) for uart1_send_byte
+    main.o(i.main) refers to tel.o(i.send_msm7512_test) for send_msm7512_test
+    main.o(i.main) refers to uart.o(i.init_scon0_Rcvbuf) for init_scon0_Rcvbuf
+    main.o(i.main) refers to uart.o(.bss) for stUsartCfg
+    main.o(i.main) refers to uart.o(.data) for scon2_GucRcvNew
+    inflash.o(i.bland_chk) refers to inflash.o(.bss) for gul_para_in
+    inflash.o(i.bland_chk) refers to inflash.o(.data) for IAP_Entry
+    inflash.o(i.codeId_boot) refers to inflash.o(.bss) for gul_para_in
+    inflash.o(i.codeId_boot) refers to inflash.o(.data) for IAP_Entry
+    inflash.o(i.data_compare) refers to inflash.o(.bss) for gul_para_in
+    inflash.o(i.data_compare) refers to inflash.o(.data) for IAP_Entry
+    inflash.o(i.parId_read) refers to inflash.o(.bss) for gul_para_in
+    inflash.o(i.parId_read) refers to inflash.o(.data) for IAP_Entry
+    inflash.o(i.ram_copy) refers to inflash.o(.bss) for gul_para_in
+    inflash.o(i.ram_copy) refers to inflash.o(.data) for IAP_Entry
+    inflash.o(i.read_serial_code) refers to inflash.o(.bss) for gul_para_in
+    inflash.o(i.read_serial_code) refers to inflash.o(.data) for IAP_Entry
+    inflash.o(i.sector_erase) refers to inflash.o(.bss) for gul_para_in
+    inflash.o(i.sector_erase) refers to inflash.o(.data) for IAP_Entry
+    inflash.o(i.sector_prepare) refers to inflash.o(.bss) for gul_para_in
+    inflash.o(i.sector_prepare) refers to inflash.o(.data) for IAP_Entry
+    uart.o(i.Usart2RecDeal) refers to uart.o(i.CheckPsk) for CheckPsk
+    uart.o(i.Usart2RecDeal) refers to uart.o(i.Usart2SndCmd) for Usart2SndCmd
+    uart.o(i.Usart2RecDeal) refers to singlebus.o(i.save_parameter) for save_parameter
+    uart.o(i.Usart2RecDeal) refers to ds3231.o(i.WriteDS3231_time) for WriteDS3231_time
+    uart.o(i.Usart2RecDeal) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    uart.o(i.Usart2RecDeal) refers to memcpya.o(.text) for __aeabi_memcpy
+    uart.o(i.Usart2RecDeal) refers to uart.o(.bss) for scon2_Rcvbuf
+    uart.o(i.Usart2RecDeal) refers to singlebus.o(.data) for State
+    uart.o(i.Usart2RecDeal) refers to singlebus.o(.bss) for stEepromCfgData
+    uart.o(i.Usart2RecDeal) refers to singlebus.o(i.MakeCH0TimerOut) for MakeCH0TimerOut
+    uart.o(i.Usart2RecDeal) refers to singlebus.o(i.MakeCH1TimerOut) for MakeCH1TimerOut
+    uart.o(i.Usart2RecDeal) refers to ds3231.o(i.check_little_voice_status) for check_little_voice_status
+    uart.o(i.Usart2RecDeal) refers to ds3231.o(i.init_black_light_status) for init_black_light_status
+    uart.o(i.Usart2RecDeal) refers to uart.o(i.init_uart0) for init_uart0
+    uart.o(i.Usart2SndCmd) refers to global.o(i.soft_delay_half_ms) for soft_delay_half_ms
+    uart.o(i.Usart2SndCmd) refers to memcpya.o(.text) for __aeabi_memcpy
+    uart.o(i.Usart2SndCmd) refers to uart.o(i.GetPskCrc) for GetPskCrc
+    uart.o(i.Usart2SndCmd) refers to singlebus.o(.bss) for stEepromCfgData
+    uart.o(i.Usart2SndCmd) refers to uart.o(.bss) for stUsartCfg
+    uart.o(i.init_scon0_Rcvbuf) refers to uart.o(.bss) for scon0_Rcvbuf
+    uart.o(i.init_scon1_Rcvbuf) refers to uart.o(.bss) for scon1_Rcvbuf
+    uart.o(i.init_uart0) refers to uart.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    uart.o(i.init_uart0) refers to uart.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    uart.o(i.init_uart0) refers to system_lpc17xx.o(.data) for SystemFrequency
+    uart.o(i.init_uart0) refers to uart.o(.bss) for scon0_Rcvbuf
+    uart.o(i.init_uart0) refers to uart.o(.data) for scon0_ptr
+    uart.o(i.init_uart1) refers to uart.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    uart.o(i.init_uart1) refers to uart.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    uart.o(i.init_uart1) refers to system_lpc17xx.o(.data) for SystemFrequency
+    uart.o(i.init_uart1) refers to uart.o(.bss) for scon1_Rcvbuf
+    uart.o(i.init_uart1) refers to uart.o(.data) for scon1_ptr
+    uart.o(i.init_uart2) refers to uart.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    uart.o(i.init_uart2) refers to uart.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    uart.o(i.init_uart2) refers to system_lpc17xx.o(.data) for SystemFrequency
+    uart.o(i.init_uart2) refers to uart.o(.bss) for scon2_Rcvbuf
+    uart.o(i.init_uart2) refers to uart.o(.data) for scon2_ptr
+    uart.o(i.init_uart3) refers to uart.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    uart.o(i.init_uart3) refers to uart.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    uart.o(i.init_uart3) refers to system_lpc17xx.o(.data) for SystemFrequency
+    uart.o(i.init_uart3) refers to uart.o(.bss) for scon3_Rcvbuf
+    uart.o(i.init_uart3) refers to uart.o(.data) for scon3_ptr
+    uart.o(i.uart0_send_str) refers to uart.o(i.uart0_send_byte) for uart0_send_byte
+    uart.o(i.uart0_send_str) refers to wdt.o(i.feed_wdt) for feed_wdt
+    uart.o(i.uart0_send_str2) refers to uart.o(i.uart0_send_byte) for uart0_send_byte
+    uart.o(i.uart0_send_str2) refers to wdt.o(i.feed_wdt) for feed_wdt
+    uart.o(i.uart1_send_str) refers to uart.o(i.uart1_send_byte) for uart1_send_byte
+    uart.o(i.uart1_send_str) refers to wdt.o(i.feed_wdt) for feed_wdt
+    uart.o(i.uart1_send_str_len) refers to uart.o(i.uart1_send_byte) for uart1_send_byte
+    uart.o(i.uart1_send_str_len) refers to wdt.o(i.feed_wdt) for feed_wdt
+    uart.o(i.uart2_send_str) refers to uart.o(i.uart2_send_byte) for uart2_send_byte
+    uart.o(i.uart2_send_str) refers to wdt.o(i.feed_wdt) for feed_wdt
+    uart.o(i.uart2_send_str2) refers to uart.o(i.uart2_send_byte) for uart2_send_byte
+    uart.o(i.uart2_send_str2) refers to wdt.o(i.feed_wdt) for feed_wdt
+    uart.o(i.uart3_send_str) refers to uart.o(i.uart3_send_byte) for uart3_send_byte
+    uart.o(i.uart3_send_str) refers to wdt.o(i.feed_wdt) for feed_wdt
+    global.o(i.init_my_val) refers to global.o(i.init_scon1_rcvbuf) for init_scon1_rcvbuf
+    global.o(i.init_my_val) refers to global.o(i.init_scon2_rcvbuf) for init_scon2_rcvbuf
+    global.o(i.init_my_val) refers to global.o(i.init_scon3_rcvbuf) for init_scon3_rcvbuf
+    global.o(i.init_my_val) refers to uart.o(.data) for scon1_time
+    global.o(i.init_my_val) refers to voice_play.o(.data) for voice_turns_delay_time
+    global.o(i.init_my_val) refers to global.o(.data) for ring_tlp_chk
+    global.o(i.init_scon1_rcvbuf) refers to uart.o(.bss) for scon1_Rcvbuf
+    global.o(i.init_scon1_rcvbuf) refers to uart.o(.data) for scon1_ptr
+    global.o(i.init_scon2_rcvbuf) refers to uart.o(.bss) for scon2_Rcvbuf
+    global.o(i.init_scon2_rcvbuf) refers to uart.o(.data) for scon2_ptr
+    global.o(i.init_scon3_rcvbuf) refers to uart.o(.bss) for scon3_Rcvbuf
+    global.o(i.init_scon3_rcvbuf) refers to uart.o(.data) for scon3_ptr
+    global.o(i.soft_delay_half_ms) refers to global.o(i.short_soft_delay) for short_soft_delay
+    global.o(i.soft_delay_half_ms) refers to wdt.o(i.feed_wdt) for feed_wdt
+    wdt.o(i.init_wdt) refers to wdt.o(i.feed_wdt) for feed_wdt
+    voice_play.o(i.MakeCallVoiceData) refers to voice_play.o(i.init_voice_play_sequence) for init_voice_play_sequence
+    voice_play.o(i.MakeCallVoiceData) refers to voice_play.o(.data) for voice_play_seq_cnt
+    voice_play.o(i.MakeCallVoiceData) refers to voice_play.o(.bss) for voice_play_sequence
+    voice_play.o(i.MakeCallVoiceData) refers to singlebus.o(.bss) for stEepromCfgData
+    voice_play.o(i.StartVoicePlay) refers to voice_play.o(i.NVIC_DisableIRQ) for NVIC_DisableIRQ
+    voice_play.o(i.StartVoicePlay) refers to pct25vf.o(i.sst_fast_read) for sst_fast_read
+    voice_play.o(i.StartVoicePlay) refers to voice_play.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    voice_play.o(i.StartVoicePlay) refers to voice_play.o(.bss) for voice_play_sequence
+    voice_play.o(i.StartVoicePlay) refers to voice_play.o(.data) for cur_play_index
+    voice_play.o(i.StartVoicePlay) refers to voice_play.o(.constdata) for DataFlashTable
+    voice_play.o(i.StopVoicePlay) refers to voice_play.o(.data) for voice_play_state
+    voice_play.o(i.init_voice_play_sequence) refers to voice_play.o(.bss) for voice_play_sequence
+    voice_play.o(i.init_voice_play_sequence) refers to voice_play.o(.data) for cur_play_index
+    voice_play.o(i.load_voice_play_sequence) refers to voice_play.o(i.init_voice_play_sequence) for init_voice_play_sequence
+    voice_play.o(i.load_voice_play_sequence) refers to pct25vf.o(i.sst_fast_read) for sst_fast_read
+    voice_play.o(i.load_voice_play_sequence) refers to voice_play.o(.data) for voice_play_seq_cnt
+    voice_play.o(i.load_voice_play_sequence) refers to voice_play.o(.bss) for voice_play_sequence
+    voice_play.o(i.load_voice_play_sequence) refers to voice_play.o(.constdata) for DataFlashTable
+    voice_play.o(i.voice_continue_play_word) refers to voice_play.o(i.NVIC_DisableIRQ) for NVIC_DisableIRQ
+    voice_play.o(i.voice_continue_play_word) refers to pct25vf.o(i.sst_read) for sst_read
+    voice_play.o(i.voice_continue_play_word) refers to voice_play.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    voice_play.o(i.voice_continue_play_word) refers to voice_play.o(.data) for voice_play_state
+    voice_play.o(i.voice_continue_play_word) refers to voice_play.o(.bss) for voice_buff
+    voice_play.o(i.voice_play_treat) refers to voice_play.o(i.StartVoicePlay) for StartVoicePlay
+    voice_play.o(i.voice_play_treat) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    voice_play.o(i.voice_play_treat) refers to voice_play.o(.data) for voice_play_state
+    voice_play.o(i.voice_play_treat) refers to singlebus.o(.data) for uiDevState
+    voice_play.o(i.voice_play_word) refers to voice_play.o(i.NVIC_DisableIRQ) for NVIC_DisableIRQ
+    voice_play.o(i.voice_play_word) refers to pct25vf.o(i.sst_read) for sst_read
+    voice_play.o(i.voice_play_word) refers to voice_play.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    voice_play.o(i.voice_play_word) refers to voice_play.o(.data) for cur_play_index
+    voice_play.o(i.voice_play_word) refers to voice_play.o(.constdata) for DataFlashTable
+    voice_play.o(i.voice_play_word) refers to voice_play.o(.bss) for voice_buff
+    interrupt.o(i.EINT0_IRQHandler) refers to interrupt.o(i.NVIC_DisableIRQ) for NVIC_DisableIRQ
+    interrupt.o(i.EINT0_IRQHandler) refers to interrupt.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    interrupt.o(i.EINT0_IRQHandler) refers to interrupt.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    interrupt.o(i.EINT1_IRQHandler) refers to interrupt.o(i.NVIC_DisableIRQ) for NVIC_DisableIRQ
+    interrupt.o(i.EINT1_IRQHandler) refers to interrupt.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    interrupt.o(i.EINT1_IRQHandler) refers to interrupt.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    interrupt.o(i.EINT2_IRQHandler) refers to interrupt.o(i.NVIC_DisableIRQ) for NVIC_DisableIRQ
+    interrupt.o(i.EINT2_IRQHandler) refers to interrupt.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    interrupt.o(i.EINT2_IRQHandler) refers to interrupt.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    interrupt.o(i.EINT2_IRQHandler) refers to global.o(.data) for mt8870_received
+    interrupt.o(i.EINT3_IRQHandler) refers to singlebus.o(i.eint3Isr) for eint3Isr
+    interrupt.o(i.TIMER0_IRQHandler) refers to memcpya.o(.text) for __aeabi_memcpy
+    interrupt.o(i.TIMER0_IRQHandler) refers to tel.o(i.stop_tel_ring) for stop_tel_ring
+    interrupt.o(i.TIMER0_IRQHandler) refers to ds3231.o(.data) for read_ds3231_delay
+    interrupt.o(i.TIMER0_IRQHandler) refers to singlebus.o(.data) for State
+    interrupt.o(i.TIMER0_IRQHandler) refers to tel.o(.data) for CID_txe_delay
+    interrupt.o(i.TIMER0_IRQHandler) refers to tel.o(.bss) for cid_data
+    interrupt.o(i.TIMER0_IRQHandler) refers to uart.o(.bss) for stUsartCfg
+    interrupt.o(i.TIMER0_IRQHandler) refers to voice_play.o(.data) for voice_times_delay_time
+    interrupt.o(i.TIMER0_IRQHandler) refers to wpa_cli.o(.data) for check_esp8266_time
+    interrupt.o(i.TIMER0_IRQHandler) refers to uart.o(.data) for scon0_time
+    interrupt.o(i.TIMER0_IRQHandler) refers to global.o(.data) for KeyState
+    interrupt.o(i.TIMER2_IRQHandler) refers to interrupt.o(i.Chip_DAC_UpdateValue) for Chip_DAC_UpdateValue
+    interrupt.o(i.TIMER2_IRQHandler) refers to voice_play.o(.data) for voice_play_state
+    interrupt.o(i.UART0_IRQHandler) refers to uart.o(.data) for scon0_time
+    interrupt.o(i.UART0_IRQHandler) refers to uart.o(.bss) for scon0_Rcvbuf
+    interrupt.o(i.UART0_IRQHandler) refers to singlebus.o(.data) for byWaitRS485AckDTime
+    interrupt.o(i.UART1_IRQHandler) refers to wpa_cli.o(i.wifi_server_led_flash) for wifi_server_led_flash
+    interrupt.o(i.UART1_IRQHandler) refers to uart.o(.data) for scon1_time
+    interrupt.o(i.UART1_IRQHandler) refers to uart.o(.bss) for scon1_Rcvbuf
+    interrupt.o(i.UART1_IRQHandler) refers to wpa_cli.o(.data) for WpaState
+    interrupt.o(i.UART2_IRQHandler) refers to uart.o(.data) for scon2_time
+    interrupt.o(i.UART2_IRQHandler) refers to uart.o(.bss) for scon2_Rcvbuf
+    interrupt.o(i.UART3_IRQHandler) refers to uart.o(.data) for scon3_time
+    interrupt.o(i.UART3_IRQHandler) refers to uart.o(.bss) for scon3_Rcvbuf
+    interrupt.o(i.UART3_IRQHandler) refers to tel.o(.data) for TelState
+    timer.o(i.init_timer0) refers to timer.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    timer.o(i.init_timer0) refers to timer.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    timer.o(i.init_timer0) refers to system_lpc17xx.o(.data) for SystemFrequency
+    timer.o(i.init_timer1) refers to timer.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    timer.o(i.init_timer1) refers to timer.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    timer.o(i.init_timer1) refers to system_lpc17xx.o(.data) for SystemFrequency
+    timer.o(i.init_timer2) refers to timer.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    timer.o(i.init_timer2) refers to timer.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    timer.o(i.init_timer2) refers to system_lpc17xx.o(.data) for SystemFrequency
+    extint.o(i.eint0Init) refers to extint.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    extint.o(i.eint0Init) refers to extint.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    extint.o(i.eint1Init) refers to extint.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    extint.o(i.eint1Init) refers to extint.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    extint.o(i.eint2Init) refers to extint.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    extint.o(i.eint2Init) refers to extint.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    extint.o(i.eint3Init) refers to extint.o(i.NVIC_EnableIRQ) for NVIC_EnableIRQ
+    extint.o(i.eint3Init) refers to extint.o(i.NVIC_SetPriority) for NVIC_SetPriority
+    singlebus.o(i.AddCallNod) refers to malloc.o(i.malloc) for malloc
+    singlebus.o(i.AddCallNod) refers to singlebus.o(.data) for stCallPointer
+    singlebus.o(i.AddCallNod) refers to singlebus.o(.bss) for stIndicationData
+    singlebus.o(i.Bus0Manager) refers to singlebus.o(i.Bus0RecDeal) for Bus0RecDeal
+    singlebus.o(i.Bus0Manager) refers to singlebus.o(i.Bus0SendFinishDeal) for Bus0SendFinishDeal
+    singlebus.o(i.Bus0Manager) refers to singlebus.o(.data) for byBus0State
+    singlebus.o(i.Bus0Manager) refers to singlebus.o(.bss) for byBus0RxQ
+    singlebus.o(i.Bus0OutputData) refers to singlebus.o(.data) for byBus0TxTail
+    singlebus.o(i.Bus0OutputData) refers to singlebus.o(.bss) for byBus0TxQ
+    singlebus.o(i.Bus0RecDeal) refers to wdt.o(i.feed_wdt) for feed_wdt
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    singlebus.o(i.Bus0RecDeal) refers to uart.o(i.Usart2SndCmd) for Usart2SndCmd
+    singlebus.o(i.Bus0RecDeal) refers to wpa_cli.o(i.wifi_send_cmd) for wifi_send_cmd
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.AddCallNod) for AddCallNod
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.SaveIndicationData) for SaveIndicationData
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(.data) for stBusFreq
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(.bss) for stEepromCfgData
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.RemoveCallNod) for RemoveCallNod
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.SaveCallAddr) for SaveCallAddr
+    singlebus.o(i.Bus0RecDeal) refers to voice_play.o(i.StopVoicePlay) for StopVoicePlay
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.VoiceChannelCtx) for VoiceChannelCtx
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.MakeCH0TimerOut) for MakeCH0TimerOut
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.AddrCompare) for AddrCompare
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.DirAddrCompare) for DirAddrCompare
+    singlebus.o(i.Bus0RecDeal) refers to tel.o(i.AM79R70_active) for AM79R70_active
+    singlebus.o(i.Bus0RecDeal) refers to fm62429.o(i.set_talk_voice_volue) for set_talk_voice_volue
+    singlebus.o(i.Bus0RecDeal) refers to uart.o(.bss) for scon2_Rcvbuf
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.RestartIndication) for RestartIndication
+    singlebus.o(i.Bus0RecDeal) refers to singlebus.o(i.MakeCH1TimerOut) for MakeCH1TimerOut
+    singlebus.o(i.Bus0RecDeal) refers to ds3231.o(i.WriteDS3231_time) for WriteDS3231_time
+    singlebus.o(i.Bus0SendFinishDeal) refers to wdt.o(i.feed_wdt) for feed_wdt
+    singlebus.o(i.Bus0SendFinishDeal) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    singlebus.o(i.Bus0SendFinishDeal) refers to voice_play.o(i.MakeCallVoiceData) for MakeCallVoiceData
+    singlebus.o(i.Bus0SendFinishDeal) refers to ds3231.o(i.check_little_voice_status) for check_little_voice_status
+    singlebus.o(i.Bus0SendFinishDeal) refers to fm62429.o(i.set_play_voice_volue) for set_play_voice_volue
+    singlebus.o(i.Bus0SendFinishDeal) refers to voice_play.o(i.StartVoicePlay) for StartVoicePlay
+    singlebus.o(i.Bus0SendFinishDeal) refers to tel.o(i.start_tel_ring) for start_tel_ring
+    singlebus.o(i.Bus0SendFinishDeal) refers to singlebus.o(i.VoiceChannelCtx) for VoiceChannelCtx
+    singlebus.o(i.Bus0SendFinishDeal) refers to singlebus.o(i.MakeCH0TimerOut) for MakeCH0TimerOut
+    singlebus.o(i.Bus0SendFinishDeal) refers to wpa_cli.o(i.wifi_send_cmd) for wifi_send_cmd
+    singlebus.o(i.Bus0SendFinishDeal) refers to voice_play.o(i.StopVoicePlay) for StopVoicePlay
+    singlebus.o(i.Bus0SendFinishDeal) refers to tel.o(i.stop_tel_ring) for stop_tel_ring
+    singlebus.o(i.Bus0SendFinishDeal) refers to singlebus.o(i.RestartIndication) for RestartIndication
+    singlebus.o(i.Bus0SendFinishDeal) refers to singlebus.o(i.MakeCH1TimerOut) for MakeCH1TimerOut
+    singlebus.o(i.Bus0SendFinishDeal) refers to uart.o(i.Usart2SndCmd) for Usart2SndCmd
+    singlebus.o(i.Bus0SendFinishDeal) refers to singlebus.o(.data) for stBusFreq
+    singlebus.o(i.Bus0SendFinishDeal) refers to singlebus.o(.bss) for stIndicationData
+    singlebus.o(i.Bus0SendFinishDeal) refers to global.o(.data) for little_voice_effective
+    singlebus.o(i.Bus0SendFinishDeal) refers to voice_play.o(.data) for played_times
+    singlebus.o(i.Bus0SendFinishDeal) refers to uart.o(.bss) for scon2_Rcvbuf
+    singlebus.o(i.Bus0SendFinishDeal) refers to singlebus.o(i.RemoveCallNod) for RemoveCallNod
+    singlebus.o(i.Bus0SendFinishDeal) refers to singlebus.o(i.DirAddrCompare) for DirAddrCompare
+    singlebus.o(i.Bus0SendFinishDeal) refers to singlebus.o(i.SaveCallAddr) for SaveCallAddr
+    singlebus.o(i.Bus0SendFinishDeal) refers to tel.o(i.AM79R70_active) for AM79R70_active
+    singlebus.o(i.Bus0SendFinishDeal) refers to fm62429.o(i.set_talk_voice_volue) for set_talk_voice_volue
+    singlebus.o(i.Bus0SendFinishDeal) refers to global.o(i.soft_delay_half_ms) for soft_delay_half_ms
+    singlebus.o(i.MakeCH0TimerOut) refers to singlebus.o(.data) for stCH0TimerOut
+    singlebus.o(i.MakeCH1TimerOut) refers to singlebus.o(.data) for stCH1TimerOut
+    singlebus.o(i.RemoveCallNod) refers to malloc.o(i.free) for free
+    singlebus.o(i.RemoveCallNod) refers to singlebus.o(.data) for stCallPointer
+    singlebus.o(i.RemoveCallNod) refers to singlebus.o(.bss) for stIndicationData
+    singlebus.o(i.RestartIndication) refers to uart.o(i.Usart2SndCmd) for Usart2SndCmd
+    singlebus.o(i.RestartIndication) refers to wpa_cli.o(i.wifi_send_cmd) for wifi_send_cmd
+    singlebus.o(i.RestartIndication) refers to tel.o(i.AM79R70_standby) for AM79R70_standby
+    singlebus.o(i.RestartIndication) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    singlebus.o(i.RestartIndication) refers to singlebus.o(i.SaveIndicationData) for SaveIndicationData
+    singlebus.o(i.RestartIndication) refers to fm62429.o(i.set_play_voice_volue) for set_play_voice_volue
+    singlebus.o(i.RestartIndication) refers to singlebus.o(.data) for uiDevState
+    singlebus.o(i.RestartIndication) refers to singlebus.o(.bss) for stIndicationData
+    singlebus.o(i.SaveCallAddr) refers to singlebus.o(.data) for stCallAddr
+    singlebus.o(i.SaveIndicationData) refers to singlebus.o(.bss) for stIndicationData
+    singlebus.o(i.SaveIndicationData) refers to singlebus.o(.data) for stCallPointer
+    singlebus.o(i.SingleBusInit) refers to timer.o(i.init_timer1) for init_timer1
+    singlebus.o(i.SingleBusInit) refers to singlebus.o(.data) for byBus0SendStopCount
+    singlebus.o(i.TIMER1_IRQHandler) refers to singlebus.o(.data) for TimerOutCount
+    singlebus.o(i.TIMER1_IRQHandler) refers to singlebus.o(.bss) for byBus0RxQ
+    singlebus.o(i.TimerOutDeal) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    singlebus.o(i.TimerOutDeal) refers to uart.o(i.Usart2SndCmd) for Usart2SndCmd
+    singlebus.o(i.TimerOutDeal) refers to wpa_cli.o(i.wifi_send_cmd) for wifi_send_cmd
+    singlebus.o(i.TimerOutDeal) refers to fm62429.o(i.set_talk_voice_volue) for set_talk_voice_volue
+    singlebus.o(i.TimerOutDeal) refers to tel.o(i.AM79R70_standby) for AM79R70_standby
+    singlebus.o(i.TimerOutDeal) refers to singlebus.o(i.VoiceChannelCtx) for VoiceChannelCtx
+    singlebus.o(i.TimerOutDeal) refers to singlebus.o(.data) for stCH0TimerOut
+    singlebus.o(i.TimerOutDeal) refers to singlebus.o(.bss) for stEepromCfgData
+    singlebus.o(i.TimerOutDeal) refers to uart.o(.bss) for scon2_Rcvbuf
+    singlebus.o(i.TimerOutDeal) refers to tel.o(.data) for tel_pickup_time
+    singlebus.o(i.VoiceChannelCtx) refers to singlebus.o(.data) for State
+    singlebus.o(i.check_ee_485brt) refers to singlebus.o(.bss) for stEepromCfgData
+    singlebus.o(i.eint3Isr) refers to timer.o(i.reset_start_timer1) for reset_start_timer1
+    singlebus.o(i.eint3Isr) refers to singlebus.o(.data) for byBus0State
+    singlebus.o(i.init_parameter) refers to pct25vf.o(i.sst_read) for sst_read
+    singlebus.o(i.init_parameter) refers to singlebus.o(i.save_parameter) for save_parameter
+    singlebus.o(i.init_parameter) refers to singlebus.o(i.check_ee_485brt) for check_ee_485brt
+    singlebus.o(i.init_parameter) refers to singlebus.o(.bss) for stEepromCfgData
+    singlebus.o(i.reset_parameter) refers to singlebus.o(i.save_parameter) for save_parameter
+    singlebus.o(i.reset_parameter) refers to singlebus.o(.bss) for stEepromCfgData
+    singlebus.o(i.save_parameter) refers to pct25vf.o(i.sst_write) for sst_write
+    singlebus.o(i.save_parameter) refers to singlebus.o(.bss) for stEepromCfgData
+    tel.o(i.AM79R70_pincfg) refers to tel.o(i.AM79R70_standby) for AM79R70_standby
+    tel.o(i.init_phone_key_buf) refers to tel.o(.data) for phone_key_buf
+    tel.o(i.init_tel) refers to global.o(i.soft_delay_half_ms) for soft_delay_half_ms
+    tel.o(i.init_tel) refers to tel.o(.data) for TelState
+    tel.o(i.make_msm7512_data) refers to tel.o(i.get_odd_parity) for get_odd_parity
+    tel.o(i.make_msm7512_data) refers to tel.o(i.get_checksum) for get_checksum
+    tel.o(i.make_msm7512_data) refers to tel.o(i.get_complement) for get_complement
+    tel.o(i.make_msm7512_data) refers to tel.o(.bss) for cid_data
+    tel.o(i.make_msm7512_data) refers to singlebus.o(.data) for stTime
+    tel.o(i.mt8870_received_treat) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    tel.o(i.mt8870_received_treat) refers to tel.o(i.init_phone_key_buf) for init_phone_key_buf
+    tel.o(i.mt8870_received_treat) refers to singlebus.o(.data) for State
+    tel.o(i.mt8870_received_treat) refers to global.o(.data) for mt8870_received
+    tel.o(i.mt8870_received_treat) refers to tel.o(.data) for phone_key_buf
+    tel.o(i.mt8870_received_treat) refers to singlebus.o(.bss) for stEepromCfgData
+    tel.o(i.send_msm7512_test) refers to tel.o(i.get_odd_parity) for get_odd_parity
+    tel.o(i.send_msm7512_test) refers to tel.o(i.get_checksum) for get_checksum
+    tel.o(i.send_msm7512_test) refers to tel.o(i.get_complement) for get_complement
+    tel.o(i.send_msm7512_test) refers to uart.o(i.uart3_send_byte) for uart3_send_byte
+    tel.o(i.send_msm7512_test) refers to global.o(i.soft_delay_half_ms) for soft_delay_half_ms
+    tel.o(i.send_msm7512_test) refers to tel.o(.data) for number
+    tel.o(i.start_tel_ring) refers to tel.o(i.AM79R70_ringing) for AM79R70_ringing
+    tel.o(i.start_tel_ring) refers to tel.o(.data) for TelState
+    tel.o(i.stop_tel_ring) refers to tel.o(.data) for TelState
+    tel.o(i.tel_hungdown_treat) refers to singlebus.o(i.VoiceChannelCtx) for VoiceChannelCtx
+    tel.o(i.tel_hungdown_treat) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    tel.o(i.tel_hungdown_treat) refers to fm62429.o(i.set_talk_voice_volue) for set_talk_voice_volue
+    tel.o(i.tel_hungdown_treat) refers to tel.o(i.AM79R70_standby) for AM79R70_standby
+    tel.o(i.tel_hungdown_treat) refers to tel.o(.data) for tel_pickup_time
+    tel.o(i.tel_hungdown_treat) refers to singlebus.o(.data) for State
+    tel.o(i.tel_pickup_treat) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    tel.o(i.tel_pickup_treat) refers to singlebus.o(.data) for uiDevState
+    tel.o(i.tel_pickup_treat) refers to singlebus.o(.bss) for stEepromCfgData
+    tel.o(i.tel_pickup_treat) refers to tel.o(.data) for tel_pickup_time
+    ds3231.o(i.DS3231_init) refers to ds3231.o(i.DS3231_pincfg) for DS3231_pincfg
+    ds3231.o(i.DS3231_init) refers to ds3231.o(i.DS3231_comm_init) for DS3231_comm_init
+    ds3231.o(i.DS3231_init) refers to ds3231.o(i.ReadDS3231Status) for ReadDS3231Status
+    ds3231.o(i.DS3231_init) refers to ds3231.o(i.ReadDS3231_time) for ReadDS3231_time
+    ds3231.o(i.DS3231_init) refers to ds3231.o(i.start) for start
+    ds3231.o(i.DS3231_init) refers to ds3231.o(i.i2cwrite) for i2cwrite
+    ds3231.o(i.DS3231_init) refers to ds3231.o(i.stop) for stop
+    ds3231.o(i.DS3231_init) refers to ds3231.o(i.WriteDS3231_time) for WriteDS3231_time
+    ds3231.o(i.DS3231_init) refers to ds3231.o(i.BCDtoHEX) for BCDtoHEX
+    ds3231.o(i.DS3231_init) refers to singlebus.o(.data) for stTime
+    ds3231.o(i.DS3231_init) refers to ds3231.o(.data) for read_ds3231_delay
+    ds3231.o(i.ReadByte) refers to ds3231.o(i.start) for start
+    ds3231.o(i.ReadByte) refers to ds3231.o(i.i2cwrite) for i2cwrite
+    ds3231.o(i.ReadByte) refers to ds3231.o(i.i2cread) for i2cread
+    ds3231.o(i.ReadByte) refers to ds3231.o(i.stop) for stop
+    ds3231.o(i.ReadDS3231Status) refers to ds3231.o(i.start) for start
+    ds3231.o(i.ReadDS3231Status) refers to ds3231.o(i.i2cwrite) for i2cwrite
+    ds3231.o(i.ReadDS3231Status) refers to ds3231.o(i.i2cread) for i2cread
+    ds3231.o(i.ReadDS3231Status) refers to ds3231.o(i.stop) for stop
+    ds3231.o(i.ReadDS3231_time) refers to ds3231.o(i.start) for start
+    ds3231.o(i.ReadDS3231_time) refers to ds3231.o(i.i2cwrite) for i2cwrite
+    ds3231.o(i.ReadDS3231_time) refers to ds3231.o(i.i2cread) for i2cread
+    ds3231.o(i.ReadDS3231_time) refers to ds3231.o(i.stop) for stop
+    ds3231.o(i.ReadDS3231_time) refers to singlebus.o(.data) for stTime
+    ds3231.o(i.WriteDS3231_time) refers to ds3231.o(i.start) for start
+    ds3231.o(i.WriteDS3231_time) refers to ds3231.o(i.i2cwrite) for i2cwrite
+    ds3231.o(i.WriteDS3231_time) refers to ds3231.o(i.stop) for stop
+    ds3231.o(i.WriteDS3231_time) refers to singlebus.o(.data) for stTime
+    ds3231.o(i.check_black_light_status) refers to ds3231.o(i.BCDtoHEX) for BCDtoHEX
+    ds3231.o(i.check_black_light_status) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    ds3231.o(i.check_black_light_status) refers to singlebus.o(.bss) for stEepromCfgData
+    ds3231.o(i.check_black_light_status) refers to singlebus.o(.data) for stTime
+    ds3231.o(i.check_black_light_status) refers to global.o(.data) for blight_off_state
+    ds3231.o(i.check_little_voice_status) refers to ds3231.o(i.BCDtoHEX) for BCDtoHEX
+    ds3231.o(i.check_little_voice_status) refers to global.o(.data) for little_voice_effective
+    ds3231.o(i.check_little_voice_status) refers to singlebus.o(.bss) for stEepromCfgData
+    ds3231.o(i.check_little_voice_status) refers to singlebus.o(.data) for stTime
+    ds3231.o(i.frq_out_tog) refers to ds3231.o(i.start) for start
+    ds3231.o(i.frq_out_tog) refers to ds3231.o(i.i2cwrite) for i2cwrite
+    ds3231.o(i.frq_out_tog) refers to ds3231.o(i.i2cread) for i2cread
+    ds3231.o(i.frq_out_tog) refers to ds3231.o(i.stop) for stop
+    ds3231.o(i.i2cread) refers to ds3231.o(i.delay_nop) for delay_nop
+    ds3231.o(i.i2cwrite) refers to ds3231.o(i.delay_nop) for delay_nop
+    ds3231.o(i.init_alrm) refers to ds3231.o(i.start) for start
+    ds3231.o(i.init_alrm) refers to ds3231.o(i.i2cwrite) for i2cwrite
+    ds3231.o(i.init_alrm) refers to ds3231.o(i.stop) for stop
+    ds3231.o(i.init_black_light_status) refers to ds3231.o(i.BCDtoHEX) for BCDtoHEX
+    ds3231.o(i.init_black_light_status) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    ds3231.o(i.init_black_light_status) refers to singlebus.o(.bss) for stEepromCfgData
+    ds3231.o(i.init_black_light_status) refers to singlebus.o(.data) for stTime
+    ds3231.o(i.rd_temp) refers to ds3231.o(i.start) for start
+    ds3231.o(i.rd_temp) refers to ds3231.o(i.i2cwrite) for i2cwrite
+    ds3231.o(i.rd_temp) refers to ds3231.o(i.i2cread) for i2cread
+    ds3231.o(i.rd_temp) refers to ds3231.o(i.stop) for stop
+    ds3231.o(i.rd_temp) refers to fflti.o(.text) for __aeabi_i2f
+    ds3231.o(i.rd_temp) refers to f2d.o(.text) for __aeabi_f2d
+    ds3231.o(i.rd_temp) refers to dmul.o(.text) for __aeabi_dmul
+    ds3231.o(i.rd_temp) refers to d2f.o(.text) for __aeabi_d2f
+    ds3231.o(i.start) refers to ds3231.o(i.delay_nop) for delay_nop
+    ds3231.o(i.stop) refers to ds3231.o(i.delay_nop) for delay_nop
+    ds3231.o(i.writebyte) refers to ds3231.o(i.start) for start
+    ds3231.o(i.writebyte) refers to ds3231.o(i.i2cwrite) for i2cwrite
+    ds3231.o(i.writebyte) refers to ds3231.o(i.stop) for stop
+    pct25vf.o(i.AAI_Write) refers to pct25vf.o(i.WREN) for WREN
+    pct25vf.o(i.AAI_Write) refers to pct25vf.o(i.Auto_Add_IncA_EBSY) for Auto_Add_IncA_EBSY
+    pct25vf.o(i.AAI_Write) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.AAI_Write) refers to pct25vf.o(i.Poll_SO) for Poll_SO
+    pct25vf.o(i.AAI_Write) refers to pct25vf.o(i.Auto_Add_IncB_EBSY) for Auto_Add_IncB_EBSY
+    pct25vf.o(i.Auto_Add_IncA) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Auto_Add_IncA_EBSY) refers to pct25vf.o(i.EBSY) for EBSY
+    pct25vf.o(i.Auto_Add_IncA_EBSY) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Auto_Add_IncA_EBSY) refers to pct25vf.o(i.Poll_SO) for Poll_SO
+    pct25vf.o(i.Auto_Add_IncB) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Auto_Add_IncB_EBSY) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Auto_Add_IncB_EBSY) refers to pct25vf.o(i.Poll_SO) for Poll_SO
+    pct25vf.o(i.Auto_Add_IncB_EBSY) refers to pct25vf.o(i.WRDI) for WRDI
+    pct25vf.o(i.Auto_Add_IncB_EBSY) refers to pct25vf.o(i.DBSY) for DBSY
+    pct25vf.o(i.Block_Erase_32K) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Block_Erase_64K) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Byte_Program) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Byte_Write) refers to pct25vf.o(i.Flash_Unlock) for Flash_Unlock
+    pct25vf.o(i.Byte_Write) refers to pct25vf.o(i.WREN) for WREN
+    pct25vf.o(i.Byte_Write) refers to pct25vf.o(i.Sector_Erase) for Sector_Erase
+    pct25vf.o(i.Byte_Write) refers to pct25vf.o(i.Wait_Busy) for Wait_Busy
+    pct25vf.o(i.Byte_Write) refers to pct25vf.o(i.Byte_Program) for Byte_Program
+    pct25vf.o(i.Byte_Write) refers to pct25vf.o(i.Flash_Lock) for Flash_Lock
+    pct25vf.o(i.Chip_Erase) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.DBSY) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.EBSY) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.EWSR) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.FLASH_BufferWrite) refers to pct25vf.o(i.FLASH_PageWrite) for FLASH_PageWrite
+    pct25vf.o(i.FLASH_BufferWrite) refers to wdt.o(i.feed_wdt) for feed_wdt
+    pct25vf.o(i.FLASH_PageWrite) refers to pct25vf.o(i.WREN) for WREN
+    pct25vf.o(i.FLASH_PageWrite) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.FLASH_PageWrite) refers to wdt.o(i.feed_wdt) for feed_wdt
+    pct25vf.o(i.FLASH_PageWrite) refers to pct25vf.o(i.Wait_Busy) for Wait_Busy
+    pct25vf.o(i.Flash_Lock) refers to pct25vf.o(i.W25QXX_Lock) for W25QXX_Lock
+    pct25vf.o(i.Flash_Lock) refers to pct25vf.o(i.SST25VF_Lock) for SST25VF_Lock
+    pct25vf.o(i.Flash_Lock) refers to pct25vf.o(.data) for man_id
+    pct25vf.o(i.Flash_Unlock) refers to pct25vf.o(i.W25QXX_UnLock) for W25QXX_UnLock
+    pct25vf.o(i.Flash_Unlock) refers to pct25vf.o(i.SST25VF_UnLock) for SST25VF_UnLock
+    pct25vf.o(i.Flash_Unlock) refers to pct25vf.o(.data) for man_id
+    pct25vf.o(i.Get_Byte) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.HighSpeed_Read) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.HighSpeed_Read) refers to pct25vf.o(i.Get_Byte) for Get_Byte
+    pct25vf.o(i.Jedec_ID_Read) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Jedec_ID_Read) refers to pct25vf.o(i.Get_Byte) for Get_Byte
+    pct25vf.o(i.Poll_SO) refers to global.o(i.short_soft_delay) for short_soft_delay
+    pct25vf.o(i.Poll_SO) refers to wdt.o(i.feed_wdt) for feed_wdt
+    pct25vf.o(i.Read) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Read) refers to pct25vf.o(i.Get_Byte) for Get_Byte
+    pct25vf.o(i.Read_Status_Register) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Read_Status_Register) refers to pct25vf.o(i.Get_Byte) for Get_Byte
+    pct25vf.o(i.SST25VF_Init) refers to pct25vf.o(i.EWSR) for EWSR
+    pct25vf.o(i.SST25VF_Init) refers to pct25vf.o(i.Wait_Busy) for Wait_Busy
+    pct25vf.o(i.SST25VF_Init) refers to pct25vf.o(i.WRSR) for WRSR
+    pct25vf.o(i.SST25VF_Lock) refers to pct25vf.o(i.EWSR) for EWSR
+    pct25vf.o(i.SST25VF_Lock) refers to pct25vf.o(i.Wait_Busy) for Wait_Busy
+    pct25vf.o(i.SST25VF_Lock) refers to pct25vf.o(i.WRSR) for WRSR
+    pct25vf.o(i.SST25VF_UnLock) refers to pct25vf.o(i.EWSR) for EWSR
+    pct25vf.o(i.SST25VF_UnLock) refers to pct25vf.o(i.Wait_Busy) for Wait_Busy
+    pct25vf.o(i.SST25VF_UnLock) refers to pct25vf.o(i.WRSR) for WRSR
+    pct25vf.o(i.Sector_Erase) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.W25QXX_Lock) refers to pct25vf.o(i.EWSR) for EWSR
+    pct25vf.o(i.W25QXX_Lock) refers to pct25vf.o(i.Wait_Busy) for Wait_Busy
+    pct25vf.o(i.W25QXX_Lock) refers to pct25vf.o(i.W25QXX_WRSR) for W25QXX_WRSR
+    pct25vf.o(i.W25QXX_UnLock) refers to pct25vf.o(i.EWSR) for EWSR
+    pct25vf.o(i.W25QXX_UnLock) refers to pct25vf.o(i.Wait_Busy) for Wait_Busy
+    pct25vf.o(i.W25QXX_UnLock) refers to pct25vf.o(i.W25QXX_WRSR) for W25QXX_WRSR
+    pct25vf.o(i.W25QXX_WRSR) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.WRDI) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.WREN) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.WREN) refers to pct25vf.o(i.Wait_Busy) for Wait_Busy
+    pct25vf.o(i.WREN_AAI_Check) refers to global.o(i.short_soft_delay) for short_soft_delay
+    pct25vf.o(i.WREN_AAI_Check) refers to pct25vf.o(i.Read_Status_Register) for Read_Status_Register
+    pct25vf.o(i.WREN_AAI_Check) refers to wdt.o(i.feed_wdt) for feed_wdt
+    pct25vf.o(i.WREN_Check) refers to global.o(i.short_soft_delay) for short_soft_delay
+    pct25vf.o(i.WREN_Check) refers to pct25vf.o(i.Read_Status_Register) for Read_Status_Register
+    pct25vf.o(i.WREN_Check) refers to wdt.o(i.feed_wdt) for feed_wdt
+    pct25vf.o(i.WRSR) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.Wait_Busy) refers to global.o(i.short_soft_delay) for short_soft_delay
+    pct25vf.o(i.Wait_Busy) refers to pct25vf.o(i.Read_Status_Register) for Read_Status_Register
+    pct25vf.o(i.Wait_Busy) refers to wdt.o(i.feed_wdt) for feed_wdt
+    pct25vf.o(i.Wait_Busy_AAI) refers to global.o(i.short_soft_delay) for short_soft_delay
+    pct25vf.o(i.Wait_Busy_AAI) refers to pct25vf.o(i.Read_Status_Register) for Read_Status_Register
+    pct25vf.o(i.Wait_Busy_AAI) refers to wdt.o(i.feed_wdt) for feed_wdt
+    pct25vf.o(i.frame_test) refers to pct25vf.o(i.sst_write) for sst_write
+    pct25vf.o(i.frame_test) refers to pct25vf.o(i.sst_read) for sst_read
+    pct25vf.o(i.frame_test) refers to uart.o(i.uart2_send_str2) for uart2_send_str2
+    pct25vf.o(i.read_id) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.read_id) refers to pct25vf.o(.data) for man_id
+    pct25vf.o(i.sst_fast_read) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.sst_fast_read) refers to pct25vf.o(i.Get_Byte) for Get_Byte
+    pct25vf.o(i.sst_read) refers to pct25vf.o(i.spi_send_data_hard) for spi_send_data_hard
+    pct25vf.o(i.sst_read) refers to pct25vf.o(i.Get_Byte) for Get_Byte
+    pct25vf.o(i.sst_write) refers to pct25vf.o(i.Flash_Unlock) for Flash_Unlock
+    pct25vf.o(i.sst_write) refers to pct25vf.o(i.WREN) for WREN
+    pct25vf.o(i.sst_write) refers to pct25vf.o(i.Sector_Erase) for Sector_Erase
+    pct25vf.o(i.sst_write) refers to pct25vf.o(i.Wait_Busy) for Wait_Busy
+    pct25vf.o(i.sst_write) refers to pct25vf.o(i.AAI_Write) for AAI_Write
+    pct25vf.o(i.sst_write) refers to pct25vf.o(i.FLASH_BufferWrite) for FLASH_BufferWrite
+    pct25vf.o(i.sst_write) refers to pct25vf.o(i.Byte_Program) for Byte_Program
+    pct25vf.o(i.sst_write) refers to pct25vf.o(i.Flash_Lock) for Flash_Lock
+    pct25vf.o(i.sst_write) refers to pct25vf.o(.data) for man_id
+    wpa_cli.o(i.ReplaceStr) refers to strstr.o(.text) for strstr
+    wpa_cli.o(i.ReplaceStr) refers to memseta.o(.text) for __aeabi_memclr4
+    wpa_cli.o(i.ReplaceStr) refers to strncpy.o(.text) for strncpy
+    wpa_cli.o(i.ReplaceStr) refers to strcat.o(.text) for strcat
+    wpa_cli.o(i.ReplaceStr) refers to strlen.o(.text) for strlen
+    wpa_cli.o(i.ReplaceStr) refers to strcpy.o(.text) for strcpy
+    wpa_cli.o(i.check_esp8266) refers to uart.o(i.uart1_send_str) for uart1_send_str
+    wpa_cli.o(i.check_esp8266) refers to uart.o(i.uart1_send_byte) for uart1_send_byte
+    wpa_cli.o(i.check_esp8266) refers to global.o(i.soft_delay_half_ms) for soft_delay_half_ms
+    wpa_cli.o(i.check_esp8266) refers to strstr.o(.text) for strstr
+    wpa_cli.o(i.check_esp8266) refers to uart.o(i.uart2_send_byte) for uart2_send_byte
+    wpa_cli.o(i.check_esp8266) refers to uart.o(i.uart2_send_str) for uart2_send_str
+    wpa_cli.o(i.check_esp8266) refers to uart.o(i.init_scon1_Rcvbuf) for init_scon1_Rcvbuf
+    wpa_cli.o(i.check_esp8266) refers to wpa_cli.o(i.wifi_send_cmd) for wifi_send_cmd
+    wpa_cli.o(i.check_esp8266) refers to wpa_cli.o(i.esp8266_rst) for esp8266_rst
+    wpa_cli.o(i.check_esp8266) refers to singlebus.o(.bss) for stEepromCfgData
+    wpa_cli.o(i.check_esp8266) refers to uart.o(.data) for scon1_GucRcvNew
+    wpa_cli.o(i.check_esp8266) refers to uart.o(.bss) for scon1_Rcvbuf
+    wpa_cli.o(i.check_esp8266) refers to wpa_cli.o(.data) for WpaState
+    wpa_cli.o(i.check_esp8266) refers to wpa_cli.o(.bss) for ssid
+    wpa_cli.o(i.check_esp8266) refers to strcpy.o(.text) for strcpy
+    wpa_cli.o(i.check_esp8266) refers to strcat.o(.text) for strcat
+    wpa_cli.o(i.check_esp8266) refers to wpa_cli.o(.constdata) for .constdata
+    wpa_cli.o(i.crc32) refers to wpa_cli.o(.constdata) for crc_32_tab
+    wpa_cli.o(i.esp8266_rst) refers to global.o(i.soft_delay_half_ms) for soft_delay_half_ms
+    wpa_cli.o(i.get_right_ssid) refers to printf8.o(i.__0sprintf$8) for __2sprintf
+    wpa_cli.o(i.get_right_ssid) refers to wpa_cli.o(i.crc32) for crc32
+    wpa_cli.o(i.init_esp8266) refers to uart.o(i.uart1_send_str) for uart1_send_str
+    wpa_cli.o(i.init_esp8266) refers to uart.o(i.uart1_send_byte) for uart1_send_byte
+    wpa_cli.o(i.init_esp8266) refers to global.o(i.soft_delay_half_ms) for soft_delay_half_ms
+    wpa_cli.o(i.init_esp8266) refers to strstr.o(.text) for strstr
+    wpa_cli.o(i.init_esp8266) refers to uart.o(i.uart2_send_byte) for uart2_send_byte
+    wpa_cli.o(i.init_esp8266) refers to uart.o(i.uart2_send_str) for uart2_send_str
+    wpa_cli.o(i.init_esp8266) refers to uart.o(i.init_scon1_Rcvbuf) for init_scon1_Rcvbuf
+    wpa_cli.o(i.init_esp8266) refers to voice_play.o(i.voice_play_word) for voice_play_word
+    wpa_cli.o(i.init_esp8266) refers to wpa_cli.o(i.esp8266_rst) for esp8266_rst
+    wpa_cli.o(i.init_esp8266) refers to fm62429.o(i.set_play_voice_volue) for set_play_voice_volue
+    wpa_cli.o(i.init_esp8266) refers to voice_play.o(i.voice_continue_play_word) for voice_continue_play_word
+    wpa_cli.o(i.init_esp8266) refers to strcpy.o(.text) for strcpy
+    wpa_cli.o(i.init_esp8266) refers to strcat.o(.text) for strcat
+    wpa_cli.o(i.init_esp8266) refers to singlebus.o(.bss) for stEepromCfgData
+    wpa_cli.o(i.init_esp8266) refers to wpa_cli.o(.data) for WpaState
+    wpa_cli.o(i.init_esp8266) refers to uart.o(.data) for scon1_GucRcvNew
+    wpa_cli.o(i.init_esp8266) refers to uart.o(.bss) for scon1_Rcvbuf
+    wpa_cli.o(i.init_esp8266) refers to wpa_cli.o(.bss) for ssid
+    wpa_cli.o(i.init_esp8266) refers to voice_play.o(.data) for voice_play_state
+    wpa_cli.o(i.init_pwd) refers to wpa_cli.o(.bss) for pwd
+    wpa_cli.o(i.init_ssid) refers to wpa_cli.o(.bss) for ssid
+    wpa_cli.o(i.sub_string) refers to malloc.o(i.free) for free
+    wpa_cli.o(i.sub_string) refers to malloc.o(i.malloc) for malloc
+    wpa_cli.o(i.sub_string) refers to wpa_cli.o(.data) for st
+    wpa_cli.o(i.wifi_ap_led_flash) refers to wpa_cli.o(.data) for WpaState
+    wpa_cli.o(i.wifi_rec_deal) refers to uart.o(i.CheckPsk) for CheckPsk
+    wpa_cli.o(i.wifi_rec_deal) refers to malloc.o(i.malloc) for malloc
+    wpa_cli.o(i.wifi_rec_deal) refers to memcpya.o(.text) for __aeabi_memcpy
+    wpa_cli.o(i.wifi_rec_deal) refers to uart.o(i.uart2_send_byte) for uart2_send_byte
+    wpa_cli.o(i.wifi_rec_deal) refers to wpa_cli.o(i.wifi_send_cmd) for wifi_send_cmd
+    wpa_cli.o(i.wifi_rec_deal) refers to singlebus.o(i.save_parameter) for save_parameter
+    wpa_cli.o(i.wifi_rec_deal) refers to ds3231.o(i.WriteDS3231_time) for WriteDS3231_time
+    wpa_cli.o(i.wifi_rec_deal) refers to singlebus.o(i.Bus0OutputData) for Bus0OutputData
+    wpa_cli.o(i.wifi_rec_deal) refers to singlebus.o(.bss) for stEepromCfgData
+    wpa_cli.o(i.wifi_rec_deal) refers to singlebus.o(.data) for State
+    wpa_cli.o(i.wifi_rec_deal) refers to uart.o(.bss) for stUsartCfg
+    wpa_cli.o(i.wifi_rec_deal) refers to singlebus.o(i.MakeCH0TimerOut) for MakeCH0TimerOut
+    wpa_cli.o(i.wifi_rec_deal) refers to singlebus.o(i.MakeCH1TimerOut) for MakeCH1TimerOut
+    wpa_cli.o(i.wifi_rec_deal) refers to ds3231.o(i.check_little_voice_status) for check_little_voice_status
+    wpa_cli.o(i.wifi_rec_deal) refers to ds3231.o(i.init_black_light_status) for init_black_light_status
+    wpa_cli.o(i.wifi_rec_deal) refers to uart.o(i.init_uart0) for init_uart0
+    wpa_cli.o(i.wifi_rec_deal) refers to malloc.o(i.free) for free
+    wpa_cli.o(i.wifi_rec_deal) refers to uart.o(i.init_scon1_Rcvbuf) for init_scon1_Rcvbuf
+    wpa_cli.o(i.wifi_send_cmd) refers to memcpya.o(.text) for __aeabi_memcpy
+    wpa_cli.o(i.wifi_send_cmd) refers to uart.o(i.GetPskCrc) for GetPskCrc
+    wpa_cli.o(i.wifi_send_cmd) refers to wpa_cli.o(i.wifi_send_data) for wifi_send_data
+    wpa_cli.o(i.wifi_send_cmd) refers to singlebus.o(.bss) for stEepromCfgData
+    wpa_cli.o(i.wifi_send_cmd) refers to uart.o(.bss) for byUsart1SndBuf
+    wpa_cli.o(i.wifi_send_cmd_test) refers to wpa_cli.o(i.wifi_send_data) for wifi_send_data
+    wpa_cli.o(i.wifi_send_cmd_test) refers to uart.o(.bss) for byUsart1SndBuf
+    wpa_cli.o(i.wifi_send_data) refers to printf8.o(i.__0sprintf$8) for __2sprintf
+    wpa_cli.o(i.wifi_send_data) refers to uart.o(i.uart1_send_str) for uart1_send_str
+    wpa_cli.o(i.wifi_send_data) refers to uart.o(i.uart1_send_byte) for uart1_send_byte
+    wpa_cli.o(i.wifi_send_data) refers to global.o(i.soft_delay_half_ms) for soft_delay_half_ms
+    wpa_cli.o(i.wifi_send_data) refers to strstr.o(.text) for strstr
+    wpa_cli.o(i.wifi_send_data) refers to uart.o(i.init_scon1_Rcvbuf) for init_scon1_Rcvbuf
+    wpa_cli.o(i.wifi_send_data) refers to uart.o(i.uart1_send_str_len) for uart1_send_str_len
+    wpa_cli.o(i.wifi_send_data) refers to wpa_cli.o(.data) for WpaState
+    wpa_cli.o(i.wifi_send_data) refers to uart.o(.data) for scon1_GucRcvNew
+    wpa_cli.o(i.wifi_send_data) refers to uart.o(.bss) for scon1_Rcvbuf
+    wpa_cli.o(i.wifi_server_led_flash) refers to wpa_cli.o(.data) for WpaState
+    fm62429.o(i.set_play_voice_volue) refers to global.o(i.short_delay) for short_delay
+    fm62429.o(i.set_talk_voice_volue) refers to global.o(i.short_delay) for short_delay
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry10a.o(.ARM.Collect$$$$0000000D) for __rt_final_cpp
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry11a.o(.ARM.Collect$$$$0000000F) for __rt_final_exit
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry7b.o(.ARM.Collect$$$$00000008) for _main_clock
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry8b.o(.ARM.Collect$$$$0000000A) for _main_cpp_init
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry9a.o(.ARM.Collect$$$$0000000B) for _main_init
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry5.o(.ARM.Collect$$$$00000004) for _main_scatterload
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry2.o(.ARM.Collect$$$$00000001) for _main_stk
+    printfb.o(i.__0fprintf$bare) refers to printfb.o(i._printf_core) for _printf_core
+    printfb.o(i.__0fprintf$bare) refers to fputc.o(i.fputc) for fputc
+    printfb.o(i.__0printf$bare) refers to printfb.o(i._printf_core) for _printf_core
+    printfb.o(i.__0printf$bare) refers to fputc.o(i.fputc) for fputc
+    printfb.o(i.__0printf$bare) refers to stdout.o(.data) for __stdout
+    printfb.o(i.__0snprintf$bare) refers to printfb.o(i._printf_core) for _printf_core
+    printfb.o(i.__0snprintf$bare) refers to printfb.o(i._snputc) for _snputc
+    printfb.o(i.__0sprintf$bare) refers to printfb.o(i._printf_core) for _printf_core
+    printfb.o(i.__0sprintf$bare) refers to printfb.o(i._sputc) for _sputc
+    printfb.o(i.__0vfprintf$bare) refers to printfb.o(i._printf_core) for _printf_core
+    printfb.o(i.__0vfprintf$bare) refers to fputc.o(i.fputc) for fputc
+    printfb.o(i.__0vprintf$bare) refers to printfb.o(i._printf_core) for _printf_core
+    printfb.o(i.__0vprintf$bare) refers to fputc.o(i.fputc) for fputc
+    printfb.o(i.__0vprintf$bare) refers to stdout.o(.data) for __stdout
+    printfb.o(i.__0vsnprintf$bare) refers to printfb.o(i._printf_core) for _printf_core
+    printfb.o(i.__0vsnprintf$bare) refers to printfb.o(i._snputc) for _snputc
+    printfb.o(i.__0vsprintf$bare) refers to printfb.o(i._printf_core) for _printf_core
+    printfb.o(i.__0vsprintf$bare) refers to printfb.o(i._sputc) for _sputc
+    printf0.o(i.__0fprintf$0) refers to printf0.o(i._printf_core) for _printf_core
+    printf0.o(i.__0fprintf$0) refers to fputc.o(i.fputc) for fputc
+    printf0.o(i.__0printf$0) refers to printf0.o(i._printf_core) for _printf_core
+    printf0.o(i.__0printf$0) refers to fputc.o(i.fputc) for fputc
+    printf0.o(i.__0printf$0) refers to stdout.o(.data) for __stdout
+    printf0.o(i.__0snprintf$0) refers to printf0.o(i._printf_core) for _printf_core
+    printf0.o(i.__0snprintf$0) refers to printf0.o(i._snputc) for _snputc
+    printf0.o(i.__0sprintf$0) refers to printf0.o(i._printf_core) for _printf_core
+    printf0.o(i.__0sprintf$0) refers to printf0.o(i._sputc) for _sputc
+    printf0.o(i.__0vfprintf$0) refers to printf0.o(i._printf_core) for _printf_core
+    printf0.o(i.__0vfprintf$0) refers to fputc.o(i.fputc) for fputc
+    printf0.o(i.__0vprintf$0) refers to printf0.o(i._printf_core) for _printf_core
+    printf0.o(i.__0vprintf$0) refers to fputc.o(i.fputc) for fputc
+    printf0.o(i.__0vprintf$0) refers to stdout.o(.data) for __stdout
+    printf0.o(i.__0vsnprintf$0) refers to printf0.o(i._printf_core) for _printf_core
+    printf0.o(i.__0vsnprintf$0) refers to printf0.o(i._snputc) for _snputc
+    printf0.o(i.__0vsprintf$0) refers to printf0.o(i._printf_core) for _printf_core
+    printf0.o(i.__0vsprintf$0) refers to printf0.o(i._sputc) for _sputc
+    printf1.o(i.__0fprintf$1) refers to printf1.o(i._printf_core) for _printf_core
+    printf1.o(i.__0fprintf$1) refers to fputc.o(i.fputc) for fputc
+    printf1.o(i.__0printf$1) refers to printf1.o(i._printf_core) for _printf_core
+    printf1.o(i.__0printf$1) refers to fputc.o(i.fputc) for fputc
+    printf1.o(i.__0printf$1) refers to stdout.o(.data) for __stdout
+    printf1.o(i.__0snprintf$1) refers to printf1.o(i._printf_core) for _printf_core
+    printf1.o(i.__0snprintf$1) refers to printf1.o(i._snputc) for _snputc
+    printf1.o(i.__0sprintf$1) refers to printf1.o(i._printf_core) for _printf_core
+    printf1.o(i.__0sprintf$1) refers to printf1.o(i._sputc) for _sputc
+    printf1.o(i.__0vfprintf$1) refers to printf1.o(i._printf_core) for _printf_core
+    printf1.o(i.__0vfprintf$1) refers to fputc.o(i.fputc) for fputc
+    printf1.o(i.__0vprintf$1) refers to printf1.o(i._printf_core) for _printf_core
+    printf1.o(i.__0vprintf$1) refers to fputc.o(i.fputc) for fputc
+    printf1.o(i.__0vprintf$1) refers to stdout.o(.data) for __stdout
+    printf1.o(i.__0vsnprintf$1) refers to printf1.o(i._printf_core) for _printf_core
+    printf1.o(i.__0vsnprintf$1) refers to printf1.o(i._snputc) for _snputc
+    printf1.o(i.__0vsprintf$1) refers to printf1.o(i._printf_core) for _printf_core
+    printf1.o(i.__0vsprintf$1) refers to printf1.o(i._sputc) for _sputc
+    printf1.o(i._printf_core) refers to uidiv.o(.text) for __aeabi_uidivmod
+    printf2.o(i.__0fprintf$2) refers to printf2.o(i._printf_core) for _printf_core
+    printf2.o(i.__0fprintf$2) refers to fputc.o(i.fputc) for fputc
+    printf2.o(i.__0printf$2) refers to printf2.o(i._printf_core) for _printf_core
+    printf2.o(i.__0printf$2) refers to fputc.o(i.fputc) for fputc
+    printf2.o(i.__0printf$2) refers to stdout.o(.data) for __stdout
+    printf2.o(i.__0snprintf$2) refers to printf2.o(i._printf_core) for _printf_core
+    printf2.o(i.__0snprintf$2) refers to printf2.o(i._snputc) for _snputc
+    printf2.o(i.__0sprintf$2) refers to printf2.o(i._printf_core) for _printf_core
+    printf2.o(i.__0sprintf$2) refers to printf2.o(i._sputc) for _sputc
+    printf2.o(i.__0vfprintf$2) refers to printf2.o(i._printf_core) for _printf_core
+    printf2.o(i.__0vfprintf$2) refers to fputc.o(i.fputc) for fputc
+    printf2.o(i.__0vprintf$2) refers to printf2.o(i._printf_core) for _printf_core
+    printf2.o(i.__0vprintf$2) refers to fputc.o(i.fputc) for fputc
+    printf2.o(i.__0vprintf$2) refers to stdout.o(.data) for __stdout
+    printf2.o(i.__0vsnprintf$2) refers to printf2.o(i._printf_core) for _printf_core
+    printf2.o(i.__0vsnprintf$2) refers to printf2.o(i._snputc) for _snputc
+    printf2.o(i.__0vsprintf$2) refers to printf2.o(i._printf_core) for _printf_core
+    printf2.o(i.__0vsprintf$2) refers to printf2.o(i._sputc) for _sputc
+    printf3.o(i.__0fprintf$3) refers to printf3.o(i._printf_core) for _printf_core
+    printf3.o(i.__0fprintf$3) refers to fputc.o(i.fputc) for fputc
+    printf3.o(i.__0printf$3) refers to printf3.o(i._printf_core) for _printf_core
+    printf3.o(i.__0printf$3) refers to fputc.o(i.fputc) for fputc
+    printf3.o(i.__0printf$3) refers to stdout.o(.data) for __stdout
+    printf3.o(i.__0snprintf$3) refers to printf3.o(i._printf_core) for _printf_core
+    printf3.o(i.__0snprintf$3) refers to printf3.o(i._snputc) for _snputc
+    printf3.o(i.__0sprintf$3) refers to printf3.o(i._printf_core) for _printf_core
+    printf3.o(i.__0sprintf$3) refers to printf3.o(i._sputc) for _sputc
+    printf3.o(i.__0vfprintf$3) refers to printf3.o(i._printf_core) for _printf_core
+    printf3.o(i.__0vfprintf$3) refers to fputc.o(i.fputc) for fputc
+    printf3.o(i.__0vprintf$3) refers to printf3.o(i._printf_core) for _printf_core
+    printf3.o(i.__0vprintf$3) refers to fputc.o(i.fputc) for fputc
+    printf3.o(i.__0vprintf$3) refers to stdout.o(.data) for __stdout
+    printf3.o(i.__0vsnprintf$3) refers to printf3.o(i._printf_core) for _printf_core
+    printf3.o(i.__0vsnprintf$3) refers to printf3.o(i._snputc) for _snputc
+    printf3.o(i.__0vsprintf$3) refers to printf3.o(i._printf_core) for _printf_core
+    printf3.o(i.__0vsprintf$3) refers to printf3.o(i._sputc) for _sputc
+    printf3.o(i._printf_core) refers to uidiv.o(.text) for __aeabi_uidivmod
+    printf4.o(i.__0fprintf$4) refers to printf4.o(i._printf_core) for _printf_core
+    printf4.o(i.__0fprintf$4) refers to fputc.o(i.fputc) for fputc
+    printf4.o(i.__0printf$4) refers to printf4.o(i._printf_core) for _printf_core
+    printf4.o(i.__0printf$4) refers to fputc.o(i.fputc) for fputc
+    printf4.o(i.__0printf$4) refers to stdout.o(.data) for __stdout
+    printf4.o(i.__0snprintf$4) refers to printf4.o(i._printf_core) for _printf_core
+    printf4.o(i.__0snprintf$4) refers to printf4.o(i._snputc) for _snputc
+    printf4.o(i.__0sprintf$4) refers to printf4.o(i._printf_core) for _printf_core
+    printf4.o(i.__0sprintf$4) refers to printf4.o(i._sputc) for _sputc
+    printf4.o(i.__0vfprintf$4) refers to printf4.o(i._printf_core) for _printf_core
+    printf4.o(i.__0vfprintf$4) refers to fputc.o(i.fputc) for fputc
+    printf4.o(i.__0vprintf$4) refers to printf4.o(i._printf_core) for _printf_core
+    printf4.o(i.__0vprintf$4) refers to fputc.o(i.fputc) for fputc
+    printf4.o(i.__0vprintf$4) refers to stdout.o(.data) for __stdout
+    printf4.o(i.__0vsnprintf$4) refers to printf4.o(i._printf_core) for _printf_core
+    printf4.o(i.__0vsnprintf$4) refers to printf4.o(i._snputc) for _snputc
+    printf4.o(i.__0vsprintf$4) refers to printf4.o(i._printf_core) for _printf_core
+    printf4.o(i.__0vsprintf$4) refers to printf4.o(i._sputc) for _sputc
+    printf4.o(i._printf_core) refers to uldiv.o(.text) for __aeabi_uldivmod
+    printf5.o(i.__0fprintf$5) refers to printf5.o(i._printf_core) for _printf_core
+    printf5.o(i.__0fprintf$5) refers to fputc.o(i.fputc) for fputc
+    printf5.o(i.__0printf$5) refers to printf5.o(i._printf_core) for _printf_core
+    printf5.o(i.__0printf$5) refers to fputc.o(i.fputc) for fputc
+    printf5.o(i.__0printf$5) refers to stdout.o(.data) for __stdout
+    printf5.o(i.__0snprintf$5) refers to printf5.o(i._printf_core) for _printf_core
+    printf5.o(i.__0snprintf$5) refers to printf5.o(i._snputc) for _snputc
+    printf5.o(i.__0sprintf$5) refers to printf5.o(i._printf_core) for _printf_core
+    printf5.o(i.__0sprintf$5) refers to printf5.o(i._sputc) for _sputc
+    printf5.o(i.__0vfprintf$5) refers to printf5.o(i._printf_core) for _printf_core
+    printf5.o(i.__0vfprintf$5) refers to fputc.o(i.fputc) for fputc
+    printf5.o(i.__0vprintf$5) refers to printf5.o(i._printf_core) for _printf_core
+    printf5.o(i.__0vprintf$5) refers to fputc.o(i.fputc) for fputc
+    printf5.o(i.__0vprintf$5) refers to stdout.o(.data) for __stdout
+    printf5.o(i.__0vsnprintf$5) refers to printf5.o(i._printf_core) for _printf_core
+    printf5.o(i.__0vsnprintf$5) refers to printf5.o(i._snputc) for _snputc
+    printf5.o(i.__0vsprintf$5) refers to printf5.o(i._printf_core) for _printf_core
+    printf5.o(i.__0vsprintf$5) refers to printf5.o(i._sputc) for _sputc
+    printf5.o(i._printf_core) refers to uldiv.o(.text) for __aeabi_uldivmod
+    printf6.o(i.__0fprintf$6) refers to printf6.o(i._printf_core) for _printf_core
+    printf6.o(i.__0fprintf$6) refers to fputc.o(i.fputc) for fputc
+    printf6.o(i.__0printf$6) refers to printf6.o(i._printf_core) for _printf_core
+    printf6.o(i.__0printf$6) refers to fputc.o(i.fputc) for fputc
+    printf6.o(i.__0printf$6) refers to stdout.o(.data) for __stdout
+    printf6.o(i.__0snprintf$6) refers to printf6.o(i._printf_core) for _printf_core
+    printf6.o(i.__0snprintf$6) refers to printf6.o(i._snputc) for _snputc
+    printf6.o(i.__0sprintf$6) refers to printf6.o(i._printf_core) for _printf_core
+    printf6.o(i.__0sprintf$6) refers to printf6.o(i._sputc) for _sputc
+    printf6.o(i.__0vfprintf$6) refers to printf6.o(i._printf_core) for _printf_core
+    printf6.o(i.__0vfprintf$6) refers to fputc.o(i.fputc) for fputc
+    printf6.o(i.__0vprintf$6) refers to printf6.o(i._printf_core) for _printf_core
+    printf6.o(i.__0vprintf$6) refers to fputc.o(i.fputc) for fputc
+    printf6.o(i.__0vprintf$6) refers to stdout.o(.data) for __stdout
+    printf6.o(i.__0vsnprintf$6) refers to printf6.o(i._printf_core) for _printf_core
+    printf6.o(i.__0vsnprintf$6) refers to printf6.o(i._snputc) for _snputc
+    printf6.o(i.__0vsprintf$6) refers to printf6.o(i._printf_core) for _printf_core
+    printf6.o(i.__0vsprintf$6) refers to printf6.o(i._sputc) for _sputc
+    printf6.o(i._printf_core) refers to printf6.o(i._printf_pre_padding) for _printf_pre_padding
+    printf6.o(i._printf_core) refers to uidiv.o(.text) for __aeabi_uidivmod
+    printf6.o(i._printf_core) refers to printf6.o(i._printf_post_padding) for _printf_post_padding
+    printf7.o(i.__0fprintf$7) refers to printf7.o(i._printf_core) for _printf_core
+    printf7.o(i.__0fprintf$7) refers to fputc.o(i.fputc) for fputc
+    printf7.o(i.__0printf$7) refers to printf7.o(i._printf_core) for _printf_core
+    printf7.o(i.__0printf$7) refers to fputc.o(i.fputc) for fputc
+    printf7.o(i.__0printf$7) refers to stdout.o(.data) for __stdout
+    printf7.o(i.__0snprintf$7) refers to printf7.o(i._printf_core) for _printf_core
+    printf7.o(i.__0snprintf$7) refers to printf7.o(i._snputc) for _snputc
+    printf7.o(i.__0sprintf$7) refers to printf7.o(i._printf_core) for _printf_core
+    printf7.o(i.__0sprintf$7) refers to printf7.o(i._sputc) for _sputc
+    printf7.o(i.__0vfprintf$7) refers to printf7.o(i._printf_core) for _printf_core
+    printf7.o(i.__0vfprintf$7) refers to fputc.o(i.fputc) for fputc
+    printf7.o(i.__0vprintf$7) refers to printf7.o(i._printf_core) for _printf_core
+    printf7.o(i.__0vprintf$7) refers to fputc.o(i.fputc) for fputc
+    printf7.o(i.__0vprintf$7) refers to stdout.o(.data) for __stdout
+    printf7.o(i.__0vsnprintf$7) refers to printf7.o(i._printf_core) for _printf_core
+    printf7.o(i.__0vsnprintf$7) refers to printf7.o(i._snputc) for _snputc
+    printf7.o(i.__0vsprintf$7) refers to printf7.o(i._printf_core) for _printf_core
+    printf7.o(i.__0vsprintf$7) refers to printf7.o(i._sputc) for _sputc
+    printf7.o(i._printf_core) refers to printf7.o(i._printf_pre_padding) for _printf_pre_padding
+    printf7.o(i._printf_core) refers to uldiv.o(.text) for __aeabi_uldivmod
+    printf7.o(i._printf_core) refers to printf7.o(i._printf_post_padding) for _printf_post_padding
+    printf8.o(i.__0fprintf$8) refers to printf8.o(i._printf_core) for _printf_core
+    printf8.o(i.__0fprintf$8) refers to fputc.o(i.fputc) for fputc
+    printf8.o(i.__0printf$8) refers to printf8.o(i._printf_core) for _printf_core
+    printf8.o(i.__0printf$8) refers to fputc.o(i.fputc) for fputc
+    printf8.o(i.__0printf$8) refers to stdout.o(.data) for __stdout
+    printf8.o(i.__0snprintf$8) refers to printf8.o(i._printf_core) for _printf_core
+    printf8.o(i.__0snprintf$8) refers to printf8.o(i._snputc) for _snputc
+    printf8.o(i.__0sprintf$8) refers to printf8.o(i._printf_core) for _printf_core
+    printf8.o(i.__0sprintf$8) refers to printf8.o(i._sputc) for _sputc
+    printf8.o(i.__0vfprintf$8) refers to printf8.o(i._printf_core) for _printf_core
+    printf8.o(i.__0vfprintf$8) refers to fputc.o(i.fputc) for fputc
+    printf8.o(i.__0vprintf$8) refers to printf8.o(i._printf_core) for _printf_core
+    printf8.o(i.__0vprintf$8) refers to fputc.o(i.fputc) for fputc
+    printf8.o(i.__0vprintf$8) refers to stdout.o(.data) for __stdout
+    printf8.o(i.__0vsnprintf$8) refers to printf8.o(i._printf_core) for _printf_core
+    printf8.o(i.__0vsnprintf$8) refers to printf8.o(i._snputc) for _snputc
+    printf8.o(i.__0vsprintf$8) refers to printf8.o(i._printf_core) for _printf_core
+    printf8.o(i.__0vsprintf$8) refers to printf8.o(i._sputc) for _sputc
+    printf8.o(i._printf_core) refers to printf8.o(i._printf_pre_padding) for _printf_pre_padding
+    printf8.o(i._printf_core) refers to uldiv.o(.text) for __aeabi_uldivmod
+    printf8.o(i._printf_core) refers to printf8.o(i._printf_post_padding) for _printf_post_padding
+    printfa.o(i.__0fprintf) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i.__0fprintf) refers to printfa.o(i._printf_core) for _printf_core
+    printfa.o(i.__0fprintf) refers to fputc.o(i.fputc) for fputc
+    printfa.o(i.__0printf) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i.__0printf) refers to printfa.o(i._printf_core) for _printf_core
+    printfa.o(i.__0printf) refers to fputc.o(i.fputc) for fputc
+    printfa.o(i.__0printf) refers to stdout.o(.data) for __stdout
+    printfa.o(i.__0snprintf) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i.__0snprintf) refers to printfa.o(i._printf_core) for _printf_core
+    printfa.o(i.__0snprintf) refers to printfa.o(i._snputc) for _snputc
+    printfa.o(i.__0sprintf) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i.__0sprintf) refers to printfa.o(i._printf_core) for _printf_core
+    printfa.o(i.__0sprintf) refers to printfa.o(i._sputc) for _sputc
+    printfa.o(i.__0vfprintf) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i.__0vfprintf) refers to printfa.o(i._printf_core) for _printf_core
+    printfa.o(i.__0vfprintf) refers to fputc.o(i.fputc) for fputc
+    printfa.o(i.__0vprintf) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i.__0vprintf) refers to printfa.o(i._printf_core) for _printf_core
+    printfa.o(i.__0vprintf) refers to fputc.o(i.fputc) for fputc
+    printfa.o(i.__0vprintf) refers to stdout.o(.data) for __stdout
+    printfa.o(i.__0vsnprintf) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i.__0vsnprintf) refers to printfa.o(i._printf_core) for _printf_core
+    printfa.o(i.__0vsnprintf) refers to printfa.o(i._snputc) for _snputc
+    printfa.o(i.__0vsprintf) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i.__0vsprintf) refers to printfa.o(i._printf_core) for _printf_core
+    printfa.o(i.__0vsprintf) refers to printfa.o(i._sputc) for _sputc
+    printfa.o(i._fp_digits) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i._fp_digits) refers to dmul.o(.text) for __aeabi_dmul
+    printfa.o(i._fp_digits) refers to ddiv.o(.text) for __aeabi_ddiv
+    printfa.o(i._fp_digits) refers to cdrcmple.o(.text) for __aeabi_cdrcmple
+    printfa.o(i._fp_digits) refers to dadd.o(.text) for __aeabi_dadd
+    printfa.o(i._fp_digits) refers to dfixul.o(.text) for __aeabi_d2ulz
+    printfa.o(i._fp_digits) refers to uldiv.o(.text) for __aeabi_uldivmod
+    printfa.o(i._printf_core) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i._printf_core) refers to printfa.o(i._printf_pre_padding) for _printf_pre_padding
+    printfa.o(i._printf_core) refers to uldiv.o(.text) for __aeabi_uldivmod
+    printfa.o(i._printf_core) refers to printfa.o(i._printf_post_padding) for _printf_post_padding
+    printfa.o(i._printf_core) refers to printfa.o(i._fp_digits) for _fp_digits
+    printfa.o(i._printf_core) refers to uidiv.o(.text) for __aeabi_uidivmod
+    printfa.o(i._printf_post_padding) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i._printf_pre_padding) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i._snputc) refers (Special) to iusefp.o(.text) for __I$use$fp
+    printfa.o(i._sputc) refers (Special) to iusefp.o(.text) for __I$use$fp
+    malloc.o(i.free) refers to mvars.o(.data) for __microlib_freelist
+    malloc.o(i.malloc) refers to mvars.o(.data) for __microlib_freelist_initialised
+    malloc.o(i.malloc) refers to mvars.o(.data) for __microlib_freelist
+    malloc.o(i.malloc) refers to startup_lpc17xx.o(HEAP) for __heap_base
+    mallocr.o(i.__free$realloc) refers to mvars.o(.data) for __microlib_freelist
+    mallocr.o(i.__malloc$realloc) refers to mallocr.o(i.internal_alloc) for internal_alloc
+    mallocr.o(i.__malloc$realloc) refers to mvars.o(.data) for __microlib_freelist_initialised
+    mallocr.o(i.__malloc$realloc) refers to startup_lpc17xx.o(HEAP) for __heap_base
+    mallocr.o(i.__malloc$realloc) refers to mvars.o(.data) for __microlib_freelist
+    mallocr.o(i.internal_alloc) refers to memcpya.o(.text) for __aeabi_memcpy
+    mallocr.o(i.internal_alloc) refers to mvars.o(.data) for __microlib_freelist
+    mallocr.o(i.realloc) refers to mallocr.o(i.__free$realloc) for __free$realloc
+    mallocr.o(i.realloc) refers to mallocr.o(i.internal_alloc) for internal_alloc
+    mallocr.o(i.realloc) refers to mallocr.o(i.__malloc$realloc) for __malloc$realloc
+    mallocr.o(i.realloc) refers to mvars.o(.data) for __microlib_freelist
+    malloca.o(i.__aligned_malloc) refers to mvars.o(.data) for __microlib_freelist_initialised
+    malloca.o(i.__aligned_malloc) refers to mvars.o(.data) for __microlib_freelist
+    malloca.o(i.__aligned_malloc) refers to startup_lpc17xx.o(HEAP) for __heap_base
+    malloca.o(i.__free$memalign) refers to mvars.o(.data) for __microlib_freelist
+    malloca.o(i.__malloc$memalign) refers to malloca.o(i.__aligned_malloc) for __aligned_malloc
+    mallocra.o(i.__aligned_malloc$realloc) refers to mallocra.o(i.internal_alloc) for internal_alloc
+    mallocra.o(i.__aligned_malloc$realloc) refers to mvars.o(.data) for __microlib_freelist_initialised
+    mallocra.o(i.__aligned_malloc$realloc) refers to startup_lpc17xx.o(HEAP) for __heap_base
+    mallocra.o(i.__aligned_malloc$realloc) refers to mvars.o(.data) for __microlib_freelist
+    mallocra.o(i.__free$realloc$memalign) refers to mvars.o(.data) for __microlib_freelist
+    mallocra.o(i.__malloc$realloc$memalign) refers to mallocra.o(i.__aligned_malloc$realloc) for __aligned_malloc$realloc
+    mallocra.o(i.__realloc$memalign) refers to mallocra.o(i.__free$realloc$memalign) for __free$realloc$memalign
+    mallocra.o(i.__realloc$memalign) refers to mallocra.o(i.internal_alloc) for internal_alloc
+    mallocra.o(i.__realloc$memalign) refers to mallocra.o(i.__malloc$realloc$memalign) for __malloc$realloc$memalign
+    mallocra.o(i.__realloc$memalign) refers to mvars.o(.data) for __microlib_freelist
+    mallocra.o(i.internal_alloc) refers to memcpya.o(.text) for __aeabi_memcpy
+    mallocra.o(i.internal_alloc) refers to mvars.o(.data) for __microlib_freelist
+    atoi.o(.text) refers to errno.o(i.__aeabi_errno_addr) for __aeabi_errno_addr
+    atoi.o(.text) refers to strtol.o(.text) for strtol
+    dmul.o(.text) refers (Special) to iusefp.o(.text) for __I$use$fp
+    dmul.o(.text) refers to depilogue.o(.text) for _double_epilogue
+    fflti.o(.text) refers (Special) to iusefp.o(.text) for __I$use$fp
+    fflti.o(.text) refers to fepilogue.o(.text) for _float_epilogue
+    f2d.o(.text) refers (Special) to iusefp.o(.text) for __I$use$fp
+    d2f.o(.text) refers (Special) to iusefp.o(.text) for __I$use$fp
+    d2f.o(.text) refers to fepilogue.o(.text) for _float_round
+    entry2.o(.ARM.Collect$$$$00000001) refers to entry2.o(.ARM.Collect$$$$00002712) for __lit__00000000
+    entry2.o(.ARM.Collect$$$$00002712) refers to startup_lpc17xx.o(STACK) for __initial_sp
+    entry2.o(__vectab_stack_and_reset_area) refers to startup_lpc17xx.o(STACK) for __initial_sp
+    entry2.o(__vectab_stack_and_reset_area) refers to entry.o(.ARM.Collect$$$$00000000) for __main
+    entry5.o(.ARM.Collect$$$$00000004) refers to init.o(.text) for __scatterload
+    entry9a.o(.ARM.Collect$$$$0000000B) refers to main.o(i.main) for main
+    entry9b.o(.ARM.Collect$$$$0000000C) refers to main.o(i.main) for main
+    fputc.o(i.fputc) refers (Special) to iusesemip.o(.text) for __I$use$semihosting$fputc
+    fputc.o(i.fputc) refers (Special) to semi.o(.text) for __semihosting_library_function
+    uldiv.o(.text) refers to llushr.o(.text) for __aeabi_llsr
+    uldiv.o(.text) refers to llshl.o(.text) for __aeabi_llsl
+    errno.o(i.__aeabi_errno_addr) refers to errno.o(.data) for .data
+    errno.o(i.__read_errno) refers to errno.o(.data) for .data
+    errno.o(i.__set_errno) refers to errno.o(.data) for .data
+    strtol.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    strtol.o(.text) refers to _strtoul.o(.text) for _strtoul
+    strtol.o(.text) refers to errno.o(i.__aeabi_errno_addr) for __aeabi_errno_addr
+    depilogue.o(.text) refers to llshl.o(.text) for __aeabi_llsl
+    depilogue.o(.text) refers to llushr.o(.text) for __aeabi_llsr
+    dadd.o(.text) refers to llshl.o(.text) for __aeabi_llsl
+    dadd.o(.text) refers to llsshr.o(.text) for __aeabi_lasr
+    dadd.o(.text) refers to depilogue.o(.text) for _double_epilogue
+    ddiv.o(.text) refers to depilogue.o(.text) for _double_round
+    dfixul.o(.text) refers to llushr.o(.text) for __aeabi_llsr
+    dfixul.o(.text) refers to llshl.o(.text) for __aeabi_llsl
+    init.o(.text) refers to entry5.o(.ARM.Collect$$$$00000004) for __main_after_scatterload
+    ctype_o.o(.text) refers to ctype_o.o(.constdata) for .constdata
+    ctype_o.o(.constdata) refers to ctype_o.o(.constdata) for __ctype_table
+    isalnum_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    isalpha_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    isblank_o.o(.text) refers to ctype_o.o(.constdata) for __ctype_table
+    iscntrl_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    isdigit_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    isgraph_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    islower_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    isprint_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    ispunct_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    isspace_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    isupper_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    isxdigit_o.o(.text) refers to ctype_o.o(.text) for __rt_ctype_table
+    _strtoul.o(.text) refers to _chval.o(.text) for _chval
+    _strtoul.o(.text) refers to errno.o(i.__aeabi_errno_addr) for __aeabi_errno_addr
+
+
+==============================================================================
+
+Removing Unused input sections from the image.
+
+    Removing core_cm3.o(.emb_text), (32 bytes).
+    Removing main.o(i.int2str), (124 bytes).
+    Removing main.o(.data), (1 bytes).
+    Removing inflash.o(i.bland_chk), (44 bytes).
+    Removing inflash.o(i.codeId_boot), (36 bytes).
+    Removing inflash.o(i.data_compare), (48 bytes).
+    Removing inflash.o(i.parId_read), (36 bytes).
+    Removing inflash.o(i.ram_copy), (56 bytes).
+    Removing inflash.o(i.read_serial_code), (36 bytes).
+    Removing inflash.o(i.sector_erase), (52 bytes).
+    Removing inflash.o(i.sector_prepare), (44 bytes).
+    Removing inflash.o(.bss), (64 bytes).
+    Removing inflash.o(.data), (4 bytes).
+    Removing uart.o(i.uart0_send_byte), (36 bytes).
+    Removing uart.o(i.uart0_send_str), (30 bytes).
+    Removing uart.o(i.uart0_send_str2), (32 bytes).
+    Removing uart.o(i.uart2_send_str2), (32 bytes).
+    Removing uart.o(i.uart3_send_str), (30 bytes).
+    Removing global.o(i.close_speak), (2 bytes).
+    Removing global.o(i.init_my_val), (192 bytes).
+    Removing global.o(i.init_scon1_rcvbuf), (36 bytes).
+    Removing global.o(i.init_scon2_rcvbuf), (36 bytes).
+    Removing global.o(i.init_scon3_rcvbuf), (36 bytes).
+    Removing global.o(i.open_speak), (2 bytes).
+    Removing voice_play.o(i.MakeRingVoiceData), (2 bytes).
+    Removing voice_play.o(i.load_voice_play_sequence), (600 bytes).
+    Removing interrupt.o(.data), (5 bytes).
+    Removing timer.o(i.stop_timer1), (12 bytes).
+    Removing extint.o(i.eint0Init), (88 bytes).
+    Removing extint.o(i.eint1Init), (88 bytes).
+    Removing extint.o(i.eint3Init), (88 bytes).
+    Removing extint.o(i.zyIsrSet), (140 bytes).
+    Removing singlebus.o(i.LedStateFlash), (2 bytes).
+    Removing ds3231.o(i.HEXtoBCD), (54 bytes).
+    Removing ds3231.o(i.ReadByte), (46 bytes).
+    Removing ds3231.o(i.frq_out_tog), (72 bytes).
+    Removing ds3231.o(i.init_alrm), (70 bytes).
+    Removing ds3231.o(i.rd_temp), (148 bytes).
+    Removing ds3231.o(i.writebyte), (34 bytes).
+    Removing pct25vf.o(i.Auto_Add_IncA), (72 bytes).
+    Removing pct25vf.o(i.Auto_Add_IncB), (48 bytes).
+    Removing pct25vf.o(i.Block_Erase_32K), (56 bytes).
+    Removing pct25vf.o(i.Block_Erase_64K), (56 bytes).
+    Removing pct25vf.o(i.Byte_Write), (58 bytes).
+    Removing pct25vf.o(i.Chip_Erase), (32 bytes).
+    Removing pct25vf.o(i.HighSpeed_Read), (72 bytes).
+    Removing pct25vf.o(i.Hold_Low), (2 bytes).
+    Removing pct25vf.o(i.Jedec_ID_Read), (56 bytes).
+    Removing pct25vf.o(i.Read), (64 bytes).
+    Removing pct25vf.o(i.SST25VF_Init), (22 bytes).
+    Removing pct25vf.o(i.UnWP), (2 bytes).
+    Removing pct25vf.o(i.Unhold), (2 bytes).
+    Removing pct25vf.o(i.WP_Low), (2 bytes).
+    Removing pct25vf.o(i.WREN_AAI_Check), (46 bytes).
+    Removing pct25vf.o(i.WREN_Check), (44 bytes).
+    Removing pct25vf.o(i.Wait_Busy_AAI), (46 bytes).
+    Removing pct25vf.o(i.frame_test), (320 bytes).
+    Removing wpa_cli.o(i.ReplaceStr), (118 bytes).
+    Removing wpa_cli.o(i.sub_string), (92 bytes).
+    Removing wpa_cli.o(i.wifi_ap_led_flash), (60 bytes).
+    Removing wpa_cli.o(i.wifi_send_cmd_test), (76 bytes).
+    Removing dmul.o(.text), (228 bytes).
+    Removing fflti.o(.text), (18 bytes).
+    Removing f2d.o(.text), (38 bytes).
+    Removing d2f.o(.text), (56 bytes).
+    Removing fepilogue.o(.text), (108 bytes).
+    Removing depilogue.o(.text), (190 bytes).
+    Removing dadd.o(.text), (334 bytes).
+    Removing ddiv.o(.text), (222 bytes).
+    Removing dfixul.o(.text), (48 bytes).
+    Removing cdrcmple.o(.text), (40 bytes).
+
+71 unused section(s) (total 5118 bytes) removed from the image.
+
+==============================================================================
+
+Image Symbol Table
+
+    Local Symbols
+
+    Symbol Name                              Value     Ov Type        Size  Object(Section)
+
+    RESET                                    0x00000000   Section      204  startup_lpc17xx.o(RESET)
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  ispunct_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  isalnum_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  iscntrl_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  isspace_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  isalpha_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  isblank_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  islower_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  isgraph_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  isprint_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  isxdigit_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  isupper_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  isdigit_o.o ABSOLUTE
+    ../clib/microlib/ctype/ctype.c           0x00000000   Number         0  ctype_o.o ABSOLUTE
+    ../clib/microlib/division.c              0x00000000   Number         0  uidiv.o ABSOLUTE
+    ../clib/microlib/division.c              0x00000000   Number         0  uldiv.o ABSOLUTE
+    ../clib/microlib/errno.c                 0x00000000   Number         0  errno.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry5.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry2.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8b.o ABSOLUTE
+    ../clib/microlib/longlong.c              0x00000000   Number         0  llsshr.o ABSOLUTE
+    ../clib/microlib/longlong.c              0x00000000   Number         0  llushr.o ABSOLUTE
+    ../clib/microlib/longlong.c              0x00000000   Number         0  llshl.o ABSOLUTE
+    ../clib/microlib/malloc/malloc.c         0x00000000   Number         0  malloca.o ABSOLUTE
+    ../clib/microlib/malloc/malloc.c         0x00000000   Number         0  malloc.o ABSOLUTE
+    ../clib/microlib/malloc/malloc.c         0x00000000   Number         0  mallocr.o ABSOLUTE
+    ../clib/microlib/malloc/malloc.c         0x00000000   Number         0  mallocra.o ABSOLUTE
+    ../clib/microlib/malloc/mvars.c          0x00000000   Number         0  mvars.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf5.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf6.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf7.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf8.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printfa.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf4.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf3.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf2.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf0.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printfb.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf1.o ABSOLUTE
+    ../clib/microlib/printf/stubs.s          0x00000000   Number         0  stubs.o ABSOLUTE
+    ../clib/microlib/stdio/fputc.c           0x00000000   Number         0  fputc.o ABSOLUTE
+    ../clib/microlib/stdio/semi.s            0x00000000   Number         0  semi.o ABSOLUTE
+    ../clib/microlib/stdio/streams.c         0x00000000   Number         0  stdout.o ABSOLUTE
+    ../clib/microlib/string/memcpy.c         0x00000000   Number         0  memcpyb.o ABSOLUTE
+    ../clib/microlib/string/memcpy.c         0x00000000   Number         0  memcpya.o ABSOLUTE
+    ../clib/microlib/string/memset.c         0x00000000   Number         0  memseta.o ABSOLUTE
+    ../clib/microlib/string/strcat.c         0x00000000   Number         0  strcat.o ABSOLUTE
+    ../clib/microlib/string/strcpy.c         0x00000000   Number         0  strcpy.o ABSOLUTE
+    ../clib/microlib/string/strlen.c         0x00000000   Number         0  strlen.o ABSOLUTE
+    ../clib/microlib/string/strncpy.c        0x00000000   Number         0  strncpy.o ABSOLUTE
+    ../clib/microlib/string/strstr.c         0x00000000   Number         0  strstr.o ABSOLUTE
+    ../clib/microlib/stubs.s                 0x00000000   Number         0  iusesemip.o ABSOLUTE
+    ../clib/microlib/stubs.s                 0x00000000   Number         0  iusefp.o ABSOLUTE
+    ../clib/scanf.c                          0x00000000   Number         0  strtol.o ABSOLUTE
+    ../clib/scanf.c                          0x00000000   Number         0  atoi.o ABSOLUTE
+    ../clib/scanf.c                          0x00000000   Number         0  _strtoul.o ABSOLUTE
+    ../clib/scanf.c                          0x00000000   Number         0  _chval.o ABSOLUTE
+    ../fplib/microlib/d2f.c                  0x00000000   Number         0  d2f.o ABSOLUTE
+    ../fplib/microlib/f2d.c                  0x00000000   Number         0  f2d.o ABSOLUTE
+    ../fplib/microlib/fpadd.c                0x00000000   Number         0  dadd.o ABSOLUTE
+    ../fplib/microlib/fpdiv.c                0x00000000   Number         0  ddiv.o ABSOLUTE
+    ../fplib/microlib/fpepilogue.c           0x00000000   Number         0  depilogue.o ABSOLUTE
+    ../fplib/microlib/fpepilogue.c           0x00000000   Number         0  fepilogue.o ABSOLUTE
+    ../fplib/microlib/fpfix.c                0x00000000   Number         0  dfixul.o ABSOLUTE
+    ../fplib/microlib/fpflt.c                0x00000000   Number         0  fflti.o ABSOLUTE
+    ../fplib/microlib/fpmul.c                0x00000000   Number         0  dmul.o ABSOLUTE
+    LPC17xx\system_LPC17xx.c                 0x00000000   Number         0  system_lpc17xx.o ABSOLUTE
+    cdrcmple.s                               0x00000000   Number         0  cdrcmple.o ABSOLUTE
+    dc.s                                     0x00000000   Number         0  dc.o ABSOLUTE
+    handlers.s                               0x00000000   Number         0  handlers.o ABSOLUTE
+    init.s                                   0x00000000   Number         0  init.o ABSOLUTE
+    source\Inflash.c                         0x00000000   Number         0  inflash.o ABSOLUTE
+    source\PCT25VF.C                         0x00000000   Number         0  pct25vf.o ABSOLUTE
+    source\SingleBus.c                       0x00000000   Number         0  singlebus.o ABSOLUTE
+    source\ds3231.c                          0x00000000   Number         0  ds3231.o ABSOLUTE
+    source\extint.c                          0x00000000   Number         0  extint.o ABSOLUTE
+    source\fm62429.c                         0x00000000   Number         0  fm62429.o ABSOLUTE
+    source\global.c                          0x00000000   Number         0  global.o ABSOLUTE
+    source\interrupt.c                       0x00000000   Number         0  interrupt.o ABSOLUTE
+    source\main.c                            0x00000000   Number         0  main.o ABSOLUTE
+    source\tel.c                             0x00000000   Number         0  tel.o ABSOLUTE
+    source\timer.c                           0x00000000   Number         0  timer.o ABSOLUTE
+    source\uart.c                            0x00000000   Number         0  uart.o ABSOLUTE
+    source\voice_play.c                      0x00000000   Number         0  voice_play.o ABSOLUTE
+    source\wdt.c                             0x00000000   Number         0  wdt.o ABSOLUTE
+    source\wpa_cli.c                         0x00000000   Number         0  wpa_cli.o ABSOLUTE
+    startup\\core_cm3.c                      0x00000000   Number         0  core_cm3.o ABSOLUTE
+    startup\core_cm3.c                       0x00000000   Number         0  core_cm3.o ABSOLUTE
+    startup\startup_LPC17xx.s                0x00000000   Number         0  startup_lpc17xx.o ABSOLUTE
+    .ARM.Collect$$$$00000000                 0x000000cc   Section        0  entry.o(.ARM.Collect$$$$00000000)
+    .ARM.Collect$$$$00000001                 0x000000cc   Section        4  entry2.o(.ARM.Collect$$$$00000001)
+    .ARM.Collect$$$$00000004                 0x000000d0   Section        4  entry5.o(.ARM.Collect$$$$00000004)
+    .ARM.Collect$$$$00000008                 0x000000d4   Section        0  entry7b.o(.ARM.Collect$$$$00000008)
+    .ARM.Collect$$$$0000000A                 0x000000d4   Section        0  entry8b.o(.ARM.Collect$$$$0000000A)
+    .ARM.Collect$$$$0000000B                 0x000000d4   Section        8  entry9a.o(.ARM.Collect$$$$0000000B)
+    .ARM.Collect$$$$0000000D                 0x000000dc   Section        0  entry10a.o(.ARM.Collect$$$$0000000D)
+    .ARM.Collect$$$$0000000F                 0x000000dc   Section        0  entry11a.o(.ARM.Collect$$$$0000000F)
+    .ARM.Collect$$$$00002712                 0x000000dc   Section        4  entry2.o(.ARM.Collect$$$$00002712)
+    __lit__00000000                          0x000000dc   Data           4  entry2.o(.ARM.Collect$$$$00002712)
+    .text                                    0x000000e0   Section       28  startup_lpc17xx.o(.text)
+    .text                                    0x000000fc   Section        0  memcpya.o(.text)
+    .text                                    0x00000120   Section        0  strcat.o(.text)
+    .text                                    0x00000138   Section        0  strstr.o(.text)
+    .text                                    0x0000015c   Section        0  strcpy.o(.text)
+    .text                                    0x0000016e   Section        0  atoi.o(.text)
+    .text                                    0x00000188   Section        0  uldiv.o(.text)
+    .text                                    0x000001ea   Section        0  strtol.o(.text)
+    .text                                    0x0000025c   Section       36  init.o(.text)
+    .text                                    0x00000280   Section        0  llshl.o(.text)
+    .text                                    0x0000029e   Section        0  llushr.o(.text)
+    .text                                    0x000002c0   Section        0  ctype_o.o(.text)
+    .text                                    0x000002c8   Section        0  _chval.o(.text)
+    i.AM79R70_active                         0x000002e4   Section        0  tel.o(i.AM79R70_active)
+    .ARM.__at_0x02FC                         0x000002fc   Section        4  startup_lpc17xx.o(.ARM.__at_0x02FC)
+    .text                                    0x00000300   Section        0  _strtoul.o(.text)
+    i.AAI_Write                              0x000003a0   Section        0  pct25vf.o(i.AAI_Write)
+    i.AM79R70_pincfg                         0x00000414   Section        0  tel.o(i.AM79R70_pincfg)
+    i.AM79R70_ringing                        0x00000450   Section        0  tel.o(i.AM79R70_ringing)
+    i.AM79R70_standby                        0x00000468   Section        0  tel.o(i.AM79R70_standby)
+    i.AddCallNod                             0x00000480   Section        0  singlebus.o(i.AddCallNod)
+    i.AddrCompare                            0x00000618   Section        0  singlebus.o(i.AddrCompare)
+    i.Auto_Add_IncA_EBSY                     0x00000668   Section        0  pct25vf.o(i.Auto_Add_IncA_EBSY)
+    i.Auto_Add_IncB_EBSY                     0x000006b8   Section        0  pct25vf.o(i.Auto_Add_IncB_EBSY)
+    i.BCDtoHEX                               0x000006f4   Section        0  ds3231.o(i.BCDtoHEX)
+    i.Bus0Manager                            0x00000714   Section        0  singlebus.o(i.Bus0Manager)
+    i.Bus0OutputData                         0x000008a8   Section        0  singlebus.o(i.Bus0OutputData)
+    i.Bus0RecDeal                            0x0000090c   Section        0  singlebus.o(i.Bus0RecDeal)
+    i.Bus0SendFinishDeal                     0x00001778   Section        0  singlebus.o(i.Bus0SendFinishDeal)
+    i.Byte_Program                           0x00002384   Section        0  pct25vf.o(i.Byte_Program)
+    i.CheckPsk                               0x000023c4   Section        0  uart.o(i.CheckPsk)
+    i.Chip_DAC_UpdateValue                   0x00002400   Section        0  interrupt.o(i.Chip_DAC_UpdateValue)
+    i.DBSY                                   0x0000241c   Section        0  pct25vf.o(i.DBSY)
+    i.DS3231_comm_init                       0x0000243c   Section        0  ds3231.o(i.DS3231_comm_init)
+    i.DS3231_init                            0x00002498   Section        0  ds3231.o(i.DS3231_init)
+    i.DS3231_pincfg                          0x00002548   Section        0  ds3231.o(i.DS3231_pincfg)
+    i.DirAddrCompare                         0x00002568   Section        0  singlebus.o(i.DirAddrCompare)
+    i.EBSY                                   0x00002594   Section        0  pct25vf.o(i.EBSY)
+    i.EINT0_IRQHandler                       0x000025b4   Section        0  interrupt.o(i.EINT0_IRQHandler)
+    i.EINT1_IRQHandler                       0x000025e4   Section        0  interrupt.o(i.EINT1_IRQHandler)
+    i.EINT2_IRQHandler                       0x00002614   Section        0  interrupt.o(i.EINT2_IRQHandler)
+    i.EINT3_IRQHandler                       0x000026c0   Section        0  interrupt.o(i.EINT3_IRQHandler)
+    i.EWSR                                   0x000026c8   Section        0  pct25vf.o(i.EWSR)
+    i.FLASH_BufferWrite                      0x000026e8   Section        0  pct25vf.o(i.FLASH_BufferWrite)
+    i.FLASH_PageWrite                        0x00002814   Section        0  pct25vf.o(i.FLASH_PageWrite)
+    i.Flash_Lock                             0x00002878   Section        0  pct25vf.o(i.Flash_Lock)
+    i.Flash_Unlock                           0x0000289c   Section        0  pct25vf.o(i.Flash_Unlock)
+    i.GetPskCrc                              0x000028c0   Section        0  uart.o(i.GetPskCrc)
+    i.Get_Byte                               0x000028ee   Section        0  pct25vf.o(i.Get_Byte)
+    i.HardFault_Handler                      0x000028fc   Section        0  interrupt.o(i.HardFault_Handler)
+    i.MakeCH0TimerOut                        0x00002900   Section        0  singlebus.o(i.MakeCH0TimerOut)
+    i.MakeCH1TimerOut                        0x00002910   Section        0  singlebus.o(i.MakeCH1TimerOut)
+    i.MakeCallVoiceData                      0x00002920   Section        0  voice_play.o(i.MakeCallVoiceData)
+    i.MemManage_Handler                      0x00002d8c   Section        0  interrupt.o(i.MemManage_Handler)
+    i.NMI_Handler                            0x00002d90   Section        0  interrupt.o(i.NMI_Handler)
+    i.NVIC_DisableIRQ                        0x00002d94   Section        0  voice_play.o(i.NVIC_DisableIRQ)
+    NVIC_DisableIRQ                          0x00002d95   Thumb Code    18  voice_play.o(i.NVIC_DisableIRQ)
+    i.NVIC_DisableIRQ                        0x00002dac   Section        0  interrupt.o(i.NVIC_DisableIRQ)
+    NVIC_DisableIRQ                          0x00002dad   Thumb Code    18  interrupt.o(i.NVIC_DisableIRQ)
+    i.NVIC_EnableIRQ                         0x00002dc4   Section        0  uart.o(i.NVIC_EnableIRQ)
+    NVIC_EnableIRQ                           0x00002dc5   Thumb Code    24  uart.o(i.NVIC_EnableIRQ)
+    i.NVIC_EnableIRQ                         0x00002ddc   Section        0  voice_play.o(i.NVIC_EnableIRQ)
+    NVIC_EnableIRQ                           0x00002ddd   Thumb Code    24  voice_play.o(i.NVIC_EnableIRQ)
+    i.NVIC_EnableIRQ                         0x00002df4   Section        0  interrupt.o(i.NVIC_EnableIRQ)
+    NVIC_EnableIRQ                           0x00002df5   Thumb Code    24  interrupt.o(i.NVIC_EnableIRQ)
+    i.NVIC_EnableIRQ                         0x00002e0c   Section        0  timer.o(i.NVIC_EnableIRQ)
+    NVIC_EnableIRQ                           0x00002e0d   Thumb Code    24  timer.o(i.NVIC_EnableIRQ)
+    i.NVIC_EnableIRQ                         0x00002e24   Section        0  extint.o(i.NVIC_EnableIRQ)
+    NVIC_EnableIRQ                           0x00002e25   Thumb Code    24  extint.o(i.NVIC_EnableIRQ)
+    i.NVIC_SetPriority                       0x00002e3c   Section        0  uart.o(i.NVIC_SetPriority)
+    NVIC_SetPriority                         0x00002e3d   Thumb Code    32  uart.o(i.NVIC_SetPriority)
+    i.NVIC_SetPriority                       0x00002e64   Section        0  interrupt.o(i.NVIC_SetPriority)
+    NVIC_SetPriority                         0x00002e65   Thumb Code    32  interrupt.o(i.NVIC_SetPriority)
+    i.NVIC_SetPriority                       0x00002e8c   Section        0  timer.o(i.NVIC_SetPriority)
+    NVIC_SetPriority                         0x00002e8d   Thumb Code    32  timer.o(i.NVIC_SetPriority)
+    i.NVIC_SetPriority                       0x00002eb4   Section        0  extint.o(i.NVIC_SetPriority)
+    NVIC_SetPriority                         0x00002eb5   Thumb Code    32  extint.o(i.NVIC_SetPriority)
+    i.Poll_SO                                0x00002edc   Section        0  pct25vf.o(i.Poll_SO)
+    i.ReadDS3231Status                       0x00002f1c   Section        0  ds3231.o(i.ReadDS3231Status)
+    i.ReadDS3231_time                        0x00002f48   Section        0  ds3231.o(i.ReadDS3231_time)
+    i.Read_Status_Register                   0x00002ff0   Section        0  pct25vf.o(i.Read_Status_Register)
+    i.RemoveCallNod                          0x00003018   Section        0  singlebus.o(i.RemoveCallNod)
+    i.RestartIndication                      0x00003158   Section        0  singlebus.o(i.RestartIndication)
+    i.SST25VF_Lock                           0x000032c8   Section        0  pct25vf.o(i.SST25VF_Lock)
+    i.SST25VF_UnLock                         0x000032de   Section        0  pct25vf.o(i.SST25VF_UnLock)
+    i.SaveCallAddr                           0x000032f4   Section        0  singlebus.o(i.SaveCallAddr)
+    i.SaveIndicationData                     0x00003314   Section        0  singlebus.o(i.SaveIndicationData)
+    i.Sector_Erase                           0x0000334c   Section        0  pct25vf.o(i.Sector_Erase)
+    i.SingleBusInit                          0x00003384   Section        0  singlebus.o(i.SingleBusInit)
+    i.StartVoicePlay                         0x0000344c   Section        0  voice_play.o(i.StartVoicePlay)
+    i.StopVoicePlay                          0x000034e4   Section        0  voice_play.o(i.StopVoicePlay)
+    i.SystemInit                             0x0000353c   Section        0  system_lpc17xx.o(i.SystemInit)
+    i.TIMER0_IRQHandler                      0x00003758   Section        0  interrupt.o(i.TIMER0_IRQHandler)
+    i.TIMER1_IRQHandler                      0x00003bd8   Section        0  singlebus.o(i.TIMER1_IRQHandler)
+    i.TIMER2_IRQHandler                      0x000043e4   Section        0  interrupt.o(i.TIMER2_IRQHandler)
+    i.TimerOutDeal                           0x00004534   Section        0  singlebus.o(i.TimerOutDeal)
+    i.UART0_IRQHandler                       0x00004908   Section        0  interrupt.o(i.UART0_IRQHandler)
+    i.UART1_IRQHandler                       0x00004a60   Section        0  interrupt.o(i.UART1_IRQHandler)
+    i.UART2_IRQHandler                       0x00004b6c   Section        0  interrupt.o(i.UART2_IRQHandler)
+    i.UART3_IRQHandler                       0x00004c68   Section        0  interrupt.o(i.UART3_IRQHandler)
+    i.Usart2RecDeal                          0x00004db4   Section        0  uart.o(i.Usart2RecDeal)
+    i.Usart2SndCmd                           0x000059d8   Section        0  uart.o(i.Usart2SndCmd)
+    i.VoiceChannelCtx                        0x00005a94   Section        0  singlebus.o(i.VoiceChannelCtx)
+    i.W25QXX_Lock                            0x00005bb0   Section        0  pct25vf.o(i.W25QXX_Lock)
+    i.W25QXX_UnLock                          0x00005bc6   Section        0  pct25vf.o(i.W25QXX_UnLock)
+    i.W25QXX_WRSR                            0x00005bdc   Section        0  pct25vf.o(i.W25QXX_WRSR)
+    i.WDT_IRQHandler                         0x00005c0c   Section        0  interrupt.o(i.WDT_IRQHandler)
+    i.WRDI                                   0x00005c18   Section        0  pct25vf.o(i.WRDI)
+    i.WREN                                   0x00005c38   Section        0  pct25vf.o(i.WREN)
+    i.WRSR                                   0x00005c5c   Section        0  pct25vf.o(i.WRSR)
+    i.Wait_Busy                              0x00005c84   Section        0  pct25vf.o(i.Wait_Busy)
+    i.WriteDS3231_time                       0x00005cb0   Section        0  ds3231.o(i.WriteDS3231_time)
+    i.__0sprintf$8                           0x00005d3c   Section        0  printf8.o(i.__0sprintf$8)
+    i.__aeabi_errno_addr                     0x00005d64   Section        0  errno.o(i.__aeabi_errno_addr)
+    i.__scatterload_copy                     0x00005d6c   Section       14  handlers.o(i.__scatterload_copy)
+    i.__scatterload_null                     0x00005d7a   Section        2  handlers.o(i.__scatterload_null)
+    i.__scatterload_zeroinit                 0x00005d7c   Section       14  handlers.o(i.__scatterload_zeroinit)
+    i._printf_core                           0x00005d8c   Section        0  printf8.o(i._printf_core)
+    _printf_core                             0x00005d8d   Thumb Code   988  printf8.o(i._printf_core)
+    i._printf_post_padding                   0x00006194   Section        0  printf8.o(i._printf_post_padding)
+    _printf_post_padding                     0x00006195   Thumb Code    38  printf8.o(i._printf_post_padding)
+    i._printf_pre_padding                    0x000061ba   Section        0  printf8.o(i._printf_pre_padding)
+    _printf_pre_padding                      0x000061bb   Thumb Code    48  printf8.o(i._printf_pre_padding)
+    i._sputc                                 0x000061ea   Section        0  printf8.o(i._sputc)
+    _sputc                                   0x000061eb   Thumb Code    10  printf8.o(i._sputc)
+    i.channel_pin_config                     0x000061f4   Section        0  global.o(i.channel_pin_config)
+    i.check_black_light_status               0x000062d0   Section        0  ds3231.o(i.check_black_light_status)
+    i.check_ee_485brt                        0x000063f0   Section        0  singlebus.o(i.check_ee_485brt)
+    i.check_esp8266                          0x00006478   Section        0  wpa_cli.o(i.check_esp8266)
+    i.check_little_voice_status              0x00006e24   Section        0  ds3231.o(i.check_little_voice_status)
+    i.crc32                                  0x00006ec0   Section        0  wpa_cli.o(i.crc32)
+    i.dac_pin_config                         0x00006ee4   Section        0  voice_play.o(i.dac_pin_config)
+    i.delay_nop                              0x00006ef8   Section        0  ds3231.o(i.delay_nop)
+    i.eint2Init                              0x00006f04   Section        0  extint.o(i.eint2Init)
+    i.eint3Isr                               0x00006f5c   Section        0  singlebus.o(i.eint3Isr)
+    i.esp8266_pin_config                     0x00006ffc   Section        0  wpa_cli.o(i.esp8266_pin_config)
+    i.esp8266_rst                            0x00007024   Section        0  wpa_cli.o(i.esp8266_rst)
+    i.feed_wdt                               0x00007044   Section        0  wdt.o(i.feed_wdt)
+    i.fm62429_pincfg                         0x00007050   Section        0  fm62429.o(i.fm62429_pincfg)
+    i.free                                   0x00007080   Section        0  malloc.o(i.free)
+    i.get_checksum                           0x000070d0   Section        0  tel.o(i.get_checksum)
+    i.get_complement                         0x000070e8   Section        0  tel.o(i.get_complement)
+    i.get_odd_parity                         0x000070f2   Section        0  tel.o(i.get_odd_parity)
+    i.get_right_ssid                         0x0000712c   Section        0  wpa_cli.o(i.get_right_ssid)
+    i.i2cread                                0x00007184   Section        0  ds3231.o(i.i2cread)
+    i.i2cwrite                               0x00007210   Section        0  ds3231.o(i.i2cwrite)
+    i.init_black_light_status                0x000072b4   Section        0  ds3231.o(i.init_black_light_status)
+    i.init_esp8266                           0x000073b8   Section        0  wpa_cli.o(i.init_esp8266)
+    i.init_msm7512                           0x00007c00   Section        0  tel.o(i.init_msm7512)
+    i.init_mt8870                            0x00007c28   Section        0  tel.o(i.init_mt8870)
+    i.init_parameter                         0x00007cac   Section        0  singlebus.o(i.init_parameter)
+    i.init_phone_key_buf                     0x00007d4c   Section        0  tel.o(i.init_phone_key_buf)
+    i.init_pwd                               0x00007d64   Section        0  wpa_cli.o(i.init_pwd)
+    i.init_scon0_Rcvbuf                      0x00007d7c   Section        0  uart.o(i.init_scon0_Rcvbuf)
+    i.init_scon1_Rcvbuf                      0x00007d94   Section        0  uart.o(i.init_scon1_Rcvbuf)
+    i.init_ssid                              0x00007db0   Section        0  wpa_cli.o(i.init_ssid)
+    i.init_sst25vfxxx_spi                    0x00007dc8   Section        0  pct25vf.o(i.init_sst25vfxxx_spi)
+    i.init_tel                               0x00007e0c   Section        0  tel.o(i.init_tel)
+    i.init_timer0                            0x00007ef4   Section        0  timer.o(i.init_timer0)
+    i.init_timer1                            0x00007f40   Section        0  timer.o(i.init_timer1)
+    i.init_timer2                            0x00007f88   Section        0  timer.o(i.init_timer2)
+    i.init_uart0                             0x00007ff0   Section        0  uart.o(i.init_uart0)
+    i.init_uart1                             0x0000809c   Section        0  uart.o(i.init_uart1)
+    i.init_uart2                             0x00008148   Section        0  uart.o(i.init_uart2)
+    i.init_uart3                             0x000081f4   Section        0  uart.o(i.init_uart3)
+    i.init_voice_play_sequence               0x000082a0   Section        0  voice_play.o(i.init_voice_play_sequence)
+    i.init_wdt                               0x000082dc   Section        0  wdt.o(i.init_wdt)
+    i.led_pin_config                         0x000082fc   Section        0  main.o(i.led_pin_config)
+    i.main                                   0x0000835c   Section        0  main.o(i.main)
+    i.make_msm7512_data                      0x00008c5c   Section        0  tel.o(i.make_msm7512_data)
+    i.malloc                                 0x00008df8   Section        0  malloc.o(i.malloc)
+    i.mt8870_received_treat                  0x00008e64   Section        0  tel.o(i.mt8870_received_treat)
+    i.read_id                                0x00008fac   Section        0  pct25vf.o(i.read_id)
+    i.reset_parameter                        0x00008ff8   Section        0  singlebus.o(i.reset_parameter)
+    i.reset_start_timer1                     0x00009060   Section        0  timer.o(i.reset_start_timer1)
+    i.save_parameter                         0x00009078   Section        0  singlebus.o(i.save_parameter)
+    i.send_msm7512_test                      0x00009090   Section        0  tel.o(i.send_msm7512_test)
+    i.set_play_voice_volue                   0x000091a0   Section        0  fm62429.o(i.set_play_voice_volue)
+    i.set_talk_voice_volue                   0x000092a4   Section        0  fm62429.o(i.set_talk_voice_volue)
+    i.short_delay                            0x000093a8   Section        0  global.o(i.short_delay)
+    i.short_soft_delay                       0x000093b4   Section        0  global.o(i.short_soft_delay)
+    i.soft_delay_half_ms                     0x000093c4   Section        0  global.o(i.soft_delay_half_ms)
+    i.spi_send_data_hard                     0x000093ec   Section        0  pct25vf.o(i.spi_send_data_hard)
+    i.sst_fast_read                          0x00009414   Section        0  pct25vf.o(i.sst_fast_read)
+    i.sst_read                               0x00009468   Section        0  pct25vf.o(i.sst_read)
+    i.sst_write                              0x000094b4   Section        0  pct25vf.o(i.sst_write)
+    i.start                                  0x00009544   Section        0  ds3231.o(i.start)
+    i.start_tel_ring                         0x0000957c   Section        0  tel.o(i.start_tel_ring)
+    i.stop                                   0x000095d4   Section        0  ds3231.o(i.stop)
+    i.stop_tel_ring                          0x00009610   Section        0  tel.o(i.stop_tel_ring)
+    i.tel_hungdown_treat                     0x00009654   Section        0  tel.o(i.tel_hungdown_treat)
+    i.tel_pickup_treat                       0x00009768   Section        0  tel.o(i.tel_pickup_treat)
+    i.uart1_send_byte                        0x000097ec   Section        0  uart.o(i.uart1_send_byte)
+    i.uart1_send_str                         0x00009804   Section        0  uart.o(i.uart1_send_str)
+    i.uart1_send_str_len                     0x00009822   Section        0  uart.o(i.uart1_send_str_len)
+    i.uart2_send_byte                        0x00009844   Section        0  uart.o(i.uart2_send_byte)
+    i.uart2_send_str                         0x0000985c   Section        0  uart.o(i.uart2_send_str)
+    i.uart3_send_byte                        0x0000987c   Section        0  uart.o(i.uart3_send_byte)
+    i.voice_continue_play_word               0x00009894   Section        0  voice_play.o(i.voice_continue_play_word)
+    i.voice_play_treat                       0x0000993c   Section        0  voice_play.o(i.voice_play_treat)
+    i.voice_play_word                        0x000099cc   Section        0  voice_play.o(i.voice_play_word)
+    i.wifi_rec_deal                          0x00009a98   Section        0  wpa_cli.o(i.wifi_rec_deal)
+    i.wifi_send_cmd                          0x0000a6c4   Section        0  wpa_cli.o(i.wifi_send_cmd)
+    i.wifi_send_data                         0x0000a748   Section        0  wpa_cli.o(i.wifi_send_data)
+    i.wifi_server_led_flash                  0x0000a854   Section        0  wpa_cli.o(i.wifi_server_led_flash)
+    .constdata                               0x0000a890   Section      320  voice_play.o(.constdata)
+    .constdata                               0x0000a9d0   Section     1775  wpa_cli.o(.constdata)
+    .constdata                               0x0000b0bf   Section      129  ctype_o.o(.constdata)
+    .constdata                               0x0000b140   Section        4  ctype_o.o(.constdata)
+    table                                    0x0000b140   Data           4  ctype_o.o(.constdata)
+    .bss                                     0x10000000   Section    13332  voice_play.o(.bss)
+    .data                                    0x2007c000   Section        4  system_lpc17xx.o(.data)
+    .data                                    0x2007c004   Section       57  uart.o(.data)
+    .data                                    0x2007c03e   Section       15  global.o(.data)
+    .data                                    0x2007c050   Section       38  voice_play.o(.data)
+    .data                                    0x2007c078   Section      102  singlebus.o(.data)
+    byTemp                                   0x2007c097   Data           1  singlebus.o(.data)
+    byCmd                                    0x2007c098   Data           1  singlebus.o(.data)
+    byPriority                               0x2007c099   Data           1  singlebus.o(.data)
+    .data                                    0x2007c0de   Section       23  tel.o(.data)
+    number                                   0x2007c0ec   Data           1  tel.o(.data)
+    .data                                    0x2007c0f8   Section        4  ds3231.o(.data)
+    .data                                    0x2007c0fc   Section        2  pct25vf.o(.data)
+    .data                                    0x2007c100   Section       11  wpa_cli.o(.data)
+    st                                       0x2007c104   Data           4  wpa_cli.o(.data)
+    .data                                    0x2007c10c   Section        4  mvars.o(.data)
+    .data                                    0x2007c110   Section        4  mvars.o(.data)
+    .data                                    0x2007c114   Section        4  errno.o(.data)
+    _errno                                   0x2007c114   Data           4  errno.o(.data)
+    .bss                                     0x2007c118   Section     1674  uart.o(.bss)
+    .bss                                     0x2007c7a4   Section      182  singlebus.o(.bss)
+    .bss                                     0x2007c85a   Section       30  tel.o(.bss)
+    .bss                                     0x2007c878   Section       40  wpa_cli.o(.bss)
+    HEAP                                     0x2007c8a0   Section      512  startup_lpc17xx.o(HEAP)
+    STACK                                    0x2007caa0   Section      512  startup_lpc17xx.o(STACK)
+
+    Global Symbols
+
+    Symbol Name                              Value     Ov Type        Size  Object(Section)
+
+    BuildAttributes$$THM_ISAv4$P$D$K$B$S$PE$A:L22UL41UL21$X:L11$S22US41US21$IEEE1$IW$USESV6$~STKCKD$USESV7$~SHL$OTIME$ROPI$EBA8$MICROLIB$REQ8$PRES8$EABIv2 0x00000000   Number         0  anon$$obj.o ABSOLUTE
+    __ARM_use_no_argv                        0x00000000   Number         0  main.o ABSOLUTE
+    __Vectors                                0x00000000   Data           4  startup_lpc17xx.o(RESET)
+    _printf_a                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_c                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_charcount                        0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_d                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_e                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_f                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_flags                            0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_fp_dec                           0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_fp_hex                           0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_g                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_i                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_int_dec                          0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_l                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_lc                               0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_ll                               0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_lld                              0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_lli                              0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_llo                              0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_llu                              0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_llx                              0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_longlong_dec                     0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_longlong_hex                     0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_longlong_oct                     0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_ls                               0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_mbtowc                           0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_n                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_o                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_p                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_percent                          0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_pre_padding                      0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_return_value                     0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_s                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_sizespec                         0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_str                              0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_truncate_signed                  0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_truncate_unsigned                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_u                                0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_wc                               0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_wctomb                           0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_widthprec                        0x00000000   Number         0  stubs.o ABSOLUTE
+    _printf_x                                0x00000000   Number         0  stubs.o ABSOLUTE
+    __cpp_initialize__aeabi_                  - Undefined Weak Reference
+    __cxa_finalize                            - Undefined Weak Reference
+    __decompress                              - Undefined Weak Reference
+    _clock_init                               - Undefined Weak Reference
+    _microlib_exit                            - Undefined Weak Reference
+    __main                                   0x000000cd   Thumb Code     0  entry.o(.ARM.Collect$$$$00000000)
+    _main_stk                                0x000000cd   Thumb Code     0  entry2.o(.ARM.Collect$$$$00000001)
+    _main_scatterload                        0x000000d1   Thumb Code     0  entry5.o(.ARM.Collect$$$$00000004)
+    __main_after_scatterload                 0x000000d5   Thumb Code     0  entry5.o(.ARM.Collect$$$$00000004)
+    _main_clock                              0x000000d5   Thumb Code     0  entry7b.o(.ARM.Collect$$$$00000008)
+    _main_cpp_init                           0x000000d5   Thumb Code     0  entry8b.o(.ARM.Collect$$$$0000000A)
+    _main_init                               0x000000d5   Thumb Code     0  entry9a.o(.ARM.Collect$$$$0000000B)
+    __rt_final_cpp                           0x000000dd   Thumb Code     0  entry10a.o(.ARM.Collect$$$$0000000D)
+    __rt_final_exit                          0x000000dd   Thumb Code     0  entry11a.o(.ARM.Collect$$$$0000000F)
+    Reset_Handler                            0x000000e1   Thumb Code     4  startup_lpc17xx.o(.text)
+    BusFault_Handler                         0x000000eb   Thumb Code     2  startup_lpc17xx.o(.text)
+    UsageFault_Handler                       0x000000ed   Thumb Code     2  startup_lpc17xx.o(.text)
+    SVC_Handler                              0x000000ef   Thumb Code     2  startup_lpc17xx.o(.text)
+    DebugMon_Handler                         0x000000f1   Thumb Code     2  startup_lpc17xx.o(.text)
+    PendSV_Handler                           0x000000f3   Thumb Code     2  startup_lpc17xx.o(.text)
+    SysTick_Handler                          0x000000f5   Thumb Code     2  startup_lpc17xx.o(.text)
+    ADC_IRQHandler                           0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    BOD_IRQHandler                           0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    CANActivity_IRQHandler                   0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    CAN_IRQHandler                           0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    DMA_IRQHandler                           0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    ENET_IRQHandler                          0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    I2C0_IRQHandler                          0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    I2C1_IRQHandler                          0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    I2C2_IRQHandler                          0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    I2S_IRQHandler                           0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    MCPWM_IRQHandler                         0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    PLL0_IRQHandler                          0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    PLL1_IRQHandler                          0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    PWM1_IRQHandler                          0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    QEI_IRQHandler                           0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    RIT_IRQHandler                           0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    RTC_IRQHandler                           0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    SPI_IRQHandler                           0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    SSP0_IRQHandler                          0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    SSP1_IRQHandler                          0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    TIMER3_IRQHandler                        0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    USBActivity_IRQHandler                   0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    USB_IRQHandler                           0x000000f7   Thumb Code     0  startup_lpc17xx.o(.text)
+    __aeabi_memcpy                           0x000000fd   Thumb Code    36  memcpya.o(.text)
+    __aeabi_memcpy4                          0x000000fd   Thumb Code     0  memcpya.o(.text)
+    __aeabi_memcpy8                          0x000000fd   Thumb Code     0  memcpya.o(.text)
+    strcat                                   0x00000121   Thumb Code    24  strcat.o(.text)
+    strstr                                   0x00000139   Thumb Code    36  strstr.o(.text)
+    strcpy                                   0x0000015d   Thumb Code    18  strcpy.o(.text)
+    atoi                                     0x0000016f   Thumb Code    26  atoi.o(.text)
+    __aeabi_uldivmod                         0x00000189   Thumb Code    98  uldiv.o(.text)
+    strtol                                   0x000001eb   Thumb Code   112  strtol.o(.text)
+    __scatterload                            0x0000025d   Thumb Code    28  init.o(.text)
+    __scatterload_rt2                        0x0000025d   Thumb Code     0  init.o(.text)
+    __aeabi_llsl                             0x00000281   Thumb Code    30  llshl.o(.text)
+    _ll_shift_l                              0x00000281   Thumb Code     0  llshl.o(.text)
+    __aeabi_llsr                             0x0000029f   Thumb Code    32  llushr.o(.text)
+    _ll_ushift_r                             0x0000029f   Thumb Code     0  llushr.o(.text)
+    __rt_ctype_table                         0x000002c1   Thumb Code     4  ctype_o.o(.text)
+    _chval                                   0x000002c9   Thumb Code    28  _chval.o(.text)
+    AM79R70_active                           0x000002e5   Thumb Code    18  tel.o(i.AM79R70_active)
+    _strtoul                                 0x00000301   Thumb Code   158  _strtoul.o(.text)
+    AAI_Write                                0x000003a1   Thumb Code   112  pct25vf.o(i.AAI_Write)
+    AM79R70_pincfg                           0x00000415   Thumb Code    52  tel.o(i.AM79R70_pincfg)
+    AM79R70_ringing                          0x00000451   Thumb Code    18  tel.o(i.AM79R70_ringing)
+    AM79R70_standby                          0x00000469   Thumb Code    18  tel.o(i.AM79R70_standby)
+    AddCallNod                               0x00000481   Thumb Code   398  singlebus.o(i.AddCallNod)
+    AddrCompare                              0x00000619   Thumb Code    78  singlebus.o(i.AddrCompare)
+    Auto_Add_IncA_EBSY                       0x00000669   Thumb Code    74  pct25vf.o(i.Auto_Add_IncA_EBSY)
+    Auto_Add_IncB_EBSY                       0x000006b9   Thumb Code    54  pct25vf.o(i.Auto_Add_IncB_EBSY)
+    BCDtoHEX                                 0x000006f5   Thumb Code    32  ds3231.o(i.BCDtoHEX)
+    Bus0Manager                              0x00000715   Thumb Code   380  singlebus.o(i.Bus0Manager)
+    Bus0OutputData                           0x000008a9   Thumb Code    88  singlebus.o(i.Bus0OutputData)
+    Bus0RecDeal                              0x0000090d   Thumb Code  3672  singlebus.o(i.Bus0RecDeal)
+    Bus0SendFinishDeal                       0x00001779   Thumb Code  3050  singlebus.o(i.Bus0SendFinishDeal)
+    Byte_Program                             0x00002385   Thumb Code    58  pct25vf.o(i.Byte_Program)
+    CheckPsk                                 0x000023c5   Thumb Code    58  uart.o(i.CheckPsk)
+    Chip_DAC_UpdateValue                     0x00002401   Thumb Code    24  interrupt.o(i.Chip_DAC_UpdateValue)
+    DBSY                                     0x0000241d   Thumb Code    26  pct25vf.o(i.DBSY)
+    DS3231_comm_init                         0x0000243d   Thumb Code    86  ds3231.o(i.DS3231_comm_init)
+    DS3231_init                              0x00002499   Thumb Code   164  ds3231.o(i.DS3231_init)
+    DS3231_pincfg                            0x00002549   Thumb Code    26  ds3231.o(i.DS3231_pincfg)
+    DirAddrCompare                           0x00002569   Thumb Code    42  singlebus.o(i.DirAddrCompare)
+    EBSY                                     0x00002595   Thumb Code    26  pct25vf.o(i.EBSY)
+    EINT0_IRQHandler                         0x000025b5   Thumb Code    40  interrupt.o(i.EINT0_IRQHandler)
+    EINT1_IRQHandler                         0x000025e5   Thumb Code    40  interrupt.o(i.EINT1_IRQHandler)
+    EINT2_IRQHandler                         0x00002615   Thumb Code   154  interrupt.o(i.EINT2_IRQHandler)
+    EINT3_IRQHandler                         0x000026c1   Thumb Code     8  interrupt.o(i.EINT3_IRQHandler)
+    EWSR                                     0x000026c9   Thumb Code    26  pct25vf.o(i.EWSR)
+    FLASH_BufferWrite                        0x000026e9   Thumb Code   298  pct25vf.o(i.FLASH_BufferWrite)
+    FLASH_PageWrite                          0x00002815   Thumb Code    96  pct25vf.o(i.FLASH_PageWrite)
+    Flash_Lock                               0x00002879   Thumb Code    30  pct25vf.o(i.Flash_Lock)
+    Flash_Unlock                             0x0000289d   Thumb Code    30  pct25vf.o(i.Flash_Unlock)
+    GetPskCrc                                0x000028c1   Thumb Code    46  uart.o(i.GetPskCrc)
+    Get_Byte                                 0x000028ef   Thumb Code    14  pct25vf.o(i.Get_Byte)
+    HardFault_Handler                        0x000028fd   Thumb Code     4  interrupt.o(i.HardFault_Handler)
+    MakeCH0TimerOut                          0x00002901   Thumb Code    10  singlebus.o(i.MakeCH0TimerOut)
+    MakeCH1TimerOut                          0x00002911   Thumb Code    10  singlebus.o(i.MakeCH1TimerOut)
+    MakeCallVoiceData                        0x00002921   Thumb Code  1122  voice_play.o(i.MakeCallVoiceData)
+    MemManage_Handler                        0x00002d8d   Thumb Code     4  interrupt.o(i.MemManage_Handler)
+    NMI_Handler                              0x00002d91   Thumb Code     4  interrupt.o(i.NMI_Handler)
+    Poll_SO                                  0x00002edd   Thumb Code    58  pct25vf.o(i.Poll_SO)
+    ReadDS3231Status                         0x00002f1d   Thumb Code    44  ds3231.o(i.ReadDS3231Status)
+    ReadDS3231_time                          0x00002f49   Thumb Code   160  ds3231.o(i.ReadDS3231_time)
+    Read_Status_Register                     0x00002ff1   Thumb Code    36  pct25vf.o(i.Read_Status_Register)
+    RemoveCallNod                            0x00003019   Thumb Code   312  singlebus.o(i.RemoveCallNod)
+    RestartIndication                        0x00003159   Thumb Code   348  singlebus.o(i.RestartIndication)
+    SST25VF_Lock                             0x000032c9   Thumb Code    22  pct25vf.o(i.SST25VF_Lock)
+    SST25VF_UnLock                           0x000032df   Thumb Code    22  pct25vf.o(i.SST25VF_UnLock)
+    SaveCallAddr                             0x000032f5   Thumb Code    28  singlebus.o(i.SaveCallAddr)
+    SaveIndicationData                       0x00003315   Thumb Code    46  singlebus.o(i.SaveIndicationData)
+    Sector_Erase                             0x0000334d   Thumb Code    50  pct25vf.o(i.Sector_Erase)
+    SingleBusInit                            0x00003385   Thumb Code   162  singlebus.o(i.SingleBusInit)
+    StartVoicePlay                           0x0000344d   Thumb Code   116  voice_play.o(i.StartVoicePlay)
+    StopVoicePlay                            0x000034e5   Thumb Code    54  voice_play.o(i.StopVoicePlay)
+    SystemInit                               0x0000353d   Thumb Code   478  system_lpc17xx.o(i.SystemInit)
+    TIMER0_IRQHandler                        0x00003759   Thumb Code   972  interrupt.o(i.TIMER0_IRQHandler)
+    TIMER1_IRQHandler                        0x00003bd9   Thumb Code  1994  singlebus.o(i.TIMER1_IRQHandler)
+    TIMER2_IRQHandler                        0x000043e5   Thumb Code   288  interrupt.o(i.TIMER2_IRQHandler)
+    TimerOutDeal                             0x00004535   Thumb Code   910  singlebus.o(i.TimerOutDeal)
+    UART0_IRQHandler                         0x00004909   Thumb Code   306  interrupt.o(i.UART0_IRQHandler)
+    UART1_IRQHandler                         0x00004a61   Thumb Code   244  interrupt.o(i.UART1_IRQHandler)
+    UART2_IRQHandler                         0x00004b6d   Thumb Code   224  interrupt.o(i.UART2_IRQHandler)
+    UART3_IRQHandler                         0x00004c69   Thumb Code   288  interrupt.o(i.UART3_IRQHandler)
+    Usart2RecDeal                            0x00004db5   Thumb Code  3072  uart.o(i.Usart2RecDeal)
+    Usart2SndCmd                             0x000059d9   Thumb Code   170  uart.o(i.Usart2SndCmd)
+    VoiceChannelCtx                          0x00005a95   Thumb Code   270  singlebus.o(i.VoiceChannelCtx)
+    W25QXX_Lock                              0x00005bb1   Thumb Code    22  pct25vf.o(i.W25QXX_Lock)
+    W25QXX_UnLock                            0x00005bc7   Thumb Code    22  pct25vf.o(i.W25QXX_UnLock)
+    W25QXX_WRSR                              0x00005bdd   Thumb Code    42  pct25vf.o(i.W25QXX_WRSR)
+    WDT_IRQHandler                           0x00005c0d   Thumb Code    10  interrupt.o(i.WDT_IRQHandler)
+    WRDI                                     0x00005c19   Thumb Code    26  pct25vf.o(i.WRDI)
+    WREN                                     0x00005c39   Thumb Code    30  pct25vf.o(i.WREN)
+    WRSR                                     0x00005c5d   Thumb Code    34  pct25vf.o(i.WRSR)
+    Wait_Busy                                0x00005c85   Thumb Code    42  pct25vf.o(i.Wait_Busy)
+    WriteDS3231_time                         0x00005cb1   Thumb Code   136  ds3231.o(i.WriteDS3231_time)
+    __0sprintf$8                             0x00005d3d   Thumb Code    34  printf8.o(i.__0sprintf$8)
+    __1sprintf$8                             0x00005d3d   Thumb Code     0  printf8.o(i.__0sprintf$8)
+    __2sprintf                               0x00005d3d   Thumb Code     0  printf8.o(i.__0sprintf$8)
+    __aeabi_errno_addr                       0x00005d65   Thumb Code     4  errno.o(i.__aeabi_errno_addr)
+    __rt_errno_addr                          0x00005d65   Thumb Code     0  errno.o(i.__aeabi_errno_addr)
+    __scatterload_copy                       0x00005d6d   Thumb Code    14  handlers.o(i.__scatterload_copy)
+    __scatterload_null                       0x00005d7b   Thumb Code     2  handlers.o(i.__scatterload_null)
+    __scatterload_zeroinit                   0x00005d7d   Thumb Code    14  handlers.o(i.__scatterload_zeroinit)
+    channel_pin_config                       0x000061f5   Thumb Code   212  global.o(i.channel_pin_config)
+    check_black_light_status                 0x000062d1   Thumb Code   272  ds3231.o(i.check_black_light_status)
+    check_ee_485brt                          0x000063f1   Thumb Code   130  singlebus.o(i.check_ee_485brt)
+    check_esp8266                            0x00006479   Thumb Code  2116  wpa_cli.o(i.check_esp8266)
+    check_little_voice_status                0x00006e25   Thumb Code   142  ds3231.o(i.check_little_voice_status)
+    crc32                                    0x00006ec1   Thumb Code    32  wpa_cli.o(i.crc32)
+    dac_pin_config                           0x00006ee5   Thumb Code    14  voice_play.o(i.dac_pin_config)
+    delay_nop                                0x00006ef9   Thumb Code    12  ds3231.o(i.delay_nop)
+    eint2Init                                0x00006f05   Thumb Code    74  extint.o(i.eint2Init)
+    eint3Isr                                 0x00006f5d   Thumb Code   124  singlebus.o(i.eint3Isr)
+    esp8266_pin_config                       0x00006ffd   Thumb Code    30  wpa_cli.o(i.esp8266_pin_config)
+    esp8266_rst                              0x00007025   Thumb Code    28  wpa_cli.o(i.esp8266_rst)
+    feed_wdt                                 0x00007045   Thumb Code    12  wdt.o(i.feed_wdt)
+    fm62429_pincfg                           0x00007051   Thumb Code    42  fm62429.o(i.fm62429_pincfg)
+    free                                     0x00007081   Thumb Code    76  malloc.o(i.free)
+    get_checksum                             0x000070d1   Thumb Code    24  tel.o(i.get_checksum)
+    get_complement                           0x000070e9   Thumb Code    10  tel.o(i.get_complement)
+    get_odd_parity                           0x000070f3   Thumb Code    56  tel.o(i.get_odd_parity)
+    get_right_ssid                           0x0000712d   Thumb Code    56  wpa_cli.o(i.get_right_ssid)
+    i2cread                                  0x00007185   Thumb Code   136  ds3231.o(i.i2cread)
+    i2cwrite                                 0x00007211   Thumb Code   158  ds3231.o(i.i2cwrite)
+    init_black_light_status                  0x000072b5   Thumb Code   248  ds3231.o(i.init_black_light_status)
+    init_esp8266                             0x000073b9   Thumb Code  1920  wpa_cli.o(i.init_esp8266)
+    init_msm7512                             0x00007c01   Thumb Code    30  tel.o(i.init_msm7512)
+    init_mt8870                              0x00007c29   Thumb Code   122  tel.o(i.init_mt8870)
+    init_parameter                           0x00007cad   Thumb Code   150  singlebus.o(i.init_parameter)
+    init_phone_key_buf                       0x00007d4d   Thumb Code    20  tel.o(i.init_phone_key_buf)
+    init_pwd                                 0x00007d65   Thumb Code    20  wpa_cli.o(i.init_pwd)
+    init_scon0_Rcvbuf                        0x00007d7d   Thumb Code    20  uart.o(i.init_scon0_Rcvbuf)
+    init_scon1_Rcvbuf                        0x00007d95   Thumb Code    22  uart.o(i.init_scon1_Rcvbuf)
+    init_ssid                                0x00007db1   Thumb Code    20  wpa_cli.o(i.init_ssid)
+    init_sst25vfxxx_spi                      0x00007dc9   Thumb Code    56  pct25vf.o(i.init_sst25vfxxx_spi)
+    init_tel                                 0x00007e0d   Thumb Code   212  tel.o(i.init_tel)
+    init_timer0                              0x00007ef5   Thumb Code    70  timer.o(i.init_timer0)
+    init_timer1                              0x00007f41   Thumb Code    64  timer.o(i.init_timer1)
+    init_timer2                              0x00007f89   Thumb Code    86  timer.o(i.init_timer2)
+    init_uart0                               0x00007ff1   Thumb Code   138  uart.o(i.init_uart0)
+    init_uart1                               0x0000809d   Thumb Code   138  uart.o(i.init_uart1)
+    init_uart2                               0x00008149   Thumb Code   138  uart.o(i.init_uart2)
+    init_uart3                               0x000081f5   Thumb Code   138  uart.o(i.init_uart3)
+    init_voice_play_sequence                 0x000082a1   Thumb Code    42  voice_play.o(i.init_voice_play_sequence)
+    init_wdt                                 0x000082dd   Thumb Code    28  wdt.o(i.init_wdt)
+    led_pin_config                           0x000082fd   Thumb Code    82  main.o(i.led_pin_config)
+    main                                     0x0000835d   Thumb Code  2036  main.o(i.main)
+    make_msm7512_data                        0x00008c5d   Thumb Code   404  tel.o(i.make_msm7512_data)
+    malloc                                   0x00008df9   Thumb Code    92  malloc.o(i.malloc)
+    mt8870_received_treat                    0x00008e65   Thumb Code   302  tel.o(i.mt8870_received_treat)
+    read_id                                  0x00008fad   Thumb Code    64  pct25vf.o(i.read_id)
+    reset_parameter                          0x00008ff9   Thumb Code   100  singlebus.o(i.reset_parameter)
+    reset_start_timer1                       0x00009061   Thumb Code    20  timer.o(i.reset_start_timer1)
+    save_parameter                           0x00009079   Thumb Code    14  singlebus.o(i.save_parameter)
+    send_msm7512_test                        0x00009091   Thumb Code   262  tel.o(i.send_msm7512_test)
+    set_play_voice_volue                     0x000091a1   Thumb Code   254  fm62429.o(i.set_play_voice_volue)
+    set_talk_voice_volue                     0x000092a5   Thumb Code   254  fm62429.o(i.set_talk_voice_volue)
+    short_delay                              0x000093a9   Thumb Code    12  global.o(i.short_delay)
+    short_soft_delay                         0x000093b5   Thumb Code    16  global.o(i.short_soft_delay)
+    soft_delay_half_ms                       0x000093c5   Thumb Code    38  global.o(i.soft_delay_half_ms)
+    spi_send_data_hard                       0x000093ed   Thumb Code    34  pct25vf.o(i.spi_send_data_hard)
+    sst_fast_read                            0x00009415   Thumb Code    78  pct25vf.o(i.sst_fast_read)
+    sst_read                                 0x00009469   Thumb Code    72  pct25vf.o(i.sst_read)
+    sst_write                                0x000094b5   Thumb Code   136  pct25vf.o(i.sst_write)
+    start                                    0x00009545   Thumb Code    50  ds3231.o(i.start)
+    start_tel_ring                           0x0000957d   Thumb Code    74  tel.o(i.start_tel_ring)
+    stop                                     0x000095d5   Thumb Code    56  ds3231.o(i.stop)
+    stop_tel_ring                            0x00009611   Thumb Code    56  tel.o(i.stop_tel_ring)
+    tel_hungdown_treat                       0x00009655   Thumb Code   252  tel.o(i.tel_hungdown_treat)
+    tel_pickup_treat                         0x00009769   Thumb Code   112  tel.o(i.tel_pickup_treat)
+    uart1_send_byte                          0x000097ed   Thumb Code    18  uart.o(i.uart1_send_byte)
+    uart1_send_str                           0x00009805   Thumb Code    30  uart.o(i.uart1_send_str)
+    uart1_send_str_len                       0x00009823   Thumb Code    32  uart.o(i.uart1_send_str_len)
+    uart2_send_byte                          0x00009845   Thumb Code    18  uart.o(i.uart2_send_byte)
+    uart2_send_str                           0x0000985d   Thumb Code    30  uart.o(i.uart2_send_str)
+    uart3_send_byte                          0x0000987d   Thumb Code    18  uart.o(i.uart3_send_byte)
+    voice_continue_play_word                 0x00009895   Thumb Code   142  voice_play.o(i.voice_continue_play_word)
+    voice_play_treat                         0x0000993d   Thumb Code   130  voice_play.o(i.voice_play_treat)
+    voice_play_word                          0x000099cd   Thumb Code   166  voice_play.o(i.voice_play_word)
+    wifi_rec_deal                            0x00009a99   Thumb Code  3080  wpa_cli.o(i.wifi_rec_deal)
+    wifi_send_cmd                            0x0000a6c5   Thumb Code   122  wpa_cli.o(i.wifi_send_cmd)
+    wifi_send_data                           0x0000a749   Thumb Code   220  wpa_cli.o(i.wifi_send_data)
+    wifi_server_led_flash                    0x0000a855   Thumb Code    50  wpa_cli.o(i.wifi_server_led_flash)
+    DataFlashTable                           0x0000a890   Data         320  voice_play.o(.constdata)
+    crc_32_tab                               0x0000a9d0   Data        1640  wpa_cli.o(.constdata)
+    __ctype_table                            0x0000b0bf   Data         129  ctype_o.o(.constdata)
+    Region$$Table$$Base                      0x0000b144   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x0000b174   Number         0  anon$$obj.o(Region$$Table)
+    voice_buff                               0x10000000   Data       13312  voice_play.o(.bss)
+    voice_play_sequence                      0x10003400   Data          20  voice_play.o(.bss)
+    SystemFrequency                          0x2007c000   Data           4  system_lpc17xx.o(.data)
+    scon0_time                               0x2007c004   Data           1  uart.o(.data)
+    scon0_received                           0x2007c006   Data           2  uart.o(.data)
+    scon0_len                                0x2007c008   Data           2  uart.o(.data)
+    scon0_GucRcvNew                          0x2007c00a   Data           1  uart.o(.data)
+    scon1_time                               0x2007c00b   Data           1  uart.o(.data)
+    scon1_received                           0x2007c00c   Data           2  uart.o(.data)
+    scon1_len                                0x2007c00e   Data           2  uart.o(.data)
+    scon1_GucRcvNew                          0x2007c010   Data           1  uart.o(.data)
+    scon2_time                               0x2007c011   Data           1  uart.o(.data)
+    scon2_received                           0x2007c012   Data           2  uart.o(.data)
+    scon2_len                                0x2007c014   Data           2  uart.o(.data)
+    scon2_GucRcvNew                          0x2007c016   Data           1  uart.o(.data)
+    scon3_time                               0x2007c017   Data           1  uart.o(.data)
+    scon3_received                           0x2007c018   Data           2  uart.o(.data)
+    scon3_len                                0x2007c01a   Data           2  uart.o(.data)
+    scon0_tov                                0x2007c01c   Data           1  uart.o(.data)
+    scon0_ptr                                0x2007c020   Data           4  uart.o(.data)
+    scon1_tov                                0x2007c024   Data           1  uart.o(.data)
+    scon1_ptr                                0x2007c028   Data           4  uart.o(.data)
+    scon2_tov                                0x2007c02c   Data           1  uart.o(.data)
+    scon2_ptr                                0x2007c030   Data           4  uart.o(.data)
+    scon3_tov                                0x2007c034   Data           1  uart.o(.data)
+    scon3_ptr                                0x2007c038   Data           4  uart.o(.data)
+    uart3_auto_time                          0x2007c03c   Data           1  uart.o(.data)
+    little_voice_effective                   0x2007c03e   Data           1  global.o(.data)
+    blight_off_state                         0x2007c03f   Data           1  global.o(.data)
+    mt8870_received                          0x2007c040   Data           1  global.o(.data)
+    para_rst_key_time                        0x2007c042   Data           2  global.o(.data)
+    soft_rst_key_time                        0x2007c044   Data           1  global.o(.data)
+    KeyState                                 0x2007c045   Data           1  global.o(.data)
+    ring_val                                 0x2007c046   Data           2  global.o(.data)
+    ring_fre_val                             0x2007c048   Data           1  global.o(.data)
+    ring_tlp_chk                             0x2007c049   Data           1  global.o(.data)
+    ring_tlp_picked                          0x2007c04a   Data           1  global.o(.data)
+    ring_tlp_release                         0x2007c04b   Data           1  global.o(.data)
+    voice_change_flag                        0x2007c04c   Data           1  global.o(.data)
+    cur_play_index                           0x2007c050   Data           1  voice_play.o(.data)
+    voice_seg_pause_time                     0x2007c052   Data           2  voice_play.o(.data)
+    voice_play_times                         0x2007c054   Data           1  voice_play.o(.data)
+    voice_play_state                         0x2007c056   Data           2  voice_play.o(.data)
+    pvoice_data                              0x2007c058   Data           4  voice_play.o(.data)
+    value                                    0x2007c05c   Data           2  voice_play.o(.data)
+    voice_data_addr                          0x2007c060   Data           4  voice_play.o(.data)
+    voice_data_len                           0x2007c064   Data           4  voice_play.o(.data)
+    voice_data_total_len                     0x2007c068   Data           4  voice_play.o(.data)
+    voice_play_seq_cnt                       0x2007c06c   Data           1  voice_play.o(.data)
+    voice_play_turns                         0x2007c06d   Data           1  voice_play.o(.data)
+    played_times                             0x2007c06e   Data           1  voice_play.o(.data)
+    played_turns                             0x2007c06f   Data           1  voice_play.o(.data)
+    voice_times_delay_time                   0x2007c070   Data           2  voice_play.o(.data)
+    voice_beds_delay_time                    0x2007c072   Data           2  voice_play.o(.data)
+    voice_turns_delay_time                   0x2007c074   Data           2  voice_play.o(.data)
+    byBus0State                              0x2007c078   Data           2  singlebus.o(.data)
+    byBus0RecCount                           0x2007c07a   Data           1  singlebus.o(.data)
+    byBus0SendCount                          0x2007c07b   Data           1  singlebus.o(.data)
+    byBus0RecSendCount                       0x2007c07c   Data           1  singlebus.o(.data)
+    byBus0RecTimeOut                         0x2007c07d   Data           1  singlebus.o(.data)
+    byBus0DisableCount                       0x2007c07e   Data           1  singlebus.o(.data)
+    byBus0TxHead                             0x2007c07f   Data           1  singlebus.o(.data)
+    byBus0TxTail                             0x2007c080   Data           1  singlebus.o(.data)
+    byBus0RxHead                             0x2007c081   Data           1  singlebus.o(.data)
+    byBus0RxTail                             0x2007c082   Data           1  singlebus.o(.data)
+    byWaitAckTimeLanding                     0x2007c083   Data           1  singlebus.o(.data)
+    uiDevState                               0x2007c084   Data           2  singlebus.o(.data)
+    uiDetectPcTime                           0x2007c086   Data           2  singlebus.o(.data)
+    byVoicePlayTime                          0x2007c088   Data           1  singlebus.o(.data)
+    byWaitCommAckDTime                       0x2007c089   Data           1  singlebus.o(.data)
+    byUsart2HandingDTime                     0x2007c08a   Data           1  singlebus.o(.data)
+    byUsart0SdResultDTime                    0x2007c08b   Data           1  singlebus.o(.data)
+    byWaitRS485AckDTime                      0x2007c08c   Data           1  singlebus.o(.data)
+    byReSndBrtTimes                          0x2007c08d   Data           1  singlebus.o(.data)
+    byReSndRs485RoomTimes                    0x2007c08e   Data           1  singlebus.o(.data)
+    byReSndBedVoiPlaTimes                    0x2007c08f   Data           1  singlebus.o(.data)
+    TimerOutCount                            0x2007c090   Data           1  singlebus.o(.data)
+    bBus0SndBitOk                            0x2007c091   Data           1  singlebus.o(.data)
+    State                                    0x2007c092   Data           2  singlebus.o(.data)
+    BusErrorState                            0x2007c094   Data           2  singlebus.o(.data)
+    byYearH                                  0x2007c096   Data           1  singlebus.o(.data)
+    byBus0RecBuf                             0x2007c09a   Data           1  singlebus.o(.data)
+    byBus0SendBuf                            0x2007c09b   Data           1  singlebus.o(.data)
+    byBus0RecData                            0x2007c09c   Data           7  singlebus.o(.data)
+    byBus0SendData                           0x2007c0a3   Data           7  singlebus.o(.data)
+    byBus0SendStopCount                      0x2007c0aa   Data           1  singlebus.o(.data)
+    byChar                                   0x2007c0ab   Data           1  singlebus.o(.data)
+    stBusFreq                                0x2007c0ac   Data           7  singlebus.o(.data)
+    stCH0TimerOut                            0x2007c0b3   Data           3  singlebus.o(.data)
+    stCH1TimerOut                            0x2007c0b6   Data           3  singlebus.o(.data)
+    stCallPointer                            0x2007c0bc   Data           8  singlebus.o(.data)
+    stCallAddr                               0x2007c0c4   Data           7  singlebus.o(.data)
+    stCH1CallAddr                            0x2007c0cb   Data           7  singlebus.o(.data)
+    stRS485Addr                              0x2007c0d2   Data           3  singlebus.o(.data)
+    stCommAddr                               0x2007c0d5   Data           3  singlebus.o(.data)
+    stTime                                   0x2007c0d8   Data           6  singlebus.o(.data)
+    TelState                                 0x2007c0de   Data           2  tel.o(.data)
+    tel_ring_time                            0x2007c0e0   Data           2  tel.o(.data)
+    tel_tlp_dis_chk                          0x2007c0e2   Data           2  tel.o(.data)
+    tel_tlp_chk_delay                        0x2007c0e4   Data           2  tel.o(.data)
+    CID_marks_time                           0x2007c0e6   Data           2  tel.o(.data)
+    CID_txe_delay                            0x2007c0e8   Data           2  tel.o(.data)
+    tel_pickup_time                          0x2007c0ea   Data           2  tel.o(.data)
+    phone_key_buf                            0x2007c0ed   Data           8  tel.o(.data)
+    read_ds3231_delay                        0x2007c0f8   Data           4  ds3231.o(.data)
+    man_id                                   0x2007c0fc   Data           1  pct25vf.o(.data)
+    dev_id                                   0x2007c0fd   Data           1  pct25vf.o(.data)
+    WpaState                                 0x2007c100   Data           2  wpa_cli.o(.data)
+    check_esp8266_time                       0x2007c102   Data           2  wpa_cli.o(.data)
+    wifi_result_sur_addr                     0x2007c108   Data           3  wpa_cli.o(.data)
+    __microlib_freelist                      0x2007c10c   Data           4  mvars.o(.data)
+    __microlib_freelist_initialised          0x2007c110   Data           4  mvars.o(.data)
+    stUsartCfg                               0x2007c118   Data          16  uart.o(.bss)
+    byUsart0SndBuf                           0x2007c128   Data         268  uart.o(.bss)
+    byUsart1SndBuf                           0x2007c234   Data          30  uart.o(.bss)
+    byUsart2SndBuf                           0x2007c252   Data          20  uart.o(.bss)
+    byUsart3SndBuf                           0x2007c266   Data          30  uart.o(.bss)
+    scon0_Rcvbuf                             0x2007c284   Data          64  uart.o(.bss)
+    scon1_Rcvbuf                             0x2007c2c4   Data        1024  uart.o(.bss)
+    scon2_Rcvbuf                             0x2007c6c4   Data         212  uart.o(.bss)
+    scon3_Rcvbuf                             0x2007c798   Data          10  uart.o(.bss)
+    byBus0TxQ                                0x2007c7a4   Data          71  singlebus.o(.bss)
+    byBus0RxQ                                0x2007c7eb   Data          71  singlebus.o(.bss)
+    stIndicationData                         0x2007c834   Data          12  singlebus.o(.bss)
+    stEepromCfgData                          0x2007c840   Data          26  singlebus.o(.bss)
+    cid_data                                 0x2007c85a   Data          30  tel.o(.bss)
+    ssid                                     0x2007c878   Data          30  wpa_cli.o(.bss)
+    pwd                                      0x2007c896   Data          10  wpa_cli.o(.bss)
+    __heap_base                              0x2007c8a0   Data           0  startup_lpc17xx.o(HEAP)
+    __heap_limit                             0x2007caa0   Data           0  startup_lpc17xx.o(HEAP)
+    __initial_sp                             0x2007cca0   Data           0  startup_lpc17xx.o(STACK)
+
+
+
+==============================================================================
+
+Memory Map of the image
+
+  Image Entry point : 0x000000cd
+
+  Load Region LR_IROM1 (Base: 0x00000000, Size: 0x0000b28c, Max: 0x00040000, ABSOLUTE)
+
+    Execution Region ER_IROM1 (Base: 0x00000000, Size: 0x0000b174, Max: 0x00040000, ABSOLUTE)
+
+    Base Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x00000000   0x000000cc   Data   RO           19    RESET               startup_lpc17xx.o
+    0x000000cc   0x00000000   Code   RO         1678  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
+    0x000000cc   0x00000004   Code   RO         1996    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
+    0x000000d0   0x00000004   Code   RO         1999    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
+    0x000000d4   0x00000000   Code   RO         2001    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
+    0x000000d4   0x00000000   Code   RO         2003    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
+    0x000000d4   0x00000008   Code   RO         2004    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
+    0x000000dc   0x00000000   Code   RO         2006    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
+    0x000000dc   0x00000000   Code   RO         2008    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
+    0x000000dc   0x00000004   Code   RO         1997    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
+    0x000000e0   0x0000001c   Code   RO           21    .text               startup_lpc17xx.o
+    0x000000fc   0x00000024   Code   RO         1681    .text               mc_w.l(memcpya.o)
+    0x00000120   0x00000018   Code   RO         1685    .text               mc_w.l(strcat.o)
+    0x00000138   0x00000024   Code   RO         1687    .text               mc_w.l(strstr.o)
+    0x0000015c   0x00000012   Code   RO         1693    .text               mc_w.l(strcpy.o)
+    0x0000016e   0x0000001a   Code   RO         1986    .text               mc_w.l(atoi.o)
+    0x00000188   0x00000062   Code   RO         2015    .text               mc_w.l(uldiv.o)
+    0x000001ea   0x00000070   Code   RO         2026    .text               mc_w.l(strtol.o)
+    0x0000025a   0x00000002   PAD
+    0x0000025c   0x00000024   Code   RO         2041    .text               mc_w.l(init.o)
+    0x00000280   0x0000001e   Code   RO         2044    .text               mc_w.l(llshl.o)
+    0x0000029e   0x00000020   Code   RO         2046    .text               mc_w.l(llushr.o)
+    0x000002be   0x00000002   PAD
+    0x000002c0   0x00000008   Code   RO         2050    .text               mc_w.l(ctype_o.o)
+    0x000002c8   0x0000001c   Code   RO         2081    .text               mc_w.l(_chval.o)
+    0x000002e4   0x00000018   Code   RO          954    i.AM79R70_active    tel.o
+    0x000002fc   0x00000004   Code   RO           20    .ARM.__at_0x02FC    startup_lpc17xx.o
+    0x00000300   0x0000009e   Code   RO         2078    .text               mc_w.l(_strtoul.o)
+    0x0000039e   0x00000002   PAD
+    0x000003a0   0x00000074   Code   RO         1233    i.AAI_Write         pct25vf.o
+    0x00000414   0x0000003c   Code   RO          955    i.AM79R70_pincfg    tel.o
+    0x00000450   0x00000018   Code   RO          956    i.AM79R70_ringing   tel.o
+    0x00000468   0x00000018   Code   RO          957    i.AM79R70_standby   tel.o
+    0x00000480   0x00000198   Code   RO          796    i.AddCallNod        singlebus.o
+    0x00000618   0x0000004e   Code   RO          797    i.AddrCompare       singlebus.o
+    0x00000666   0x00000002   PAD
+    0x00000668   0x00000050   Code   RO         1235    i.Auto_Add_IncA_EBSY  pct25vf.o
+    0x000006b8   0x0000003c   Code   RO         1237    i.Auto_Add_IncB_EBSY  pct25vf.o
+    0x000006f4   0x00000020   Code   RO         1079    i.BCDtoHEX          ds3231.o
+    0x00000714   0x00000194   Code   RO          798    i.Bus0Manager       singlebus.o
+    0x000008a8   0x00000064   Code   RO          799    i.Bus0OutputData    singlebus.o
+    0x0000090c   0x00000e6c   Code   RO          800    i.Bus0RecDeal       singlebus.o
+    0x00001778   0x00000c0c   Code   RO          801    i.Bus0SendFinishDeal  singlebus.o
+    0x00002384   0x00000040   Code   RO         1240    i.Byte_Program      pct25vf.o
+    0x000023c4   0x0000003a   Code   RO          226    i.CheckPsk          uart.o
+    0x000023fe   0x00000002   PAD
+    0x00002400   0x0000001c   Code   RO          571    i.Chip_DAC_UpdateValue  interrupt.o
+    0x0000241c   0x00000020   Code   RO         1243    i.DBSY              pct25vf.o
+    0x0000243c   0x0000005c   Code   RO         1080    i.DS3231_comm_init  ds3231.o
+    0x00002498   0x000000b0   Code   RO         1081    i.DS3231_init       ds3231.o
+    0x00002548   0x00000020   Code   RO         1082    i.DS3231_pincfg     ds3231.o
+    0x00002568   0x0000002a   Code   RO          802    i.DirAddrCompare    singlebus.o
+    0x00002592   0x00000002   PAD
+    0x00002594   0x00000020   Code   RO         1244    i.EBSY              pct25vf.o
+    0x000025b4   0x00000030   Code   RO          572    i.EINT0_IRQHandler  interrupt.o
+    0x000025e4   0x00000030   Code   RO          573    i.EINT1_IRQHandler  interrupt.o
+    0x00002614   0x000000ac   Code   RO          574    i.EINT2_IRQHandler  interrupt.o
+    0x000026c0   0x00000008   Code   RO          575    i.EINT3_IRQHandler  interrupt.o
+    0x000026c8   0x00000020   Code   RO         1245    i.EWSR              pct25vf.o
+    0x000026e8   0x0000012a   Code   RO         1246    i.FLASH_BufferWrite  pct25vf.o
+    0x00002812   0x00000002   PAD
+    0x00002814   0x00000064   Code   RO         1247    i.FLASH_PageWrite   pct25vf.o
+    0x00002878   0x00000024   Code   RO         1248    i.Flash_Lock        pct25vf.o
+    0x0000289c   0x00000024   Code   RO         1249    i.Flash_Unlock      pct25vf.o
+    0x000028c0   0x0000002e   Code   RO          227    i.GetPskCrc         uart.o
+    0x000028ee   0x0000000e   Code   RO         1250    i.Get_Byte          pct25vf.o
+    0x000028fc   0x00000004   Code   RO          576    i.HardFault_Handler  interrupt.o
+    0x00002900   0x00000010   Code   RO          804    i.MakeCH0TimerOut   singlebus.o
+    0x00002910   0x00000010   Code   RO          805    i.MakeCH1TimerOut   singlebus.o
+    0x00002920   0x0000046c   Code   RO          480    i.MakeCallVoiceData  voice_play.o
+    0x00002d8c   0x00000004   Code   RO          577    i.MemManage_Handler  interrupt.o
+    0x00002d90   0x00000004   Code   RO          578    i.NMI_Handler       interrupt.o
+    0x00002d94   0x00000018   Code   RO          482    i.NVIC_DisableIRQ   voice_play.o
+    0x00002dac   0x00000018   Code   RO          579    i.NVIC_DisableIRQ   interrupt.o
+    0x00002dc4   0x00000018   Code   RO          228    i.NVIC_EnableIRQ    uart.o
+    0x00002ddc   0x00000018   Code   RO          483    i.NVIC_EnableIRQ    voice_play.o
+    0x00002df4   0x00000018   Code   RO          580    i.NVIC_EnableIRQ    interrupt.o
+    0x00002e0c   0x00000018   Code   RO          696    i.NVIC_EnableIRQ    timer.o
+    0x00002e24   0x00000018   Code   RO          746    i.NVIC_EnableIRQ    extint.o
+    0x00002e3c   0x00000028   Code   RO          229    i.NVIC_SetPriority  uart.o
+    0x00002e64   0x00000028   Code   RO          581    i.NVIC_SetPriority  interrupt.o
+    0x00002e8c   0x00000028   Code   RO          697    i.NVIC_SetPriority  timer.o
+    0x00002eb4   0x00000028   Code   RO          747    i.NVIC_SetPriority  extint.o
+    0x00002edc   0x00000040   Code   RO         1254    i.Poll_SO           pct25vf.o
+    0x00002f1c   0x0000002c   Code   RO         1085    i.ReadDS3231Status  ds3231.o
+    0x00002f48   0x000000a8   Code   RO         1086    i.ReadDS3231_time   ds3231.o
+    0x00002ff0   0x00000028   Code   RO         1256    i.Read_Status_Register  pct25vf.o
+    0x00003018   0x00000140   Code   RO          806    i.RemoveCallNod     singlebus.o
+    0x00003158   0x00000170   Code   RO          807    i.RestartIndication  singlebus.o
+    0x000032c8   0x00000016   Code   RO         1258    i.SST25VF_Lock      pct25vf.o
+    0x000032de   0x00000016   Code   RO         1259    i.SST25VF_UnLock    pct25vf.o
+    0x000032f4   0x00000020   Code   RO          808    i.SaveCallAddr      singlebus.o
+    0x00003314   0x00000038   Code   RO          809    i.SaveIndicationData  singlebus.o
+    0x0000334c   0x00000038   Code   RO         1260    i.Sector_Erase      pct25vf.o
+    0x00003384   0x000000c8   Code   RO          810    i.SingleBusInit     singlebus.o
+    0x0000344c   0x00000098   Code   RO          484    i.StartVoicePlay    voice_play.o
+    0x000034e4   0x00000058   Code   RO          485    i.StopVoicePlay     voice_play.o
+    0x0000353c   0x0000021c   Code   RO           27    i.SystemInit        system_lpc17xx.o
+    0x00003758   0x00000480   Code   RO          582    i.TIMER0_IRQHandler  interrupt.o
+    0x00003bd8   0x0000080c   Code   RO          811    i.TIMER1_IRQHandler  singlebus.o
+    0x000043e4   0x00000150   Code   RO          583    i.TIMER2_IRQHandler  interrupt.o
+    0x00004534   0x000003d4   Code   RO          812    i.TimerOutDeal      singlebus.o
+    0x00004908   0x00000158   Code   RO          584    i.UART0_IRQHandler  interrupt.o
+    0x00004a60   0x0000010c   Code   RO          585    i.UART1_IRQHandler  interrupt.o
+    0x00004b6c   0x000000fc   Code   RO          586    i.UART2_IRQHandler  interrupt.o
+    0x00004c68   0x0000014c   Code   RO          587    i.UART3_IRQHandler  interrupt.o
+    0x00004db4   0x00000c24   Code   RO          230    i.Usart2RecDeal     uart.o
+    0x000059d8   0x000000bc   Code   RO          231    i.Usart2SndCmd      uart.o
+    0x00005a94   0x0000011c   Code   RO          813    i.VoiceChannelCtx   singlebus.o
+    0x00005bb0   0x00000016   Code   RO         1263    i.W25QXX_Lock       pct25vf.o
+    0x00005bc6   0x00000016   Code   RO         1264    i.W25QXX_UnLock     pct25vf.o
+    0x00005bdc   0x00000030   Code   RO         1265    i.W25QXX_WRSR       pct25vf.o
+    0x00005c0c   0x0000000a   Code   RO          588    i.WDT_IRQHandler    interrupt.o
+    0x00005c16   0x00000002   PAD
+    0x00005c18   0x00000020   Code   RO         1267    i.WRDI              pct25vf.o
+    0x00005c38   0x00000024   Code   RO         1268    i.WREN              pct25vf.o
+    0x00005c5c   0x00000028   Code   RO         1271    i.WRSR              pct25vf.o
+    0x00005c84   0x0000002a   Code   RO         1272    i.Wait_Busy         pct25vf.o
+    0x00005cae   0x00000002   PAD
+    0x00005cb0   0x0000008c   Code   RO         1087    i.WriteDS3231_time  ds3231.o
+    0x00005d3c   0x00000028   Code   RO         1906    i.__0sprintf$8      mc_w.l(printf8.o)
+    0x00005d64   0x00000008   Code   RO         2019    i.__aeabi_errno_addr  mc_w.l(errno.o)
+    0x00005d6c   0x0000000e   Code   RO         2085    i.__scatterload_copy  mc_w.l(handlers.o)
+    0x00005d7a   0x00000002   Code   RO         2086    i.__scatterload_null  mc_w.l(handlers.o)
+    0x00005d7c   0x0000000e   Code   RO         2087    i.__scatterload_zeroinit  mc_w.l(handlers.o)
+    0x00005d8a   0x00000002   PAD
+    0x00005d8c   0x00000408   Code   RO         1911    i._printf_core      mc_w.l(printf8.o)
+    0x00006194   0x00000026   Code   RO         1912    i._printf_post_padding  mc_w.l(printf8.o)
+    0x000061ba   0x00000030   Code   RO         1913    i._printf_pre_padding  mc_w.l(printf8.o)
+    0x000061ea   0x0000000a   Code   RO         1915    i._sputc            mc_w.l(printf8.o)
+    0x000061f4   0x000000dc   Code   RO          382    i.channel_pin_config  global.o
+    0x000062d0   0x00000120   Code   RO         1088    i.check_black_light_status  ds3231.o
+    0x000063f0   0x00000088   Code   RO          814    i.check_ee_485brt   singlebus.o
+    0x00006478   0x000009ac   Code   RO         1538    i.check_esp8266     wpa_cli.o
+    0x00006e24   0x0000009c   Code   RO         1089    i.check_little_voice_status  ds3231.o
+    0x00006ec0   0x00000024   Code   RO         1539    i.crc32             wpa_cli.o
+    0x00006ee4   0x00000014   Code   RO          486    i.dac_pin_config    voice_play.o
+    0x00006ef8   0x0000000c   Code   RO         1090    i.delay_nop         ds3231.o
+    0x00006f04   0x00000058   Code   RO          750    i.eint2Init         extint.o
+    0x00006f5c   0x000000a0   Code   RO          815    i.eint3Isr          singlebus.o
+    0x00006ffc   0x00000028   Code   RO         1540    i.esp8266_pin_config  wpa_cli.o
+    0x00007024   0x00000020   Code   RO         1541    i.esp8266_rst       wpa_cli.o
+    0x00007044   0x0000000c   Code   RO          458    i.feed_wdt          wdt.o
+    0x00007050   0x00000030   Code   RO         1650    i.fm62429_pincfg    fm62429.o
+    0x00007080   0x00000050   Code   RO         1958    i.free              mc_w.l(malloc.o)
+    0x000070d0   0x00000018   Code   RO          958    i.get_checksum      tel.o
+    0x000070e8   0x0000000a   Code   RO          959    i.get_complement    tel.o
+    0x000070f2   0x00000038   Code   RO          960    i.get_odd_parity    tel.o
+    0x0000712a   0x00000002   PAD
+    0x0000712c   0x00000058   Code   RO         1542    i.get_right_ssid    wpa_cli.o
+    0x00007184   0x0000008c   Code   RO         1092    i.i2cread           ds3231.o
+    0x00007210   0x000000a4   Code   RO         1093    i.i2cwrite          ds3231.o
+    0x000072b4   0x00000104   Code   RO         1095    i.init_black_light_status  ds3231.o
+    0x000073b8   0x00000848   Code   RO         1543    i.init_esp8266      wpa_cli.o
+    0x00007c00   0x00000028   Code   RO          961    i.init_msm7512      tel.o
+    0x00007c28   0x00000084   Code   RO          962    i.init_mt8870       tel.o
+    0x00007cac   0x000000a0   Code   RO          816    i.init_parameter    singlebus.o
+    0x00007d4c   0x00000018   Code   RO          963    i.init_phone_key_buf  tel.o
+    0x00007d64   0x00000018   Code   RO         1544    i.init_pwd          wpa_cli.o
+    0x00007d7c   0x00000018   Code   RO          232    i.init_scon0_Rcvbuf  uart.o
+    0x00007d94   0x0000001c   Code   RO          233    i.init_scon1_Rcvbuf  uart.o
+    0x00007db0   0x00000018   Code   RO         1545    i.init_ssid         wpa_cli.o
+    0x00007dc8   0x00000044   Code   RO         1275    i.init_sst25vfxxx_spi  pct25vf.o
+    0x00007e0c   0x000000e8   Code   RO          964    i.init_tel          tel.o
+    0x00007ef4   0x0000004c   Code   RO          698    i.init_timer0       timer.o
+    0x00007f40   0x00000048   Code   RO          699    i.init_timer1       timer.o
+    0x00007f88   0x00000068   Code   RO          700    i.init_timer2       timer.o
+    0x00007ff0   0x000000ac   Code   RO          234    i.init_uart0        uart.o
+    0x0000809c   0x000000ac   Code   RO          235    i.init_uart1        uart.o
+    0x00008148   0x000000ac   Code   RO          236    i.init_uart2        uart.o
+    0x000081f4   0x000000ac   Code   RO          237    i.init_uart3        uart.o
+    0x000082a0   0x0000003c   Code   RO          487    i.init_voice_play_sequence  voice_play.o
+    0x000082dc   0x00000020   Code   RO          459    i.init_wdt          wdt.o
+    0x000082fc   0x00000060   Code   RO           52    i.led_pin_config    main.o
+    0x0000835c   0x00000900   Code   RO           53    i.main              main.o
+    0x00008c5c   0x0000019c   Code   RO          965    i.make_msm7512_data  tel.o
+    0x00008df8   0x0000006c   Code   RO         1959    i.malloc            mc_w.l(malloc.o)
+    0x00008e64   0x00000148   Code   RO          966    i.mt8870_received_treat  tel.o
+    0x00008fac   0x0000004c   Code   RO         1276    i.read_id           pct25vf.o
+    0x00008ff8   0x00000068   Code   RO          817    i.reset_parameter   singlebus.o
+    0x00009060   0x00000018   Code   RO          701    i.reset_start_timer1  timer.o
+    0x00009078   0x00000018   Code   RO          818    i.save_parameter    singlebus.o
+    0x00009090   0x00000110   Code   RO          967    i.send_msm7512_test  tel.o
+    0x000091a0   0x00000104   Code   RO         1651    i.set_play_voice_volue  fm62429.o
+    0x000092a4   0x00000104   Code   RO         1652    i.set_talk_voice_volue  fm62429.o
+    0x000093a8   0x0000000c   Code   RO          389    i.short_delay       global.o
+    0x000093b4   0x00000010   Code   RO          390    i.short_soft_delay  global.o
+    0x000093c4   0x00000026   Code   RO          391    i.soft_delay_half_ms  global.o
+    0x000093ea   0x00000002   PAD
+    0x000093ec   0x00000028   Code   RO         1277    i.spi_send_data_hard  pct25vf.o
+    0x00009414   0x00000054   Code   RO         1278    i.sst_fast_read     pct25vf.o
+    0x00009468   0x0000004c   Code   RO         1279    i.sst_read          pct25vf.o
+    0x000094b4   0x00000090   Code   RO         1280    i.sst_write         pct25vf.o
+    0x00009544   0x00000038   Code   RO         1097    i.start             ds3231.o
+    0x0000957c   0x00000058   Code   RO          968    i.start_tel_ring    tel.o
+    0x000095d4   0x0000003c   Code   RO         1098    i.stop              ds3231.o
+    0x00009610   0x00000044   Code   RO          969    i.stop_tel_ring     tel.o
+    0x00009654   0x00000114   Code   RO          970    i.tel_hungdown_treat  tel.o
+    0x00009768   0x00000084   Code   RO          971    i.tel_pickup_treat  tel.o
+    0x000097ec   0x00000018   Code   RO          241    i.uart1_send_byte   uart.o
+    0x00009804   0x0000001e   Code   RO          242    i.uart1_send_str    uart.o
+    0x00009822   0x00000020   Code   RO          243    i.uart1_send_str_len  uart.o
+    0x00009842   0x00000002   PAD
+    0x00009844   0x00000018   Code   RO          244    i.uart2_send_byte   uart.o
+    0x0000985c   0x0000001e   Code   RO          245    i.uart2_send_str    uart.o
+    0x0000987a   0x00000002   PAD
+    0x0000987c   0x00000018   Code   RO          247    i.uart3_send_byte   uart.o
+    0x00009894   0x000000a8   Code   RO          489    i.voice_continue_play_word  voice_play.o
+    0x0000993c   0x00000090   Code   RO          490    i.voice_play_treat  voice_play.o
+    0x000099cc   0x000000cc   Code   RO          491    i.voice_play_word   voice_play.o
+    0x00009a98   0x00000c2c   Code   RO         1548    i.wifi_rec_deal     wpa_cli.o
+    0x0000a6c4   0x00000084   Code   RO         1549    i.wifi_send_cmd     wpa_cli.o
+    0x0000a748   0x0000010c   Code   RO         1551    i.wifi_send_data    wpa_cli.o
+    0x0000a854   0x0000003c   Code   RO         1552    i.wifi_server_led_flash  wpa_cli.o
+    0x0000a890   0x00000140   Data   RO          493    .constdata          voice_play.o
+    0x0000a9d0   0x000006ef   Data   RO         1554    .constdata          wpa_cli.o
+    0x0000b0bf   0x00000081   Data   RO         2051    .constdata          mc_w.l(ctype_o.o)
+    0x0000b140   0x00000004   Data   RO         2052    .constdata          mc_w.l(ctype_o.o)
+    0x0000b144   0x00000030   Data   RO         2083    Region$$Table       anon$$obj.o
+
+
+    Execution Region RW_IRAM1 (Base: 0x10000000, Size: 0x00003414, Max: 0x00008000, ABSOLUTE)
+
+    Base Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x10000000   0x00003414   Zero   RW          492    .bss                voice_play.o
+
+
+    Execution Region RW_IRAM2 (Base: 0x2007c000, Size: 0x00000ca0, Max: 0x00008000, ABSOLUTE)
+
+    Base Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x2007c000   0x00000004   Data   RW           28    .data               system_lpc17xx.o
+    0x2007c004   0x00000039   Data   RW          250    .data               uart.o
+    0x2007c03d   0x00000001   PAD
+    0x2007c03e   0x0000000f   Data   RW          392    .data               global.o
+    0x2007c04d   0x00000003   PAD
+    0x2007c050   0x00000026   Data   RW          494    .data               voice_play.o
+    0x2007c076   0x00000002   PAD
+    0x2007c078   0x00000066   Data   RW          820    .data               singlebus.o
+    0x2007c0de   0x00000017   Data   RW          973    .data               tel.o
+    0x2007c0f5   0x00000003   PAD
+    0x2007c0f8   0x00000004   Data   RW         1100    .data               ds3231.o
+    0x2007c0fc   0x00000002   Data   RW         1281    .data               pct25vf.o
+    0x2007c0fe   0x00000002   PAD
+    0x2007c100   0x0000000b   Data   RW         1555    .data               wpa_cli.o
+    0x2007c10b   0x00000001   PAD
+    0x2007c10c   0x00000004   Data   RW         2017    .data               mc_w.l(mvars.o)
+    0x2007c110   0x00000004   Data   RW         2018    .data               mc_w.l(mvars.o)
+    0x2007c114   0x00000004   Data   RW         2022    .data               mc_w.l(errno.o)
+    0x2007c118   0x0000068a   Zero   RW          249    .bss                uart.o
+    0x2007c7a2   0x00000002   PAD
+    0x2007c7a4   0x000000b6   Zero   RW          819    .bss                singlebus.o
+    0x2007c85a   0x0000001e   Zero   RW          972    .bss                tel.o
+    0x2007c878   0x00000028   Zero   RW         1553    .bss                wpa_cli.o
+    0x2007c8a0   0x00000200   Zero   RW           18    HEAP                startup_lpc17xx.o
+    0x2007caa0   0x00000200   Zero   RW           17    STACK               startup_lpc17xx.o
+
+
+==============================================================================
+
+Image component sizes
+
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
+
+         0          0          0          0          0       3996   core_cm3.o
+      1820         98          0          4          0       7673   ds3231.o
+       152         22          0          0          0       1140   extint.o
+       568         18          0          0          0       1603   fm62429.o
+       286          8          0         15          0       2712   global.o
+      3098        414          0          0          0      13098   interrupt.o
+      2400        394          0          0          0      27012   main.o
+      1834        144          0          2          0      14220   pct25vf.o
+     12724        804          0        102        182      24324   singlebus.o
+        32          8        204          0       1024        856   startup_lpc17xx.o
+       540         62          0          4          0        687   system_lpc17xx.o
+      2226        184          0         23         30       9064   tel.o
+       340         44          0          0          0       2311   timer.o
+      4368        382          0         57       1674      16868   uart.o
+      2016        200        320         38      13332      14003   voice_play.o
+        44          4          0          0          0        706   wdt.o
+      8416       1574       1775         11         40      11858   wpa_cli.o
+
+    ----------------------------------------------------------------------
+     40884       4360       2347        268      16284     152131   Object Totals
+         0          0         48          0          0          0   (incl. Generated)
+        20          0          0         12          2          0   (incl. Padding)
+
+    ----------------------------------------------------------------------
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Library Member Name
+
+        28          0          0          0          0         68   _chval.o
+       158          0          0          0          0         92   _strtoul.o
+        26          0          0          0          0         80   atoi.o
+         8          4        133          0          0         68   ctype_o.o
+         0          0          0          0          0          0   entry.o
+         0          0          0          0          0          0   entry10a.o
+         0          0          0          0          0          0   entry11a.o
+         8          4          0          0          0          0   entry2.o
+         4          0          0          0          0          0   entry5.o
+         0          0          0          0          0          0   entry7b.o
+         0          0          0          0          0          0   entry8b.o
+         8          4          0          0          0          0   entry9a.o
+         8          4          0          4          0         68   errno.o
+        30          0          0          0          0          0   handlers.o
+        36          8          0          0          0         68   init.o
+        30          0          0          0          0         68   llshl.o
+        32          0          0          0          0         68   llushr.o
+       188         20          0          0          0        160   malloc.o
+        36          0          0          0          0         68   memcpya.o
+         0          0          0          8          0          0   mvars.o
+      1168         50          0          0          0        420   printf8.o
+        24          0          0          0          0         68   strcat.o
+        18          0          0          0          0         68   strcpy.o
+        36          0          0          0          0         80   strstr.o
+       112          0          0          0          0         88   strtol.o
+        98          0          0          0          0         92   uldiv.o
+
+    ----------------------------------------------------------------------
+      2064         94        133         12          0       1624   Library Totals
+         8          0          0          0          0          0   (incl. Padding)
+
+    ----------------------------------------------------------------------
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Library Name
+
+      2056         94        133         12          0       1624   mc_w.l
+
+    ----------------------------------------------------------------------
+      2064         94        133         12          0       1624   Library Totals
+
+    ----------------------------------------------------------------------
+
+==============================================================================
+
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
+
+     42948       4454       2480        280      16284     144551   Grand Totals
+     42948       4454       2480        280      16284     144551   ELF Image Totals
+     42948       4454       2480        280          0          0   ROM Totals
+
+==============================================================================
+
+    Total RO  Size (Code + RO Data)                45428 (  44.36kB)
+    Total RW  Size (RW Data + ZI Data)             16564 (  16.18kB)
+    Total ROM Size (Code + RO Data + RW Data)      45708 (  44.64kB)
+
+==============================================================================
+

@@ -1,0 +1,53 @@
+C51 COMPILER V8.08   PARAMETER                                                             09/25/2012 08:54:09 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE PARAMETER
+OBJECT MODULE PLACED IN parameter.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE parameter.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          unsigned char code ParameterData[26]={0x5a,     //初始化标志
+   2                                                                                  0x01,   //1-SelfSecAddr
+   3                                                                                  252,    //2-SelfRoomAddr
+   4                                                                                  0x01,   //3-SelfBedAddr:
+   5                                                                                  0xff,   //4-cSerialNum1
+   6                                                                                  0xff,   //5-cSerialNum2
+   7                                                                                  0xff,   //6-cSerialNum3
+   8                                                                                  0x10,   //7-cVersionHi
+   9                                                                                  0x0a,   //8-cVersionLo
+  10                                                                                  0x00,   //9-  电话号码第1个数字(从前住后）
+  11                                                                                  0x00,   //10-电话号码第2个数字
+  12                                                                                  0x00,   //11-电话号码第3个数字
+  13                                                                                  0x00,   //12-电话号码第4个数字
+  14                                                                                  0x00,   //13-电话号码第5个数字
+  15                                                                                  0x00,   //14-电话号码第6个数字
+  16                                                                                  0x00,   //15-电话号码第7个数字
+  17                                                                                  0x00,   //16-电话号码第8个数字
+  18                                                                                  0x00,   //17-电话号码第9个数字
+  19                                                                                  0x00,   //18-电话号码第10个数字
+  20                                                                                  0x00,   //19-电话号码第11个数字
+  21                                                                                  0x0f,   //20-电话号码结束符
+  22                                                                                  0x00,   //21-电话号码有效长度
+  23                                                                                  0x01,   //22-功能相关标志       
+  24                                                                                                  //bit0:  代表移动电话功能标志  0:关闭  1:打开
+  25                                                                                                  //bit1:  
+  26                                                                                  0x0e,   //23-cRingTime
+  27                                                                                  0x40,   //24-cTalkTime
+  28                                                                                  0x80    //25-cBroadTime                                                                                 
+  29                                                                                  };
+  30          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =     26    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

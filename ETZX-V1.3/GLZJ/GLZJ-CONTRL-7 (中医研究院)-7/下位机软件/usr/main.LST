@@ -1,0 +1,894 @@
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c LARGE BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *            湖南一特电子股份有限公司
+   4          *             All Rights Reserved
+   5          *              
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称         :main.c
+   9          *文件描述       :主程序
+  10          *创建人         :尹运同
+  11          *创建日期       :2009-4-9
+  12          *版本号           :V1.0
+  13          *注释         :         
+  14          *----------------------------------------------------------
+  15          *修改人       :
+  16          *修改日期       :
+  17          *版本号           :
+  18          *注释         :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_MAIN_
+  22          #include "config.h"
+  23          
+  24          uint16  xdata uiIsrTimerCount = ISR_INC_COUNT;          //系统时钟定时值
+  25          
+  26          //动态管理内存大小定义
+  27          #define MALLOC_MEM_SIZE   300
+  28          uint8       xdata       byMallocMem[MALLOC_MEM_SIZE];
+  29          //变量定义
+  30          STLocalControl  xdata       stLocalControl;
+  31          Queue DataQueue;//定义一个数据队列
+  32          
+  33          void LedInit(void);
+  34          void Delayms(uint16 ms);
+  35          
+  36          
+  37          bit bLedState=0;
+  38          bit bPowerEnState;
+  39          bit bPCState=0;
+  40          bit PowerSwPrePress=0;
+  41          bit PowerSwPressed=0;
+  42          bit PowerSwPreUp=1;
+  43          bit PowerSwUped=1;
+  44          
+  45          bit bKeyDownTreat=0;
+  46          
+  47          
+  48          uint8 mSecond=0;
+  49          uint8 Second=0;
+  50          
+  51          void TIMER1Int(void) interrupt T1_INTNO   //3号中断
+  52          {
+  53   1        ET1=0;
+  54   1      }
+  55          
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 2   
+
+  56          #if STC12C5A==true
+  57          void AdcInt(void) interrupt ADC_INTNO   //5号中断
+  58          {
+  59   1        EADC=0;
+  60   1      }
+  61          
+  62          void LvdInt(void) interrupt LVD_INTNO   //6号中断
+  63          {
+  64   1        ELVD=0;
+  65   1      }
+  66          
+  67          //void PcaInt(void) interrupt PCA_INTNO   //7号中断
+  68          //{
+  69          //  CMOD  &=  !ECF;     //禁止 PCA计数器溢出中断   
+  70          //  CCAPM0  &=  !PCA0_ECCF;   //禁止CCF0中断
+  71          //  CCAPM1  &=  !PCA1_ECCF;   //禁止CCF1中断  
+  72          //}
+  73          
+  74          void SpiInt(void) interrupt SPI_INTNO   //9号中断
+  75          {
+  76   1        IE2 &= ~ESPI;
+  77   1      }
+  78          
+  79          #endif
+  80          
+  81          
+  82          void Mp3Rst(void)
+  83          {
+  84   1        MP3_RST =1;   //高电平复位
+  85   1        Delayms(1000);
+  86   1        MP3_RST =0; 
+  87   1      }
+  88          
+  89          
+  90          /*---------------------------------------------------------------------------
+  91          函数原型: void Delayms(uint16 ms)
+  92          参数说明: ms--需要延时的值
+  93          返 回 值: 无
+  94          函数功能：延时程序(对于18.432M晶振单指令周期延时1mS)
+  95          ----------------------------------------------------------------------------*/
+  96          void Delayms(uint16 ms)   
+  97          {
+  98   1         uint16 xdata i;
+  99   1         for(;ms!=0;ms--)
+ 100   1          for(i=900;i!=0;i--);
+ 101   1      }
+ 102          
+ 103          
+ 104          uint8 ParaCrcCheck(uint16 addr)
+ 105          {
+ 106   1        uint8 crcResult=0;
+ 107   1        uint8 crcData =0;
+ 108   1        uint8 i;
+ 109   1        uint8 paraData;
+ 110   1        EnableIAP(IAP_READ);
+ 111   1        for(i=0;i<sizeof(STEepromCfgData)-1;i++)
+ 112   1        {
+ 113   2          paraData = IapReadByte(addr);
+ 114   2          crcResult +=paraData; /*IapReadByte(addr)*/;
+ 115   2          addr++;
+ 116   2        }
+ 117   1        crcData = IapReadByte(addr);
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 3   
+
+ 118   1        DisableIAP();
+ 119   1        
+ 120   1        if(crcData == crcResult) return 1;
+ 121   1        else return 0;
+ 122   1      }
+ 123          
+ 124          
+ 125          
+ 126          uint8 CalcParaCrc(void)
+ 127          {
+ 128   1        uint8 crcResult=0;
+ 129   1        uint8 i;
+ 130   1        uint8 *addr= &(stLocalControl.stEepromCfgData.byInitFlag);
+ 131   1        EnableIAP(IAP_READ);
+ 132   1        for(i=0;i<sizeof(STEepromCfgData)-1;i++)
+ 133   1        {
+ 134   2          crcResult += *addr;
+ 135   2          addr++;
+ 136   2        }
+ 137   1        DisableIAP();
+ 138   1        return crcResult;
+ 139   1      }
+ 140          
+ 141          
+ 142          
+ 143          /**********************************************************
+ 144          *函数名称     :ReadParameter  
+ 145          *函数描述         :将Flash中的配置数据读入到内存中
+ 146          *输入参数       :
+ 147          *返回值       :
+ 148          *全局变量     :stLocalControl
+ 149          *调用模块       :EnableIAP,IapReadByte,DisableIAP
+ 150          ***********************************************************
+ 151          *创建人           :尹运同
+ 152          *创建日期     :2008-9-22
+ 153          ***********************************************************
+ 154          *修改人         :
+ 155          *修改日期       :
+ 156          *注释           :
+ 157          **********************************************************/
+ 158          void ReadParameter(uint16 addr)
+ 159          {
+ 160   1      
+ 161   1        uint8 i=0;
+ 162   1        uint8 *pbyData = &(stLocalControl.stEepromCfgData.byInitFlag);
+ 163   1        
+ 164   1        EnableIAP(IAP_READ); 
+ 165   1        for(i=0;i<sizeof(STEepromCfgData);i++)
+ 166   1        {
+ 167   2          *pbyData = IapReadByte(addr);
+ 168   2          pbyData++;
+ 169   2          addr++;
+ 170   2        }
+ 171   1        DisableIAP();
+ 172   1      
+ 173   1      }
+ 174          
+ 175          
+ 176          void SaveParameter(uint16 addr)
+ 177          {
+ 178   1        uint8 i;
+ 179   1        uint16 addr_temp=addr;
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 4   
+
+ 180   1        uint8 *pbyData;
+ 181   1        uint8 readtimes;
+ 182   1        uint8 writetimes;
+ 183   1        uint8 crc_temp;
+ 184   1      
+ 185   1        stLocalControl.stEepromCfgData.byCrc = CalcParaCrc();
+ 186   1        WDT_CONTR = 0x3d; //喂狗
+ 187   1        writetimes =3;
+ 188   1        do
+ 189   1        {
+ 190   2          EnableIAP(IAP_ERASE);
+ 191   2          IapErase(addr); 
+ 192   2      
+ 193   2          
+ 194   2          EnableIAP(IAP_WRITE); 
+ 195   2          addr = addr_temp;
+ 196   2          pbyData=&(stLocalControl.stEepromCfgData.byInitFlag);
+ 197   2          for(i=0;i<sizeof(STEepromCfgData);i++)
+ 198   2          {
+ 199   3            IapWriteByte(addr,*pbyData);
+ 200   3            pbyData++;
+ 201   3            addr++;
+ 202   3          }
+ 203   2      
+ 204   2          //地址紧跟前一数据区
+ 205   2          pbyData=&(stLocalControl.stEepromCfgData.byInitFlag);
+ 206   2          for(i=0;i<sizeof(STEepromCfgData);i++)
+ 207   2          {
+ 208   3            IapWriteByte(addr,*pbyData);
+ 209   3            pbyData++;
+ 210   3            addr++;
+ 211   3          }
+ 212   2          
+ 213   2      
+ 214   2          EnableIAP(IAP_READ);
+ 215   2          readtimes=3;
+ 216   2          do
+ 217   2          {
+ 218   3            pbyData=&(stLocalControl.stEepromCfgData.byInitFlag);
+ 219   3            addr = addr_temp;
+ 220   3      
+ 221   3      
+ 222   3            for(i=0;i<(sizeof(STEepromCfgData))*2;)
+ 223   3            {
+ 224   4              if(*pbyData != IapReadByte(addr)) break;
+ 225   4              
+ 226   4              pbyData++;
+ 227   4              addr++;
+ 228   4              i++;
+ 229   4              if(i== sizeof(STEepromCfgData)) pbyData=&(stLocalControl.stEepromCfgData.byInitFlag);
+ 230   4            } 
+ 231   3      
+ 232   3            if(i>= (sizeof(STEepromCfgData)*2))
+ 233   3            {//写进去的数据与读出来的数据相同
+ 234   4              break;
+ 235   4            }
+ 236   3          
+ 237   3          }while(--readtimes);
+ 238   2      
+ 239   2          if(readtimes)
+ 240   2          {
+ 241   3            break;  //相同
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 5   
+
+ 242   3          }
+ 243   2        }while(--writetimes);
+ 244   1      
+ 245   1        
+ 246   1        DisableIAP();
+ 247   1      }
+*** WARNING C280 IN LINE 183 OF MAIN.C: 'crc_temp': unreferenced local variable
+ 248          
+ 249          
+ 250          
+ 251          /**********************************************************
+ 252          *函数名称     :ParameterInit  
+ 253          *函数描述         :参数初始化
+ 254          *输入参数       :
+ 255          *返回值       :
+ 256          *全局变量     :
+ 257          *调用模块       :
+ 258          ***********************************************************
+ 259          *创建人           :尹运同
+ 260          *创建日期     :2009-4-6
+ 261          ***********************************************************
+ 262          *修改人         :
+ 263          *修改日期       :
+ 264          *注释           :
+ 265          **********************************************************/
+ 266          void ParameterInit(void)
+ 267          {
+ 268   1        uint8 flagData;
+ 269   1        uint8 readtimes=3;
+ 270   1      CheckIapSec0: 
+ 271   1      
+ 272   1        do
+ 273   1        {
+ 274   2      
+ 275   2          if(ParaCrcCheck(IAP0_ADDR) ==1)  break;
+ 276   2            
+ 277   2      
+ 278   2        }while(--readtimes);
+ 279   1      
+ 280   1      
+ 281   1        if(readtimes)
+ 282   1        {//第一块校验和正确
+ 283   2      
+ 284   2          EnableIAP(IAP_READ);
+ 285   2          flagData = IapReadByte(IAP0_ADDR);
+ 286   2          DisableIAP();
+ 287   2          
+ 288   2          if(flagData == INIT_FLAG)
+ 289   2          {//数据已经初始化完毕了,读取数据参数
+ 290   3            ReadParameter(IAP0_ADDR);
+ 291   3            return;
+ 292   3          }
+ 293   2          else  goto CheckIapSec1;  
+ 294   2        }
+ 295   1      
+ 296   1        else
+ 297   1        {
+ 298   2      CheckIapSec1: 
+ 299   2          readtimes=3;  
+ 300   2          do
+ 301   2          {
+ 302   3            if(ParaCrcCheck(IAP0_ADDR+sizeof(STEepromCfgData)) ==1)  break;
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 6   
+
+ 303   3              
+ 304   3          }while(--readtimes);
+ 305   2        
+ 306   2        
+ 307   2          if(readtimes)
+ 308   2          {//第二块校验和正确
+ 309   3            EnableIAP(IAP_READ);
+ 310   3            flagData = IapReadByte(IAP0_ADDR+sizeof(STEepromCfgData));
+ 311   3            DisableIAP();
+ 312   3            
+ 313   3            if(flagData == INIT_FLAG)
+ 314   3            {//数据已经初始化完毕了,读取数据参数
+ 315   4              ReadParameter(IAP0_ADDR+sizeof(STEepromCfgData));
+ 316   4              SaveParameter(IAP0_ADDR);
+ 317   4              return;
+ 318   4            }
+ 319   3            else  goto UseInitValue;  
+ 320   3          }
+ 321   2          else
+ 322   2          {//第一块和第二块存储区3次读取都失败或者未初始化，应用初始值，但不保存到内部EEPROM中去
+ 323   3      UseInitValue:
+ 324   3            stLocalControl.stEepromCfgData.byInitFlag = INIT_FLAG;
+ 325   3            stLocalControl.stEepromCfgData.bySelfSecAddr = 0x01;
+ 326   3            stLocalControl.stEepromCfgData.bySelfRoomAddr = GLZJ_ADDR2;
+ 327   3            stLocalControl.stEepromCfgData.bySelfBedAddr = GLZJ_ADDR3;
+ 328   3            stLocalControl.stEepromCfgData.uiRs485Brt  = 57600;   //默认波特率57600
+ 329   3            stLocalControl.stEepromCfgData.byCrc = CalcParaCrc();
+ 330   3      
+ 331   3          } 
+ 332   2        }
+ 333   1        DisableIAP();
+ 334   1      }
+*** WARNING C280 IN LINE 270 OF MAIN.C: 'CheckIapSec0': unreferenced label
+ 335          
+ 336          
+ 337          void PCATimerInt(void) interrupt 7
+ 338          {
+ 339   1        EA=0;
+ 340   1      
+ 341   1      #if STC12C5A==1
+ 342   1          uiIsrTimerCount+=ISR_INC_COUNT;
+ 343   1          CCAP0L = (uint8)uiIsrTimerCount;
+ 344   1          CCAP0H = (uint8)(uiIsrTimerCount>>8);
+ 345   1          CCF0=0;
+ 346   1      #endif
+ 347   1        
+ 348   1        
+ 349   1      #if USE_COM0==1
+ 350   1          if(stUsartCfg[0].byRecTimeout) 
+ 351   1          {
+ 352   2            stUsartCfg[0].byRecTimeout--;
+ 353   2          }
+ 354   1      #endif
+ 355   1        
+ 356   1      #if USE_COM1==1
+ 357   1          if(stUsartCfg[1].byRecTimeout) 
+ 358   1          {
+ 359   2            stUsartCfg[1].byRecTimeout--;
+ 360   2            if(stUsartCfg[1].byRecTimeout ==0)
+ 361   2            {
+ 362   3              stUsartCfg[1].byRecState=0;
+ 363   3              stUsartCfg[1].uiRecPosition=0;    
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 7   
+
+ 364   3            }
+ 365   2          }
+ 366   1      #endif
+ 367   1      
+ 368   1      
+ 369   1        TimerOutDeal();
+ 370   1      
+ 371   1        if(POWER_SW ==0)
+ 372   1        {
+ 373   2          if(PowerSwPrePress==0)   PowerSwPrePress=1;//按键初步按下
+ 374   2          else 
+ 375   2          {//已初步按下
+ 376   3            if(PowerSwPressed==0)
+ 377   3            {
+ 378   4              PowerSwPressed=1;
+ 379   4              bKeyDownTreat=1;    //按键消抖后按下
+ 380   4      
+ 381   4              PowerSwPreUp=0;
+ 382   4              PowerSwUped=0;
+ 383   4            }
+ 384   3            else
+ 385   3            {//按键已按下
+ 386   4            }
+ 387   3          }
+ 388   2        }
+ 389   1      
+ 390   1      
+ 391   1        else
+ 392   1        {
+ 393   2          if(PowerSwPreUp==0)  PowerSwPreUp=1;
+ 394   2          else 
+ 395   2          {//按键已初步弹起
+ 396   3            if(PowerSwUped==0)
+ 397   3            {
+ 398   4              PowerSwUped=1;
+ 399   4              
+ 400   4              PowerSwPrePress=0;
+ 401   4              PowerSwPressed=0;       
+ 402   4            }
+ 403   3            else 
+ 404   3            {//按键消抖后已弹起
+ 405   4      
+ 406   4            }
+ 407   3          }
+ 408   2        }
+ 409   1      
+ 410   1        if(++mSecond == 50)
+ 411   1        {
+ 412   2          mSecond=0;
+ 413   2          if(++Second ==30)
+ 414   2          {
+ 415   3            Second=0;
+ 416   3            DTimeState |=bDataTimeUpdate;
+ 417   3                  
+ 418   3          }
+ 419   2        }
+ 420   1        EA=1;
+ 421   1      }
+ 422          
+ 423          /**********************************************************
+ 424          *函数名称     :IoInit 
+ 425          *函数描述         :系统IO口初始化
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 8   
+
+ 426          *输入参数       :
+ 427          *返回值       :
+ 428          *全局变量     :
+ 429          *调用模块       :
+ 430          ***********************************************************
+ 431          *创建人           :尹运同
+ 432          *创建日期     :2009-4-6
+ 433          ***********************************************************
+ 434          *修改人         :
+ 435          *修改日期       :
+ 436          *注释           :
+ 437          **********************************************************/
+ 438          void IoInit(void)
+ 439          {
+ 440   1        //IO口配置
+ 441   1        //STC12C52/5A系列:M0=0,M1=0:准双向，M0=0,M1=1:高阻，M0=1,M1=0:推挽，M0=1,M1=1:开漏
+ 442   1        
+ 443   1      //KBC,KBD 推挽输出
+ 444   1        P5M0 |= Bin(0,0,0,0,0,0,1,1);
+ 445   1        P5M1 &= (~Bin(0,0,0,0,0,0,1,1));
+ 446   1      
+ 447   1      //KGB推挽输出
+ 448   1        P2M0 |= Bin(0,0,1,0,0,0,0,0);
+ 449   1        P2M1 &= (~Bin(0,0,1,0,0,0,0,0));
+ 450   1      
+ 451   1        
+ 452   1        KBC =0;
+ 453   1        KBD =0;
+ 454   1        KGB =0;
+ 455   1        RE0 =1;     //禁止RS485接收
+ 456   1      //  DE0 =0;     //禁止RS485发送
+ 457   1        DE0 =1;
+ 458   1        SS  =1;
+ 459   1      
+ 460   1      //P5.3推挽输出    用于控制喇叭时的负载
+ 461   1        P5M0 |=   Bin(0,0,0,0,1,0,0,0);
+ 462   1        P5M1 &= (~Bin(0,0,0,0,1,0,0,0));
+ 463   1        GB_FZ=0;
+ 464   1      
+ 465   1      //p1.7 推挽输出            用于24V电源控制
+ 466   1        P1M0 |=   Bin(1,0,0,0,0,0,0,0);
+ 467   1        P1M1 &= (~Bin(1,0,0,0,0,0,0,0));
+ 468   1        POWER_EN=1;     //24v电源打开
+ 469   1        bPowerEnState=1;    //24V电源状态标志置1  
+ 470   1      
+ 471   1      
+ 472   1        POWER_SW = 1;                     //按键设置成弱上拉
+ 473   1      }
+ 474          /**********************************************************
+ 475          *函数名称     :Init 
+ 476          *函数描述         :软件数据初始化函数
+ 477          *输入参数       :
+ 478          *返回值       :
+ 479          *全局变量     :
+ 480          *调用模块       :
+ 481          ***********************************************************
+ 482          *创建人           :尹运同
+ 483          *创建日期     :2009-4-6
+ 484          ***********************************************************
+ 485          *修改人         :
+ 486          *修改日期       :
+ 487          *注释           :
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 9   
+
+ 488          **********************************************************/
+ 489          void Init(void)
+ 490          { 
+ 491   1        //状态初始化
+ 492   1        memset(&(stLocalControl.byWaitAckTimeLanding),0x00,sizeof(STLocalControl));
+ 493   1        
+ 494   1        stLocalControl.uiDevState = FLAG_LANDING; 
+ 495   1        stLocalControl.stIndicationData.pstNext = NULL;
+ 496   1        stLocalControl.stVoicePlay.byISD1700State = 0x00;
+ 497   1      
+ 498   1      #if STC12C5A==1
+ 499   1      //  CMOD = 0x02;  //PCA 定时FOSC/2 
+ 500   1        CMOD = 0x00;  //PCA 定时FOSC/12 
+ 501   1        CCON = 0x00;  
+ 502   1        CL = 0x00;
+ 503   1        CH = 0x00;
+ 504   1        CCAP0L = (uint8)uiIsrTimerCount;
+ 505   1        CCAP0H = (uint8)(uiIsrTimerCount>>8);
+ 506   1        //设置PCA模块0为16位软件定时器,ECCF0=1允许PCA模块0中断
+ 507   1        CCAPM0 = 0x49;
+ 508   1        
+ 509   1        //启动PCA计数器计数
+ 510   1        CR = 1; 
+ 511   1      
+ 512   1        //复位看门狗                                                                                             
+             -                                                                                                                        
+             -                                                                
+ 513   1      //  WDT_CONTR = 0x3e;     //看门狗定时2.5s@20M
+ 514   1      #endif
+ 515   1        //IO口初始化
+ 516   1        IoInit();
+ 517   1      
+ 518   1        //mp3_rst mp3控制芯片初始化
+ 519   1        Mp3Rst();
+ 520   1              
+ 521   1        //电源灯、状态灯初始化
+ 522   1        LedInit();
+ 523   1        //单总线初始化    
+ 524   1        SingleBusInit();
+ 525   1        EA=1;
+ 526   1        Delayms(200);
+ 527   1        //其他参数初始化
+ 528   1        ParameterInit();
+ 529   1      
+ 530   1        //串口初始化
+ 531   1        Usart0Init(stLocalControl.stEepromCfgData.uiRs485Brt);
+ 532   1        Usart1Init();
+ 533   1      
+ 534   1        //OSMemInit(byMallocMem,MALLOC_MEM_SIZE);
+ 535   1        init_mempool(byMallocMem,MALLOC_MEM_SIZE);    //初始化内存堆
+ 536   1        //链表初始化
+ 537   1        stLocalControl.stCallPointer.pstHead = 
+ 538   1        stLocalControl.stCallPointer.pstTail = NULL;
+ 539   1      
+ 540   1      //  AddCallNod((pSTBusFreq)(&(stLocalControl.stBusFreq.bySndSecAddr)));
+ 541   1      
+ 542   1      
+ 543   1        MakeCH0TimerOut(1, 0);
+ 544   1      
+ 545   1        stLocalControl.byChar =0x00;  //系统忙
+ 546   1        Usart1SndCmd(CMD_SYSTEM_STATE,1,&(stLocalControl.byChar));  //报告系统忙状态
+ 547   1      
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 10  
+
+ 548   1      
+ 549   1      
+ 550   1       //复位看门狗                                                                                                                                           
+ 551   1        WDT_CONTR = 0x3e;    //看门狗定时2.5s@20M
+ 552   1      
+ 553   1      }
+ 554          
+ 555          
+ 556          /**********************************************************
+ 557          *函数名称     :main 
+ 558          *函数描述         :系统主函数,整个软件的入口
+ 559          *输入参数       :
+ 560          *返回值       :   
+ 561          *全局变量     :
+ 562          *调用模块       :
+ 563          ***********************************************************
+ 564          *创建人           :尹运同
+ 565          *创建日期     :2009-1-4
+ 566          ***********************************************************
+ 567          *修改人         :
+ 568          *修改日期       :
+ 569          *注释           :
+ 570          **********************************************************/
+ 571          int main(void)
+ 572          { 
+ 573   1        P4SW = (P44EN|P45EN|P46EN); //用作IO 口
+ 574   1        Delayms(100);
+ 575   1      
+ 576   1        //系统硬件初始化
+ 577   1        Init(); 
+ 578   1      
+ 579   1        P8563_Read();
+ 580   1        byMinute=stTime.byMinute;
+ 581   1        stLocalControl.stBusFreq.bySndSecAddr = stTime.bySecond;
+ 582   1        stLocalControl.stBusFreq.bySndRoomAddr= stTime.byMinute;
+ 583   1        stLocalControl.stBusFreq.bySndBedAddr = stTime.byHour;
+ 584   1        stLocalControl.stBusFreq.byCmd    =CMD_DATE_SEND;
+ 585   1        stLocalControl.stBusFreq.byRecSecAddr = stTime.byDay;
+ 586   1        stLocalControl.stBusFreq.byRecRoomAddr= stTime.byMonth;
+ 587   1        stLocalControl.stBusFreq.byRecBedAddr = stTime.byYear;
+ 588   1        Bus0OutputData(&(stLocalControl.stBusFreq.bySndSecAddr));
+ 589   1      
+ 590   1        while(1)
+ 591   1        {
+ 592   2          //复位看门狗                                                                                            
+             -                                                                                                                        
+             -                                                                 
+ 593   2          WDT_CONTR = 0x3e;     //看门狗定时2.5s@20M       
+ 594   2          if(bUsart1RecFinish) Usart1RecDeal();
+ 595   2      
+ 596   2          if(bBus0RecFinish)                  //总线0收到数据
+ 597   2          {   
+ 598   3            Bus0RecDeal();
+ 599   3          }
+ 600   2          
+ 601   2          if(bBus0SendFinish)                 //总线0发送完数据帧
+ 602   2          {
+ 603   3            Bus0SendFinishDeal();   
+ 604   3          } 
+ 605   2          if(bBus1RecFinish)                  //总线1收到数据
+ 606   2          {   
+ 607   3            Bus1RecDeal();  
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 11  
+
+ 608   3          }
+ 609   2          if(bBus1SendFinish)                 //总线1发送完数据帧
+ 610   2          {
+ 611   3            Bus1SendFinishDeal();   
+ 612   3          }     
+ 613   2      
+ 614   2          if(bKeyDownTreat)
+ 615   2          {
+ 616   3            bKeyDownTreat=0;
+ 617   3            KeyDown();
+ 618   3          }
+ 619   2      
+ 620   2          if(DTimeState&bCH0TimerOutDeal)
+ 621   2          {
+ 622   3            DTimeState &= ~bCH0TimerOutDeal;
+ 623   3            if(stLocalControl.uiDevState & FLAG_LANDING)
+ 624   3            { //上电登记状态，复位所有分机            
+ 625   4              stLocalControl.stBusFreq.bySndSecAddr = 0x00;
+ 626   4              stLocalControl.stBusFreq.bySndRoomAddr = 0x00;
+ 627   4              stLocalControl.stBusFreq.bySndBedAddr = 0x00;
+ 628   4              stLocalControl.stBusFreq.byCmd = CMD_POWER_ON;
+ 629   4              stLocalControl.stBusFreq.byRecSecAddr = 0xff;
+ 630   4              stLocalControl.stBusFreq.byRecRoomAddr = 0xff;
+ 631   4              stLocalControl.stBusFreq.byRecBedAddr = 0xff;
+ 632   4              Bus0OutputData(&(stLocalControl.stBusFreq.bySndSecAddr));
+ 633   4      
+ 634   4              Usart1SndCmd(CMD_LANDING,0x00,NULL);
+ 635   4              stLocalControl.byWaitAckTimeLanding = 250;  //等待5S
+ 636   4              
+ 637   4            }
+ 638   3            else if(stLocalControl.uiDevState & (FLAG_WAIT_ACK|FLAG_WAIT_LISTEN|
+ 639   3              FLAG_TALK|FLAG_BROADCAST))
+ 640   3            { //等待应答超时到
+ 641   4              if((stLocalControl.uiDevState & (FLAG_WAIT_ACK|FLAG_WAIT_LISTEN))&&
+ 642   4                ((byUsart1RecBuf[CMD_POSITION] ==CMD_INFUSION_ANSWER)||(byUsart1RecBuf[CMD_POSITION] ==CMD_COMM_CALL)
+             -) )
+ 643   4              {//如果在等待应答或者等待接听状态下,且串口中的命令为处理输液呼叫或普通呼叫,将发操作不成功码
+ 644   5                Usart1SndResult(byUsart1RecBuf[CMD_POSITION],FALSE);
+ 645   5                byUsart1RecBuf[CMD_POSITION] =0x00;   //清空此数据
+ 646   5                
+ 647   5              }       
+ 648   4              stLocalControl.stBusFreq.bySndSecAddr = stLocalControl.stCallAddr.bySndSecAddr;
+ 649   4              stLocalControl.stBusFreq.bySndRoomAddr = stLocalControl.stCallAddr.bySndRoomAddr;
+ 650   4              stLocalControl.stBusFreq.bySndBedAddr = stLocalControl.stCallAddr.bySndBedAddr;
+ 651   4              stLocalControl.stBusFreq.byCmd = CMD_SYSTERM_RESET;
+ 652   4              stLocalControl.stBusFreq.byRecSecAddr = stLocalControl.stCallAddr.byRecSecAddr;
+ 653   4              stLocalControl.stBusFreq.byRecRoomAddr = stLocalControl.stCallAddr.byRecRoomAddr;
+ 654   4              stLocalControl.stBusFreq.byRecBedAddr = stLocalControl.stCallAddr.byRecBedAddr;;          
+ 655   4              Bus0OutputData(&(stLocalControl.stBusFreq.bySndSecAddr));
+ 656   4            }
+ 657   3            else if(stLocalControl.uiDevState & FLAG_INDICATION)
+ 658   3            {
+ 659   4      /*          //向语音模块发送停止报号命令
+ 660   4              stLocalControl.stBusFreq.byCmd = CMD_STOP_VOICE_PLAY;
+ 661   4              Bus1OutputData(&(stLocalControl.stBusFreq.bySndSecAddr));
+ 662   4              if(0x00 == (stLocalControl.uiDevState & FLAG_STOP_EXIST))
+ 663   4              { //没有正在发送停止命令
+ 664   4      //            stLocalControl.stVoicePlay.byISD1700State |= ISD_TIME_OVER;
+ 665   4      
+ 666   4                stLocalControl.stBusFreq.byCmd = CMD_STOP_INDICATION;           
+ 667   4                if(true == Bus0OutputData(&(stLocalControl.stBusFreq.bySndSecAddr)))
+ 668   4                {
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 12  
+
+ 669   4                  stLocalControl.uiDevState |= FLAG_STOP_EXIST;
+ 670   4                }           
+ 671   4              }
+ 672   4      
+ 673   4              */
+ 674   4            }       
+ 675   3          }
+ 676   2          if(DTimeState &bCH1TimerOutDeal)
+ 677   2          {
+ 678   3              DTimeState &= ~bCH1TimerOutDeal;
+ 679   3            stLocalControl.stBusFreq.bySndSecAddr = stLocalControl.stCH1CallAddr.bySndSecAddr;
+ 680   3            stLocalControl.stBusFreq.bySndRoomAddr = stLocalControl.stCH1CallAddr.bySndRoomAddr;
+ 681   3            stLocalControl.stBusFreq.bySndBedAddr = stLocalControl.stCH1CallAddr.bySndBedAddr;
+ 682   3            stLocalControl.stBusFreq.byCmd = CMD_CHANNEL_CLOSE;
+ 683   3            stLocalControl.stBusFreq.byRecSecAddr = stLocalControl.stCH1CallAddr.byRecSecAddr;
+ 684   3            stLocalControl.stBusFreq.byRecRoomAddr = stLocalControl.stCH1CallAddr.byRecRoomAddr;
+ 685   3            stLocalControl.stBusFreq.byRecBedAddr = stLocalControl.stCH1CallAddr.byRecBedAddr;      
+ 686   3            Bus0OutputData(&(stLocalControl.stBusFreq.bySndSecAddr));   
+ 687   3          }
+ 688   2      
+ 689   2          if(DTimeState & bDataTimeUpdate)
+ 690   2          {
+ 691   3            DTimeState &= ~bDataTimeUpdate;
+ 692   3            P8563_Read();
+ 693   3            if(byMinute!=stTime.byMinute)
+ 694   3            {
+ 695   4              stTime.bySecond &= 0x7f;  //bit7
+ 696   4              if(stTime.bySecond < 0x60)  
+ 697   4              {
+ 698   5                stTime.byMinute &= 0x7f;  //bit7
+ 699   5                if(stTime.byMinute < 0x60)  
+ 700   5                {
+ 701   6                  stTime.byHour &= 0x3f;    //bit7 bit6
+ 702   6                  if(stTime.byHour < 0x24)    
+ 703   6                  {
+ 704   7                    stTime.byDay &= 0x3f;   //bit7 bit6
+ 705   7                    if(stTime.byDay < 0x32)     
+ 706   7                    {             
+ 707   8                      stTime.byMonth &= 0x1f;   //bit7... bit5
+ 708   8                      if(stTime.byMonth < 0x13)     
+ 709   8                      {
+ 710   9                        if(stTime.byYear <= 0x99)  
+ 711   9                        {
+ 712  10                          byMinute=stTime.byMinute;
+ 713  10                          stLocalControl.stBusFreq.bySndSecAddr = stTime.bySecond;
+ 714  10                          stLocalControl.stBusFreq.bySndRoomAddr= stTime.byMinute;
+ 715  10                          stLocalControl.stBusFreq.bySndBedAddr = stTime.byHour;
+ 716  10                          stLocalControl.stBusFreq.byCmd    =CMD_DATE_SEND;
+ 717  10                          stLocalControl.stBusFreq.byRecSecAddr = stTime.byDay;
+ 718  10                          stLocalControl.stBusFreq.byRecRoomAddr= stTime.byMonth;
+ 719  10                          stLocalControl.stBusFreq.byRecBedAddr = stTime.byYear;
+ 720  10                          Bus0OutputData(&(stLocalControl.stBusFreq.bySndSecAddr)); 
+ 721  10                        }
+ 722   9                      }
+ 723   8                    }
+ 724   7                  }
+ 725   6                }
+ 726   5              }
+ 727   4            }   
+ 728   3          
+ 729   3          }
+ 730   2      
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 13  
+
+ 731   2          if(DTimeState &bWaitCommAckDTime)
+ 732   2          {
+ 733   3            DTimeState &= ~bWaitCommAckDTime;
+ 734   3            stLocalControl.uiDevState &= ~(FLAG_WAIT_COMM_ACK);
+ 735   3            Usart1SndResult(byUsart1RecBuf[CMD_POSITION],FALSE);
+ 736   3            
+ 737   3          }
+ 738   2      
+ 739   2          if(DTimeState & bWaitRS485AckDTime)
+ 740   2          {
+ 741   3            DTimeState &= ~bWaitRS485AckDTime;
+ 742   3            Usart1SndRS485Result(byUsart0SndBuf[CMD_POSITION],FALSE);
+ 743   3          }
+ 744   2      
+ 745   2            if(DTimeState &bWaitAckTimeLand)
+ 746   2          { 
+ 747   3            DTimeState &= ~bWaitAckTimeLand;
+ 748   3            stLocalControl.uiDetectPcTime = 30000;  //侦听PC机间隔10分钟
+ 749   3            stLocalControl.stBusFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 750   3            stLocalControl.stBusFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 751   3            stLocalControl.stBusFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 752   3            stLocalControl.stBusFreq.byCmd = CMD_PC_CLOSE;
+ 753   3            stLocalControl.stBusFreq.byRecSecAddr = 0xff;
+ 754   3            stLocalControl.stBusFreq.byRecRoomAddr =0xff;
+ 755   3            stLocalControl.stBusFreq.byRecBedAddr = 0xff;
+ 756   3            Bus0OutputData(&(stLocalControl.stBusFreq.bySndSecAddr));     
+ 757   3          }
+ 758   2      
+ 759   2          if(DTimeState & bDetectPcTime)
+ 760   2          {
+ 761   3            DTimeState &= ~bDetectPcTime;
+ 762   3            Usart1SndCmd(CMD_LANDING,0x00,NULL);
+ 763   3            stLocalControl.byWaitAckTimeLanding = 250;  //等待5S  
+ 764   3          }
+ 765   2      
+ 766   2          
+ 767   2          if(DTimeState & bUsart1SdResultDTime)
+ 768   2          {
+ 769   3            DTimeState &= ~bUsart1SdResultDTime;
+ 770   3            Usart1SndRS485Result(byUsart0SndBuf[CMD_POSITION],TRUE);  //发送结果码
+ 771   3          } 
+ 772   2      
+ 773   2      
+ 774   2          if(bRS485DataTreat)
+ 775   2          {
+ 776   3            if(stUsartCfg[0].uiSndLen==0) 
+ 777   3            {//RS485没有数据正在发送
+ 778   4              pSTUartFreq pstDataFreq=byUsart1RecBuf;
+ 779   4              if((pstDataFreq->byCmd==CMD_DISPLAY_DATA) || (pstDataFreq->byCmd==CMD_HANDLE_DISPLAY_DATA) || (pstData
+             -Freq->byCmd==CMD_DISPLAY_FORM))
+ 780   4              {
+ 781   5                DE0=1;
+ 782   5      //          Delayms(1);
+ 783   5                EA=0;
+ 784   5                memcpy(byUsart0SndBuf,byUsart1RecBuf,pstDataFreq->uiLen+EXT_SIZE);
+ 785   5                EA=1;
+ 786   5      
+ 787   5                pstDataFreq=byUsart0SndBuf; 
+*** WARNING C182 IN LINE 787 OF MAIN.C: pointer to different objects
+ 788   5                stUsartCfg[0].pbySndBuf = byUsart0SndBuf;
+ 789   5                stUsartCfg[0].uiSndLen = pstDataFreq->uiLen+EXT_SIZE;
+ 790   5                stUsartCfg[0].uiSndPos = 0;   //从数据帧头部开始发送数据  
+C51 COMPILER V9.00   MAIN                                                                  02/15/2019 15:35:01 PAGE 14  
+
+ 791   5                TI=0;
+ 792   5                SBUF= stUsartCfg[0].pbySndBuf[stUsartCfg[0].uiSndPos];
+ 793   5      
+ 794   5                if((pstDataFreq->byCmd==CMD_DISPLAY_DATA) || (pstDataFreq->byCmd==CMD_HANDLE_DISPLAY_DATA))
+ 795   5                {
+ 796   6                  //保存分机地址          
+ 797   6                  stLocalControl.stRS485Addr.bySecAddr = pstDataFreq->byRecSecAddr;
+ 798   6                  stLocalControl.stRS485Addr.byRoomAddr = pstDataFreq->byRecRoomAddr;
+ 799   6                  stLocalControl.stRS485Addr.byBedAddr = pstDataFreq->byRecBedAddr;
+ 800   6      
+ 801   6                  //设置等待应答超时2S  在波特率为57.6K的情况下,100字节数据只要17.3ms
+ 802   6                  stLocalControl.byWaitRS485AckDTime = 95;    //等待1.9S  
+ 803   6      
+ 804   6                }
+ 805   5              }
+ 806   4              bRS485DataTreat =0;
+ 807   4            }
+ 808   3          }
+ 809   2        } 
+ 810   1      }
+ 811            
+ 812            
+ 813            
+ 814          void LedStateFlash(void)
+ 815          {
+ 816   1        if(bLedState==0)
+ 817   1        {
+ 818   2          LED_STATE=1;
+ 819   2          bLedState=1;
+ 820   2        }
+ 821   1        else
+ 822   1        {
+ 823   2          LED_STATE=0;
+ 824   2          bLedState=0;
+ 825   2        }
+ 826   1      }
+ 827          
+ 828           void LedInit(void)
+ 829          {
+ 830   1       
+ 831   1         LED_STATE=0; //状态指示灯打开
+ 832   1         bLedState=0;
+ 833   1      
+ 834   1         LED_POWER=0; //24v电源指灯打开
+ 835   1      }
+ 836          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2210    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    397      31
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      8    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  3 WARNING(S),  0 ERROR(S)

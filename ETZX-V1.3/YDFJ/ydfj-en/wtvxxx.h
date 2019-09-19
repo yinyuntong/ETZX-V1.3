@@ -1,0 +1,104 @@
+
+
+
+//²ÉÑùÂÊ¡¡9.6K
+
+/*#define ONE_VOC_ADDR		0x00
+#define TWO_VOC_ADDR		0x01
+#define THREE_VOC_ADDR		0x02
+#define FOUR_VOC_ADDR		0x03
+#define FIVE_VOC_ADDR		0x04
+#define SIX_VOC_ADDR		0x05
+#define SEVEN_VOC_ADDR		0x06
+#define EIGHT_VOC_ADDR		0x07
+#define NINE_VOC_ADDR		0x08
+#define TEN_VOC_ADDR		0x09
+#define ELEVEN_VOC_ADDR		0x0A
+#define TWELVE_VOC_ADDR		0x0B
+#define THIRTEEN_VOC_ADDR	0x0C
+#define FOURTEEN_VOC_ADDR	0x0D
+#define FIFTEEN_VOC_ADDR	0x0E
+#define SIXTEEN_VOC_ADDR	0x0F
+#define SEVENTEEN_VOC_ADDR	0x10
+#define EIGHTTEEN_VOC_ADDR	0x11
+#define NINETEEN_VOC_ADDR	0x12
+#define TWENTY_VOC_ADDR		0x13
+#define THIRTY_VOC_ADDR		0x14
+#define FOURTY_VOC_ADDR		0x15
+#define FIFTY_VOC_ADDR		0x16
+#define SIXTY_VOC_ADDR		0x17
+#define SEVENTY_VOC_ADDR	0x18
+#define EIGHTY_VOC_ADDR		0x19
+#define NINETY_VOC_ADDR		0x1A
+#define HUNDRED_VOC_ADDR	0x1B
+#define AND_VOC_ADDR		0x1C
+#define ZERO_VOC_ADDR		0x1D
+#define CALLING_VOC_ADDR	0x1E
+#define WARD_VOC_ADDR		0x1F
+#define BED_VOC_ADDR		0x20
+#define NUMBER_VOC_ADDR		0x21
+#define ROOM_VOC_ADDR		0x22
+#define BATHROOM_VOC_ADDR	0x23
+#define EXTENSION_VOC_ADDR	0x24
+#define EXTRA_VOC_ADDR		0x25
+#define OPERATION_VOC_ADDR	0x26
+#define SUCCESS_VOC_ADDR	0x27
+#define FAILED_VOC_ADDR		0x28
+#define CANCELLED_VOC_ADDR	0x29
+#define HANG_UP_VOC_ADDR	0x2A
+#define DRIP_VOC_ADDR		0x2B		//Ë®µÎ
+#define FOR_ALICE_VOC_ADDR	0x2C		//ÖÂ°®ÀöË¿
+#define DREAM_WEDDING_VOC_ADDR	0x2D	//ÃÎÖÐµÄ»éÀñ*/
+
+
+
+
+#define ONE_VOC_ADDR		0x01
+#define TWO_VOC_ADDR		0x02
+#define THREE_VOC_ADDR		0x03
+#define FOUR_VOC_ADDR		0x04
+#define FIVE_VOC_ADDR		0x05
+#define SIX_VOC_ADDR		0x06
+#define SEVEN_VOC_ADDR		0x07
+#define EIGHT_VOC_ADDR		0x08
+#define NINE_VOC_ADDR		0x09
+#define TEN_VOC_ADDR		0x0a
+#define ELEVEN_VOC_ADDR		0x0b
+#define TWELVE_VOC_ADDR		0x0c
+#define THIRTEEN_VOC_ADDR	0x0d
+#define FOURTEEN_VOC_ADDR	0x0e
+#define FIFTEEN_VOC_ADDR	0x0f
+#define SIXTEEN_VOC_ADDR	0x10
+#define SEVENTEEN_VOC_ADDR	0x11
+#define EIGHTTEEN_VOC_ADDR	0x12
+#define NINETEEN_VOC_ADDR	0x13
+#define TWENTY_VOC_ADDR		0x14
+#define THIRTY_VOC_ADDR		0x15
+#define FOURTY_VOC_ADDR		0x16
+#define FIFTY_VOC_ADDR		0x17
+#define SIXTY_VOC_ADDR		0x18
+#define SEVENTY_VOC_ADDR	0x19
+#define EIGHTY_VOC_ADDR		0x1a
+#define NINETY_VOC_ADDR		0x1b
+#define HUNDRED_VOC_ADDR	0x1c
+#define AND_VOC_ADDR		0x1d
+#define ZERO_VOC_ADDR		0x1e
+#define CALLING_VOC_ADDR	0x1f
+#define WARD_VOC_ADDR		0x20
+#define BED_VOC_ADDR		0x21
+#define NUMBER_VOC_ADDR		0x22
+#define ROOM_VOC_ADDR		0x23
+#define BATHROOM_VOC_ADDR	0x24
+#define EXTENSION_VOC_ADDR	0x25
+#define EXTRA_VOC_ADDR		0x26
+#define OPERATION_VOC_ADDR	0x27
+#define SUCCESS_VOC_ADDR	0x28
+#define FAILED_VOC_ADDR		0x29
+#define CANCELLED_VOC_ADDR	0x2a
+#define HANG_UP_VOC_ADDR	0x2b
+#define DRIP_VOC_ADDR		0x2c		//Ë®µÎ
+#define FOR_ALICE_VOC_ADDR	0x2d		//ÖÂ°®ÀöË¿
+#define DREAM_WEDDING_VOC_ADDR	0x2e	//ÃÎÖÐµÄ»éÀñ
+
+
+extern void playtest(INT8U start_seg,INT8U end_seg);

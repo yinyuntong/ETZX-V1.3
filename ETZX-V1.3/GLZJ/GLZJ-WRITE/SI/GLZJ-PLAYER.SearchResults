@@ -1,0 +1,7 @@
+---- AAI_Write1 Matches (6 in 3 files) ----
+Main.c (usr):			AAI_Write1(SST25VFAddr,ComRecBuff1,COM_FREQ_SIZE);
+Sst25vf.h (usr):extern void AAI_Write1(unsigned long Dst, uint8 *p,uint8 no_bytes);
+sst25vf040_2005.C (usr):void AAI_Write1(unsigned long Dst, uint8 *p,uint8 no_bytes)
+sst25vf040_2005.C (usr):/*void AAI_Write1(unsigned long Dst, uint8 *p,uint8 no_bytes)
+sst25vf040_2005.C (usr):	 AAI_Write1(0x000002,&(FRAM_BUFF[1]),10);
+sst25vf040_2005.C (usr):	 AAI_Write1(0x7fff1,&(FRAM_BUFF[0]),11);

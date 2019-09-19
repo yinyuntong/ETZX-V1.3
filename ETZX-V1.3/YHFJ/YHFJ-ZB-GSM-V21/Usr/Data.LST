@@ -1,0 +1,167 @@
+A51 MACRO ASSEMBLER  DATA                                                                 10/12/2010 13:33:30 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.00d
+OBJECT MODULE PLACED IN Data.OBJ
+ASSEMBLER INVOKED BY: D:\Program Files\Keil\C51\BIN\A51.EXE Data.asm SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     
+                       2     
+                       3     
+                       4     
+                       5     
+                       6     
+                       7     
+                       8     
+                       9     
+                      10     
+                      11     
+                      12     
+                      13     
+                      14     
+                      15     
+                      16     
+                      17     
+                      18     
+                      19     
+                      20     
+                      21             name Data_Asm  
+                      22             
+----                  23             cseg at 0x2E00
+2E00                  24     SelfSecAddr:
+2E00 01               25             db              0x01                             
+2E01                  26     SelfRoomAddr:
+2E01 00               27             db              0x00                             
+2E02                  28     SelfBedAddr:
+2E02 C9               29             db              201                              
+2E03                  30     cEnable1:
+2E03 FF               31             db              0xFF                             
+2E04                  32     cEnable2:
+2E04 FF               33             db              0xFF                             
+2E05                  34     cPrio:
+2E05 60               35             db              0x60                             
+2E06                  36     cRingTime:
+2E06 0F               37             db              0x0F                             
+2E07                  38     cTalkTime:
+2E07 40               39             db              0x40                             
+2E08                  40     cBroadTime:
+2E08 80               41             db              0x80                             
+2E09                  42     cListenDelay:
+2E09 64               43             db              100                                      
+2E0A                  44     cVolumStep:
+2E0A 04               45             db              0x04                             
+2E0B                  46     cHDwnRingVol:
+2E0B D0               47             db              0xD0                             
+2E0C                  48     cHUpRingVol:
+2E0C D0               49             db              0xD0                             
+2E0D                  50     cCH0HDwnTalkedVol:
+2E0D D0               51             db              0xD0                             
+2E0E                  52     cCH1HDwnTalkedVol:
+2E0E D0               53             db              0xD0                             
+2E0F                  54     cCH0HUpTalkedVol:
+2E0F D0               55             db              0xD0                             
+2E10                  56     cCH1HUpTalkedVol:
+2E10 D0               57             db              0xD0                             
+2E11                  58     cHDwnBroadVol:
+A51 MACRO ASSEMBLER  DATA                                                                 10/12/2010 13:33:30 PAGE     2
+
+2E11 D0               59             db              0xD0                             
+2E12                  60     cHUpBroadVol:
+2E12 D0               61             db              0xD0                             
+2E13                  62     cHDwnNoteVol:
+2E13 D0               63             db              0xD0                             
+2E14                  64     cHUpNoteVol:
+2E14 D0               65             db              0xD0                             
+2E15                  66     cHDwnMusicVol:
+2E15 D0               67             db              0xD0                             
+2E16                  68     cHUpMusicVol:
+2E16 D0               69             db              0xD0                             
+2E17                  70     cCH0HDwnTalkVol:
+2E17 D0               71             db              0xD0                             
+2E18                  72     cCH1HDwnTalkVol:
+2E18 D0               73             db              0xD0                             
+2E19                  74     cCH0HUpTalkVol:
+2E19 D0               75             db              0xD0                             
+2E1A                  76     cCH1HUpTalkVol:
+2E1A D0               77             db              0xD0                             
+2E1B                  78     cHDwnSelfRingVol:
+2E1B D0               79             db              0xD0                             
+2E1C                  80     cHUpSelfRingVol:
+2E1C D0               81             db              0xD0                             
+2E1D                  82     cMaxVol:
+2E1D F9               83             db              0xF9                             
+2E1E                  84     cMinVol:
+2E1E 0A               85             db              0x0A                             
+2E1F                  86     cReserve1:
+2E1F FF               87             db              0xFF                             
+2E20                  88     cReserve2:
+2E20 FF               89             db              0xFF                             
+2E21                  90     cReserve3:
+2E21 FF               91             db              0xFF                             
+2E22                  92     cSerialNum1:
+2E22 FF               93             db              0xFF                             
+2E23                  94     cSerialNum2:
+2E23 FF               95             db              0xFF                             
+2E24                  96     cSerialNum3:
+2E24 FE               97             db              0xFE                             
+2E25                  98     cVersionHi:
+2E25 10               99             db              0x10                             
+2E26                 100     cVersionLo:
+2E26 0B              101             db              0x0B                             
+                     102             end
+A51 MACRO ASSEMBLER  DATA                                                                 10/12/2010 13:33:30 PAGE     3
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+CBROADTIME . . . .  C ADDR   2E08H   A   
+CCH0HDWNTALKEDVOL.  C ADDR   2E0DH   A   
+CCH0HDWNTALKVOL. .  C ADDR   2E17H   A   
+CCH0HUPTALKEDVOL .  C ADDR   2E0FH   A   
+CCH0HUPTALKVOL . .  C ADDR   2E19H   A   
+CCH1HDWNTALKEDVOL.  C ADDR   2E0EH   A   
+CCH1HDWNTALKVOL. .  C ADDR   2E18H   A   
+CCH1HUPTALKEDVOL .  C ADDR   2E10H   A   
+CCH1HUPTALKVOL . .  C ADDR   2E1AH   A   
+CENABLE1 . . . . .  C ADDR   2E03H   A   
+CENABLE2 . . . . .  C ADDR   2E04H   A   
+CHDWNBROADVOL. . .  C ADDR   2E11H   A   
+CHDWNMUSICVOL. . .  C ADDR   2E15H   A   
+CHDWNNOTEVOL . . .  C ADDR   2E13H   A   
+CHDWNRINGVOL . . .  C ADDR   2E0BH   A   
+CHDWNSELFRINGVOL .  C ADDR   2E1BH   A   
+CHUPBROADVOL . . .  C ADDR   2E12H   A   
+CHUPMUSICVOL . . .  C ADDR   2E16H   A   
+CHUPNOTEVOL. . . .  C ADDR   2E14H   A   
+CHUPRINGVOL. . . .  C ADDR   2E0CH   A   
+CHUPSELFRINGVOL. .  C ADDR   2E1CH   A   
+CLISTENDELAY . . .  C ADDR   2E09H   A   
+CMAXVOL. . . . . .  C ADDR   2E1DH   A   
+CMINVOL. . . . . .  C ADDR   2E1EH   A   
+CPRIO. . . . . . .  C ADDR   2E05H   A   
+CRESERVE1. . . . .  C ADDR   2E1FH   A   
+CRESERVE2. . . . .  C ADDR   2E20H   A   
+CRESERVE3. . . . .  C ADDR   2E21H   A   
+CRINGTIME. . . . .  C ADDR   2E06H   A   
+CSERIALNUM1. . . .  C ADDR   2E22H   A   
+CSERIALNUM2. . . .  C ADDR   2E23H   A   
+CSERIALNUM3. . . .  C ADDR   2E24H   A   
+CTALKTIME. . . . .  C ADDR   2E07H   A   
+CVERSIONHI . . . .  C ADDR   2E25H   A   
+CVERSIONLO . . . .  C ADDR   2E26H   A   
+CVOLUMSTEP . . . .  C ADDR   2E0AH   A   
+DATA_ASM . . . . .  N NUMB   -----       
+SELFBEDADDR. . . .  C ADDR   2E02H   A   
+SELFROOMADDR . . .  C ADDR   2E01H   A   
+SELFSECADDR. . . .  C ADDR   2E00H   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

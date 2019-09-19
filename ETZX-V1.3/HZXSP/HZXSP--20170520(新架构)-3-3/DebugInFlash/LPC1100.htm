@@ -1,0 +1,892 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html><head>
+<title>Static Call Graph - [.\DebugInFlash\LPC1100.axf]</title></head>
+<body><HR>
+<H1>Static Call Graph for image .\DebugInFlash\LPC1100.axf</H1><HR>
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 4.1 [Build 481]: Last Updated: Thu Aug 16 10:35:57 2012
+<BR><P>
+<H3>Maximum Stack Usage =        272 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
+Call chain for Maximum Stack Depth:</H3>
+main &rArr; canApplyInit &rArr; canAcceptFilterSet &rArr; canReMsgObjSet &rArr; __canRegRead
+<P>
+<H3>
+Mutually Recursive functions
+</H3> <LI><a href="#[1]">NMI_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[1]">NMI_Handler</a><BR>
+ <LI><a href="#[2]">HardFault_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[2]">HardFault_Handler</a><BR>
+ <LI><a href="#[3]">MemManage_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[3]">MemManage_Handler</a><BR>
+ <LI><a href="#[4]">BusFault_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[4]">BusFault_Handler</a><BR>
+ <LI><a href="#[5]">UsageFault_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[5]">UsageFault_Handler</a><BR>
+ <LI><a href="#[6]">SVC_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[6]">SVC_Handler</a><BR>
+ <LI><a href="#[7]">DebugMon_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[7]">DebugMon_Handler</a><BR>
+ <LI><a href="#[8]">PendSV_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[8]">PendSV_Handler</a><BR>
+ <LI><a href="#[9]">SysTick_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[9]">SysTick_Handler</a><BR>
+ <LI><a href="#[16]">ADC_IRQHandler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[16]">ADC_IRQHandler</a><BR>
+ <LI><a href="#[22]">SysCtlDelay</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[22]">SysCtlDelay</a><BR>
+</UL>
+<P>
+<H3>
+Function Pointers
+</H3><UL>
+ <LI><a href="#[0]">Reset_Handler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[1]">NMI_Handler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[2]">HardFault_Handler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[3]">MemManage_Handler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[4]">BusFault_Handler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[5]">UsageFault_Handler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[6]">SVC_Handler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[7]">DebugMon_Handler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[8]">PendSV_Handler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[9]">SysTick_Handler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[a]">WAKEUP_IRQHandler</a> from startup_LPC11xx.o(.text) referenced 13 times from startup_LPC11xx.o(RESET)
+ <LI><a href="#[b]">CAN_IRQHandler</a> from main.o(i.CAN_IRQHandler) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[c]">SSP1_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[d]">I2C_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[e]">TIMER16_0_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[f]">TIMER16_1_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[10]">TIMER32_0_IRQHandler</a> from main.o(i.TIMER32_0_IRQHandler) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[11]">TIMER32_1_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[12]">SSP0_IRQHandler</a> from SPI.o(i.SSP0_IRQHandler) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[13]">UART_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[14]">USB_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[15]">USB_FIQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[16]">ADC_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[17]">WDT_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[18]">BOD_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[19]">FMC_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[1a]">PIOINT3_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[1b]">PIOINT2_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[1c]">PIOINT1_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[1d]">PIOINT0_IRQHandler</a> from startup_LPC11xx.o(.text) referenced from startup_LPC11xx.o(RESET)
+ <LI><a href="#[1e]">main</a> from main.o(i.main) referenced from entry7.o(.ARM.Collect$$$$00000007)
+ <LI><a href="#[1f]">__main</a> from entry.o(.ARM.Collect$$$$00000000) referenced from startup_LPC11xx.o(.text)
+</UL>
+<P>
+<H3>
+Global Symbols
+</H3>
+<P><STRONG><a name="[1f]"></a>__main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry.o(.ARM.Collect$$$$00000000))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(.text)
+</UL>
+<P><STRONG><a name="[66]"></a>_main_stk</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry2.o(.ARM.Collect$$$$00000001))
+
+<P><STRONG><a name="[20]"></a>_main_scatterload</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry5.o(.ARM.Collect$$$$00000004))
+<BR><BR>[Calls]<UL><LI><a href="#[21]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__scatterload
+</UL>
+
+<P><STRONG><a name="[25]"></a>__main_after_scatterload</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry5.o(.ARM.Collect$$$$00000004))
+<BR><BR>[Called By]<UL><LI><a href="#[21]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__scatterload
+</UL>
+
+<P><STRONG><a name="[67]"></a>_main_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry7.o(.ARM.Collect$$$$00000007))
+
+<P><STRONG><a name="[48]"></a>__enterCirtical</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, can.o(.emb_text))
+<BR><BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canFrameSend
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufSend
+<LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufRead
+<LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufMalloc
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+</UL>
+
+<P><STRONG><a name="[49]"></a>__intEnable</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, can.o(.emb_text))
+<BR><BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canFrameSend
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufSend
+<LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufRead
+<LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufMalloc
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+</UL>
+
+<P><STRONG><a name="[22]"></a>SysCtlDelay</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, main.o(.emb_text))
+<BR><BR>[Calls]<UL><LI><a href="#[22]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysCtlDelay
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<LI><a href="#[22]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysCtlDelay
+</UL>
+
+<P><STRONG><a name="[60]"></a>intMasterEnable</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, main.o(.emb_text))
+<BR><BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[0]"></a>Reset_Handler</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[1]"></a>NMI_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;NMI_Handler
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;NMI_Handler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[2]"></a>HardFault_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HardFault_Handler
+</UL>
+<BR>[Called By]<UL><LI><a href="#[2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HardFault_Handler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[3]"></a>MemManage_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MemManage_Handler
+</UL>
+<BR>[Called By]<UL><LI><a href="#[3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MemManage_Handler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[4]"></a>BusFault_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BusFault_Handler
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BusFault_Handler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[5]"></a>UsageFault_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UsageFault_Handler
+</UL>
+<BR>[Called By]<UL><LI><a href="#[5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UsageFault_Handler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[6]"></a>SVC_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SVC_Handler
+</UL>
+<BR>[Called By]<UL><LI><a href="#[6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SVC_Handler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[7]"></a>DebugMon_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DebugMon_Handler
+</UL>
+<BR>[Called By]<UL><LI><a href="#[7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DebugMon_Handler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[8]"></a>PendSV_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PendSV_Handler
+</UL>
+<BR>[Called By]<UL><LI><a href="#[8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PendSV_Handler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[9]"></a>SysTick_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTick_Handler
+</UL>
+<BR>[Called By]<UL><LI><a href="#[9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTick_Handler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[16]"></a>ADC_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[16]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ADC_IRQHandler
+</UL>
+<BR>[Called By]<UL><LI><a href="#[16]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ADC_IRQHandler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[18]"></a>BOD_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[19]"></a>FMC_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[d]"></a>I2C_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[1d]"></a>PIOINT0_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[1c]"></a>PIOINT1_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[1b]"></a>PIOINT2_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[1a]"></a>PIOINT3_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[c]"></a>SSP1_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[e]"></a>TIMER16_0_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[f]"></a>TIMER16_1_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[11]"></a>TIMER32_1_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[13]"></a>UART_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[15]"></a>USB_FIQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[14]"></a>USB_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[a]"></a>WAKEUP_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[17]"></a>WDT_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_LPC11xx.o(.text))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[68]"></a>__aeabi_uidiv</STRONG> (Thumb, 0 bytes, Stack size 12 bytes, uidiv.o(.text), UNUSED)
+
+<P><STRONG><a name="[24]"></a>__aeabi_uidivmod</STRONG> (Thumb, 44 bytes, Stack size 12 bytes, uidiv.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = __aeabi_uidivmod
+</UL>
+<BR>[Called By]<UL><LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_idivmod
+<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0Init
+<LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<LI><a href="#[3f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOInit
+<LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ReadSensorValues
+<LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemFrequencyUpdate
+</UL>
+
+<P><STRONG><a name="[69]"></a>__aeabi_idiv</STRONG> (Thumb, 0 bytes, Stack size 16 bytes, idiv.o(.text), UNUSED)
+
+<P><STRONG><a name="[23]"></a>__aeabi_idivmod</STRONG> (Thumb, 40 bytes, Stack size 16 bytes, idiv.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 28<LI>Call Chain = __aeabi_idivmod &rArr; __aeabi_uidivmod
+</UL>
+<BR>[Calls]<UL><LI><a href="#[24]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
+</UL>
+<BR>[Called By]<UL><LI><a href="#[10]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER32_0_IRQHandler
+<LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ReadSensorValues
+</UL>
+
+<P><STRONG><a name="[21]"></a>__scatterload</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, init.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[25]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__main_after_scatterload
+</UL>
+<BR>[Called By]<UL><LI><a href="#[20]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_main_scatterload
+</UL>
+
+<P><STRONG><a name="[6a]"></a>__scatterload_rt2</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, init.o(.text), UNUSED)
+
+<P><STRONG><a name="[28]"></a>ASSERT</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, can.o(i.ASSERT))
+<BR><BR>[Called By]<UL><LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANStatusGet
+<LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANRetrySet
+<LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageSet
+<LI><a href="#[37]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageGet
+<LI><a href="#[36]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntStatus
+<LI><a href="#[33]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntRegister
+<LI><a href="#[32]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntEnable
+<LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntDisable
+<LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntClear
+<LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANInit
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANEnable
+<LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANDisable
+<LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBitTimingSet
+</UL>
+
+<P><STRONG><a name="[27]"></a>CANBaseValid</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, can.o(i.CANBaseValid))
+<BR><BR>[Called By]<UL><LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANStatusGet
+<LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANRetrySet
+<LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageSet
+<LI><a href="#[37]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageGet
+<LI><a href="#[36]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntStatus
+<LI><a href="#[33]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntRegister
+<LI><a href="#[32]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntEnable
+<LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntDisable
+<LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntClear
+<LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANInit
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANEnable
+<LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANDisable
+<LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBitTimingSet
+</UL>
+
+<P><STRONG><a name="[26]"></a>CANBitTimingSet</STRONG> (Thumb, 262 bytes, Stack size 32 bytes, can.o(i.CANBitTimingSet))
+<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = CANBitTimingSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canApplyInit
+</UL>
+
+<P><STRONG><a name="[2b]"></a>CANDataRegRead</STRONG> (Thumb, 50 bytes, Stack size 32 bytes, can.o(i.CANDataRegRead))
+<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = CANDataRegRead &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+</UL>
+<BR>[Called By]<UL><LI><a href="#[37]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageGet
+</UL>
+
+<P><STRONG><a name="[2c]"></a>CANDataRegWrite</STRONG> (Thumb, 54 bytes, Stack size 24 bytes, can.o(i.CANDataRegWrite))
+<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = CANDataRegWrite
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+</UL>
+<BR>[Called By]<UL><LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageSet
+</UL>
+
+<P><STRONG><a name="[2d]"></a>CANDisable</STRONG> (Thumb, 40 bytes, Stack size 16 bytes, can.o(i.CANDisable))
+<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = CANDisable &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canApplyDeInit
+</UL>
+
+<P><STRONG><a name="[2e]"></a>CANEnable</STRONG> (Thumb, 38 bytes, Stack size 16 bytes, can.o(i.CANEnable))
+<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = CANEnable &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canNodeBusOn
+<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canApplyInit
+</UL>
+
+<P><STRONG><a name="[2f]"></a>CANInit</STRONG> (Thumb, 168 bytes, Stack size 16 bytes, can.o(i.CANInit))
+<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = CANInit &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canApplyInit
+</UL>
+
+<P><STRONG><a name="[30]"></a>CANIntClear</STRONG> (Thumb, 124 bytes, Stack size 16 bytes, can.o(i.CANIntClear))
+<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = CANIntClear &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canNodeBusOn
+<LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canHandler
+</UL>
+
+<P><STRONG><a name="[31]"></a>CANIntDisable</STRONG> (Thumb, 60 bytes, Stack size 24 bytes, can.o(i.CANIntDisable))
+<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = CANIntDisable &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canHandler
+<LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canApplyDeInit
+</UL>
+
+<P><STRONG><a name="[32]"></a>CANIntEnable</STRONG> (Thumb, 60 bytes, Stack size 24 bytes, can.o(i.CANIntEnable))
+<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = CANIntEnable &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canNodeBusOn
+<LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canIntEnable
+</UL>
+
+<P><STRONG><a name="[33]"></a>CANIntRegister</STRONG> (Thumb, 52 bytes, Stack size 12 bytes, can.o(i.CANIntRegister))
+<BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = CANIntRegister
+</UL>
+<BR>[Calls]<UL><LI><a href="#[34]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canIntNumberGet
+<LI><a href="#[35]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IntRegister
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canIntEnable
+</UL>
+
+<P><STRONG><a name="[36]"></a>CANIntStatus</STRONG> (Thumb, 80 bytes, Stack size 24 bytes, can.o(i.CANIntStatus))
+<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = CANIntStatus &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canHandler
+</UL>
+
+<P><STRONG><a name="[37]"></a>CANMessageGet</STRONG> (Thumb, 540 bytes, Stack size 48 bytes, can.o(i.CANMessageGet))
+<BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = CANMessageGet &rArr; CANDataRegRead &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[2b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANDataRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canHandler
+</UL>
+
+<P><STRONG><a name="[38]"></a>CANMessageSet</STRONG> (Thumb, 614 bytes, Stack size 56 bytes, can.o(i.CANMessageSet))
+<BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = CANMessageSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[2c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANDataRegWrite
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+<LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
+</UL>
+<BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canFrameSend
+</UL>
+
+<P><STRONG><a name="[3a]"></a>CANRetrySet</STRONG> (Thumb, 56 bytes, Stack size 24 bytes, can.o(i.CANRetrySet))
+<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = CANRetrySet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canFrameSend
+</UL>
+
+<P><STRONG><a name="[3b]"></a>CANStatusGet</STRONG> (Thumb, 148 bytes, Stack size 24 bytes, can.o(i.CANStatusGet))
+<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = CANStatusGet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+<LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBaseValid
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ASSERT
+</UL>
+<BR>[Called By]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canHandler
+</UL>
+
+<P><STRONG><a name="[b]"></a>CAN_IRQHandler</STRONG> (Thumb, 12 bytes, Stack size 8 bytes, main.o(i.CAN_IRQHandler))
+<BR><BR>[Stack]<UL><LI>Max Depth = 216<LI>Call Chain = CAN_IRQHandler &rArr; canHandler &rArr; canFrameSend &rArr; CANMessageSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canHandler
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[3d]"></a>Delay_Ms</STRONG> (Thumb, 26 bytes, Stack size 8 bytes, util.o(i.Delay_Ms))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = Delay_Ms
+</UL>
+<BR>[Calls]<UL><LI><a href="#[3e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Delay_Us
+</UL>
+<BR>[Called By]<UL><LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TM77XX_Init
+</UL>
+
+<P><STRONG><a name="[3e]"></a>Delay_Us</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, util.o(i.Delay_Us))
+<BR><BR>[Called By]<UL><LI><a href="#[3d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Delay_Ms
+</UL>
+
+<P><STRONG><a name="[3f]"></a>GPIOInit</STRONG> (Thumb, 380 bytes, Stack size 8 bytes, main.o(i.GPIOInit))
+<BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = GPIOInit &rArr; __aeabi_uidivmod
+</UL>
+<BR>[Calls]<UL><LI><a href="#[24]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[40]"></a>GetCanBaud</STRONG> (Thumb, 56 bytes, Stack size 4 bytes, main.o(i.GetCanBaud))
+<BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = GetCanBaud &rArr; __ARM_common_switch8
+</UL>
+<BR>[Calls]<UL><LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[64]"></a>GetControlByType</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, main.o(i.GetControlByType))
+<BR><BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[35]"></a>IntRegister</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, can.o(i.IntRegister))
+<BR><BR>[Called By]<UL><LI><a href="#[33]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntRegister
+</UL>
+
+<P><STRONG><a name="[41]"></a>ReadSensorValues</STRONG> (Thumb, 324 bytes, Stack size 16 bytes, TM77XX.o(i.ReadSensorValues))
+<BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = ReadSensorValues &rArr; __aeabi_idivmod &rArr; __aeabi_uidivmod
+</UL>
+<BR>[Calls]<UL><LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_idivmod
+<LI><a href="#[24]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
+<LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TM77XX_Write
+<LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TM77XX_Init
+<LI><a href="#[43]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SPI0_SendData
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[62]"></a>SPI0Master_Init</STRONG> (Thumb, 64 bytes, Stack size 0 bytes, SPI.o(i.SPI0Master_Init))
+<BR><BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[43]"></a>SPI0_SendData</STRONG> (Thumb, 26 bytes, Stack size 0 bytes, SPI.o(i.SPI0_SendData))
+<BR><BR>[Called By]<UL><LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TM77XX_Write
+<LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ReadSensorValues
+</UL>
+
+<P><STRONG><a name="[12]"></a>SSP0_IRQHandler</STRONG> (Thumb, 64 bytes, Stack size 0 bytes, SPI.o(i.SSP0_IRQHandler))
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[61]"></a>SSPPinInit</STRONG> (Thumb, 52 bytes, Stack size 0 bytes, SPI.o(i.SSPPinInit))
+<BR><BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[45]"></a>SetControlOutput</STRONG> (Thumb, 506 bytes, Stack size 8 bytes, main.o(i.SetControlOutput))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = SetControlOutput &rArr; __ARM_common_switch8
+</UL>
+<BR>[Calls]<UL><LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[46]"></a>SystemFrequencyUpdate</STRONG> (Thumb, 394 bytes, Stack size 8 bytes, system_LPC11xx.o(i.SystemFrequencyUpdate))
+<BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = SystemFrequencyUpdate &rArr; __aeabi_uidivmod
+</UL>
+<BR>[Calls]<UL><LI><a href="#[24]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
+<LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
+</UL>
+<BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemInit
+</UL>
+
+<P><STRONG><a name="[47]"></a>SystemInit</STRONG> (Thumb, 158 bytes, Stack size 8 bytes, system_LPC11xx.o(i.SystemInit))
+<BR><BR>[Stack]<UL><LI>Max Depth = 28<LI>Call Chain = SystemInit &rArr; SystemFrequencyUpdate &rArr; __aeabi_uidivmod
+</UL>
+<BR>[Calls]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemFrequencyUpdate
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[10]"></a>TIMER32_0_IRQHandler</STRONG> (Thumb, 88 bytes, Stack size 8 bytes, main.o(i.TIMER32_0_IRQHandler))
+<BR><BR>[Stack]<UL><LI>Max Depth = 36<LI>Call Chain = TIMER32_0_IRQHandler &rArr; __aeabi_idivmod &rArr; __aeabi_uidivmod
+</UL>
+<BR>[Calls]<UL><LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_idivmod
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_LPC11xx.o(RESET)
+</UL>
+<P><STRONG><a name="[44]"></a>TM77XX_Init</STRONG> (Thumb, 128 bytes, Stack size 8 bytes, TM77XX.o(i.TM77XX_Init))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = TM77XX_Init &rArr; Delay_Ms
+</UL>
+<BR>[Calls]<UL><LI><a href="#[3d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Delay_Ms
+<LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TM77XX_Write
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ReadSensorValues
+</UL>
+
+<P><STRONG><a name="[42]"></a>TM77XX_Write</STRONG> (Thumb, 12 bytes, Stack size 8 bytes, TM77XX.o(i.TM77XX_Write))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = TM77XX_Write
+</UL>
+<BR>[Calls]<UL><LI><a href="#[43]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SPI0_SendData
+</UL>
+<BR>[Called By]<UL><LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TM77XX_Init
+<LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ReadSensorValues
+</UL>
+
+<P><STRONG><a name="[63]"></a>WDTInit</STRONG> (Thumb, 54 bytes, Stack size 0 bytes, main.o(i.WDTInit))
+<BR><BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[39]"></a>__ARM_common_switch8</STRONG> (Thumb, 26 bytes, Stack size 8 bytes, system_LPC11xx.o(i.__ARM_common_switch8))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = __ARM_common_switch8
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<LI><a href="#[45]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetControlOutput
+<LI><a href="#[40]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GetCanBaud
+<LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageSet
+<LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemFrequencyUpdate
+</UL>
+
+<P><STRONG><a name="[34]"></a>__canIntNumberGet</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, can.o(i.__canIntNumberGet))
+<BR><BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canIntEnable
+<LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canApplyDeInit
+<LI><a href="#[33]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntRegister
+</UL>
+
+<P><STRONG><a name="[29]"></a>__canRegRead</STRONG> (Thumb, 36 bytes, Stack size 24 bytes, can.o(i.__canRegRead))
+<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__intEnable
+<LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__enterCirtical
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canReMsgObjSet
+<LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANStatusGet
+<LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANRetrySet
+<LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageSet
+<LI><a href="#[37]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageGet
+<LI><a href="#[36]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntStatus
+<LI><a href="#[32]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntEnable
+<LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntDisable
+<LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntClear
+<LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANInit
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANEnable
+<LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANDisable
+<LI><a href="#[2b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANDataRegRead
+<LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBitTimingSet
+</UL>
+
+<P><STRONG><a name="[2a]"></a>__canRegWrite</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, can.o(i.__canRegWrite))
+<BR><BR>[Called By]<UL><LI><a href="#[4b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canReMsgObjSet
+<LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANStatusGet
+<LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANRetrySet
+<LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageSet
+<LI><a href="#[37]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageGet
+<LI><a href="#[32]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntEnable
+<LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntDisable
+<LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntClear
+<LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANInit
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANEnable
+<LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANDisable
+<LI><a href="#[2c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANDataRegWrite
+<LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBitTimingSet
+</UL>
+
+<P><STRONG><a name="[6b]"></a>__scatterload_copy</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_copy), UNUSED)
+
+<P><STRONG><a name="[6c]"></a>__scatterload_null</STRONG> (Thumb, 2 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_null), UNUSED)
+
+<P><STRONG><a name="[6d]"></a>__scatterload_zeroinit</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_zeroinit), UNUSED)
+
+<P><STRONG><a name="[5b]"></a>blankChk</STRONG> (Thumb, 32 bytes, Stack size 16 bytes, E2PROM.o(i.blankChk))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = blankChk
+</UL>
+<BR>[Called By]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromWriteNByte
+</UL>
+
+<P><STRONG><a name="[4a]"></a>canAcceptFilterSet</STRONG> (Thumb, 56 bytes, Stack size 32 bytes, zlg_can.o(i.canAcceptFilterSet))
+<BR><BR>[Stack]<UL><LI>Max Depth = 144<LI>Call Chain = canAcceptFilterSet &rArr; canReMsgObjSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[4b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canReMsgObjSet
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canApplyInit
+</UL>
+
+<P><STRONG><a name="[4c]"></a>canApplyDeInit</STRONG> (Thumb, 82 bytes, Stack size 16 bytes, zlg_can.o(i.canApplyDeInit))
+<BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = canApplyDeInit &rArr; CANIntDisable &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[34]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canIntNumberGet
+<LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntDisable
+<LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANDisable
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[4d]"></a>canApplyInit</STRONG> (Thumb, 100 bytes, Stack size 24 bytes, zlg_can.o(i.canApplyInit))
+<BR><BR>[Stack]<UL><LI>Max Depth = 168<LI>Call Chain = canApplyInit &rArr; canAcceptFilterSet &rArr; canReMsgObjSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canIntEnable
+<LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canAcceptFilterSet
+<LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANInit
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANEnable
+<LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANBitTimingSet
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[50]"></a>canCirBufRead</STRONG> (Thumb, 106 bytes, Stack size 24 bytes, zlg_can.o(i.canCirBufRead))
+<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = canCirBufRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__intEnable
+<LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__enterCirtical
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canHandler
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufSend
+</UL>
+
+<P><STRONG><a name="[51]"></a>canCirBufSend</STRONG> (Thumb, 78 bytes, Stack size 32 bytes, zlg_can.o(i.canCirBufSend))
+<BR><BR>[Stack]<UL><LI>Max Depth = 152<LI>Call Chain = canCirBufSend &rArr; canFrameSend &rArr; CANMessageSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canFrameSend
+<LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufRead
+<LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__intEnable
+<LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__enterCirtical
+</UL>
+<BR>[Called By]<UL><LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canDataSend
+</UL>
+
+<P><STRONG><a name="[53]"></a>canCirBufWrite</STRONG> (Thumb, 62 bytes, Stack size 24 bytes, zlg_can.o(i.canCirBufWrite))
+<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = canCirBufWrite &rArr; canCirBufMalloc
+</UL>
+<BR>[Calls]<UL><LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufMalloc
+</UL>
+<BR>[Called By]<UL><LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canDataSend
+</UL>
+
+<P><STRONG><a name="[54]"></a>canDataSend</STRONG> (Thumb, 58 bytes, Stack size 8 bytes, main.o(i.canDataSend))
+<BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = canDataSend &rArr; canCirBufSend &rArr; canFrameSend &rArr; CANMessageSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufWrite
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufSend
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[52]"></a>canFrameSend</STRONG> (Thumb, 116 bytes, Stack size 40 bytes, zlg_can.o(i.canFrameSend))
+<BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = canFrameSend &rArr; CANMessageSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANRetrySet
+<LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageSet
+<LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__intEnable
+<LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__enterCirtical
+</UL>
+<BR>[Called By]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canHandler
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufSend
+</UL>
+
+<P><STRONG><a name="[3c]"></a>canHandler</STRONG> (Thumb, 544 bytes, Stack size 88 bytes, zlg_can.o(i.canHandler))
+<BR><BR>[Stack]<UL><LI>Max Depth = 208<LI>Call Chain = canHandler &rArr; canFrameSend &rArr; CANMessageSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canFrameSend
+<LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufRead
+<LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufMalloc
+<LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANStatusGet
+<LI><a href="#[37]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANMessageGet
+<LI><a href="#[36]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntStatus
+<LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntDisable
+<LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntClear
+</UL>
+<BR>[Called By]<UL><LI><a href="#[b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CAN_IRQHandler
+</UL>
+
+<P><STRONG><a name="[4e]"></a>canIntEnable</STRONG> (Thumb, 64 bytes, Stack size 16 bytes, zlg_can.o(i.canIntEnable))
+<BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = canIntEnable &rArr; CANIntEnable &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[34]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canIntNumberGet
+<LI><a href="#[33]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntRegister
+<LI><a href="#[32]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntEnable
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canApplyInit
+</UL>
+
+<P><STRONG><a name="[55]"></a>canNodeBusOn</STRONG> (Thumb, 38 bytes, Stack size 8 bytes, zlg_can.o(i.canNodeBusOn))
+<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = canNodeBusOn &rArr; CANIntEnable &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[32]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntEnable
+<LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANIntClear
+<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CANEnable
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[4b]"></a>canReMsgObjSet</STRONG> (Thumb, 626 bytes, Stack size 88 bytes, zlg_can.o(i.canReMsgObjSet))
+<BR><BR>[Stack]<UL><LI>Max Depth = 112<LI>Call Chain = canReMsgObjSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[2a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegWrite
+<LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__canRegRead
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canAcceptFilterSet
+</UL>
+
+<P><STRONG><a name="[5d]"></a>dataCompare</STRONG> (Thumb, 36 bytes, Stack size 16 bytes, E2PROM.o(i.dataCompare))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = dataCompare
+</UL>
+<BR>[Called By]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromWriteNByte
+</UL>
+
+<P><STRONG><a name="[58]"></a>eepromRead</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, E2PROM.o(i.eepromRead))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = eepromRead
+</UL>
+<BR>[Called By]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromWriteNByte
+<LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[56]"></a>eepromWriteNByte</STRONG> (Thumb, 250 bytes, Stack size 56 bytes, E2PROM.o(i.eepromWriteNByte))
+<BR><BR>[Stack]<UL><LI>Max Depth = 76<LI>Call Chain = eepromWriteNByte &rArr; malloc
+</UL>
+<BR>[Calls]<UL><LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
+<LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;free
+<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sectorPrepare
+<LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sectorErase
+<LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ramCopy
+<LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dataCompare
+<LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;blankChk
+<LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromRead
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[5e]"></a>free</STRONG> (Thumb, 80 bytes, Stack size 8 bytes, malloc.o(i.free))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = free
+</UL>
+<BR>[Called By]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromWriteNByte
+</UL>
+
+<P><STRONG><a name="[1e]"></a>main</STRONG> (Thumb, 2042 bytes, Stack size 104 bytes, main.o(i.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 272<LI>Call Chain = main &rArr; canApplyInit &rArr; canAcceptFilterSet &rArr; canReMsgObjSet &rArr; __canRegRead
+</UL>
+<BR>[Calls]<UL><LI><a href="#[24]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
+<LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromWriteNByte
+<LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromRead
+<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0Init
+<LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canDataSend
+<LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WDTInit
+<LI><a href="#[45]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetControlOutput
+<LI><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GetControlByType
+<LI><a href="#[40]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GetCanBaud
+<LI><a href="#[3f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOInit
+<LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;intMasterEnable
+<LI><a href="#[22]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysCtlDelay
+<LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TM77XX_Init
+<LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ReadSensorValues
+<LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SSPPinInit
+<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SPI0Master_Init
+<LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canNodeBusOn
+<LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufRead
+<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canApplyInit
+<LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canApplyDeInit
+<LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
+<LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemInit
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> entry7.o(.ARM.Collect$$$$00000007)
+</UL>
+<P><STRONG><a name="[57]"></a>malloc</STRONG> (Thumb, 92 bytes, Stack size 20 bytes, malloc.o(i.malloc))
+<BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = malloc
+</UL>
+<BR>[Called By]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromWriteNByte
+</UL>
+
+<P><STRONG><a name="[5c]"></a>ramCopy</STRONG> (Thumb, 42 bytes, Stack size 16 bytes, E2PROM.o(i.ramCopy))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = ramCopy
+</UL>
+<BR>[Called By]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromWriteNByte
+</UL>
+
+<P><STRONG><a name="[5a]"></a>sectorErase</STRONG> (Thumb, 38 bytes, Stack size 16 bytes, E2PROM.o(i.sectorErase))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = sectorErase
+</UL>
+<BR>[Called By]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromWriteNByte
+</UL>
+
+<P><STRONG><a name="[59]"></a>sectorPrepare</STRONG> (Thumb, 32 bytes, Stack size 16 bytes, E2PROM.o(i.sectorPrepare))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = sectorPrepare
+</UL>
+<BR>[Called By]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;eepromWriteNByte
+</UL>
+
+<P><STRONG><a name="[5f]"></a>timer0Init</STRONG> (Thumb, 74 bytes, Stack size 8 bytes, main.o(i.timer0Init))
+<BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = timer0Init &rArr; __aeabi_uidivmod
+</UL>
+<BR>[Calls]<UL><LI><a href="#[24]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
+<LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;NVIC_SetPriority
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+<P>
+<H3>
+Local Symbols
+</H3>
+<P><STRONG><a name="[4f]"></a>canCirBufMalloc</STRONG> (Thumb, 90 bytes, Stack size 16 bytes, zlg_can.o(i.canCirBufMalloc))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = canCirBufMalloc
+</UL>
+<BR>[Calls]<UL><LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__intEnable
+<LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__enterCirtical
+</UL>
+<BR>[Called By]<UL><LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canHandler
+<LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;canCirBufWrite
+</UL>
+
+<P><STRONG><a name="[65]"></a>NVIC_SetPriority</STRONG> (Thumb, 110 bytes, Stack size 8 bytes, main.o(i.NVIC_SetPriority))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = NVIC_SetPriority
+</UL>
+<BR>[Called By]<UL><LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0Init
+</UL>
+<P>
+<H3>
+Undefined Global Symbols
+</H3><HR></body></html>

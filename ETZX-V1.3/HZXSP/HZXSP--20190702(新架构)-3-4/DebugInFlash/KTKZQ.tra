@@ -1,0 +1,29 @@
+*** Creating Trace Output File '.\DebugInFlash\KTKZQ.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '".\debuginflash\core_cm0.o"'
+### List of Objects: adding '".\debuginflash\system_lpc11xx.o"'
+### List of Objects: adding '".\debuginflash\startup_lpc11xx.o"'
+### List of Objects: adding '".\debuginflash\e2prom.o"'
+### List of Objects: adding '".\debuginflash\main.o"'
+### List of Objects: adding '".\debuginflash\spi.o"'
+### List of Objects: adding '".\debuginflash\util.o"'
+### List of Objects: adding '".\debuginflash\led.o"'
+### List of Objects: adding '".\debuginflash\singlebus.o"'
+### List of Objects: adding '".\debuginflash\uart.o"'
+### List of Objects: adding '".\debuginflash\cc1101.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M0 ".\debuginflash\core_cm0.o" ".\debuginflash\system_lpc11xx.o" ".\debuginflash\startup_lpc11xx.o" ".\debuginflash\e2prom.o" ".\debuginflash\main.o" ".\debuginflash\spi.o" ".\debuginflash\util.o" ".\debuginflash\led.o" ".\debuginflash\singlebus.o" ".\debuginflash\uart.o" ".\debuginflash\cc1101.o" --strict --scatter ".\DebugInFlash\KTKZQ.sct" 
+--autoat --summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\DebugInFlash\KTKZQ.map" -o ".\DebugInFlash\KTKZQ.axf"### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: '.\DebugInFlash\KTKZQ.axf'
+### ADS-LD Command File: '.\DebugInFlash\KTKZQ.lnp'
+### Checking for dirty Components...
+### Creating CmdFile '.\DebugInFlash\KTKZQ.lnp', Handle=0x00000508
+### Writing '.lnp' file
+### ADS-LD Command file '.\DebugInFlash\KTKZQ.lnp' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.

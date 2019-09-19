@@ -1,0 +1,3339 @@
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE OS_CPU_C
+OBJECT MODULE PLACED IN .\OS_CPU_C.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ..\Target\OS_CPU_C.C LARGE BROWSE DEBUG OBJECTEXTEND CODE LISTINCLUDE SYMBO
+                    -LS PRINT(.\OS_CPU_C.lst) OBJECT(.\OS_CPU_C.obj)
+
+line level    source
+
+   1          /*********************************************************************************************************
+   2          **                                                             Small RTOS 51
+   3          **                                   The Real-Time Kernel For Keil c51
+   4          **
+   5          **                                  (c) Copyright 2002-2003, chenmingji
+   6          **                                           All Rights Reserved
+   7          **
+   8          **                                                  V1.12.0
+   9          **
+  10          **
+  11          **--------------ÎÄ¼þÐÅÏ¢--------------------------------------------------------------------------------
+  12          **ÎÄ   ¼þ   Ãû: OS_CPU_C.C
+  13          **´´   ½¨   ÈË: ³ÂÃ÷¼Æ
+  14          **×îºóÐÞ¸ÄÈÕÆÚ:  2003Äê8ÔÂ17ÈÕ
+  15          **Ãè        Êö: Small RTOS 51ÓëCPU(¼È8051ÏµÁÐ)Ïà¹ØµÄCÓïÑÔ´úÂë
+  16          **
+  17          **--------------ÀúÊ·°æ±¾ÐÅÏ¢----------------------------------------------------------------------------
+  18          ** ´´½¨ÈË: ³ÂÃ÷¼Æ
+  19          ** °æ  ±¾: V0.50~v1.00
+  20          ** ÈÕ¡¡ÆÚ: 2002Äê2ÔÂ22ÈÕ~2002Äê6ÔÂ20ÈÕ
+  21          ** Ãè¡¡Êö: »ù±¾Íê³É
+  22          **
+  23          **------------------------------------------------------------------------------------------------------
+  24          ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  25          ** °æ  ±¾: V1.10~V1.12.0
+  26          ** ÈÕ¡¡ÆÚ: 2002Äê9ÔÂ1ÈÕ~002Äê12ÔÂ30ÈÕ
+  27          ** Ãè¡¡Êö: ÍêÉÆ´úÂë
+  28          **
+  29          **------------------------------------------------------------------------------------------------------
+  30          ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  31          ** °æ  ±¾: V1.20.0
+  32          ** ÈÕ¡¡ÆÚ: 2003Äê8ÔÂ17ÈÕ
+  33          ** Ãè¡¡Êö: ¸ù¾ÝÐÂ°æ±¾ÐèÒªÔö¼õÁËº¯Êý
+  34          **
+  35          **--------------µ±Ç°°æ±¾ÐÞ¶©------------------------------------------------------------------------------
+  36          ** ÐÞ¸ÄÈË:
+  37          ** ÈÕ¡¡ÆÚ:
+  38          ** Ãè¡¡Êö:
+  39          **
+  40          **------------------------------------------------------------------------------------------------------
+  41          ********************************************************************************************************/
+  42          
+  43          #define  IN_OS_CPU_C
+  44          #include "CONFIG.h"
+   1      =1  /*
+   2      =1  ************************Copyright(c)************************
+   3      =1  *                                  ºþÄÏÎõÍú´ï¿Æ¼¼ÓÐÏÞ¹«Ë¾
+   4      =1  *                               All Rights Reserved
+   5      =1  *                                        
+   6      =1  *
+   7      =1  *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8      =1  *ÎÄ¼þÃû³Æ               :config.h
+   9      =1  *ÎÄ¼þÃèÊö               :ÅäÖÃÍ·ÎÄ¼þ
+  10      =1  *´´½¨ÈË                 :³ÂÎÀ¹ú
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 2   
+
+  11      =1  *´´½¨ÈÕÆÚ               :2008-9-22
+  12      =1  *°æ±¾ºÅ                 :V1.0
+  13      =1  *×¢ÊÍ                   :                                       
+  14      =1  *----------------------------------------------------------
+  15      =1  *ÐÞ¸ÄÈË                         :
+  16      =1  *ÐÞ¸ÄÈÕÆÚ                       :
+  17      =1  *°æ±¾ºÅ                 :
+  18      =1  *×¢ÊÍ                   :
+  19      =1  ***********************************************************
+  20      =1  */
+  21      =1  //ÏµÍ³Í·ÎÄ¼þ
+  22      =1  #pragma REGPARMS          
+  23      =1  #include <intrins.h>
+   1      =2  /*--------------------------------------------------------------------------
+   2      =2  INTRINS.H
+   3      =2  
+   4      =2  Intrinsic functions for C51.
+   5      =2  Copyright (c) 1988-2004 Keil Elektronik GmbH and Keil Software, Inc.
+   6      =2  All rights reserved.
+   7      =2  --------------------------------------------------------------------------*/
+   8      =2  
+   9      =2  #ifndef __INTRINS_H__
+  10      =2  #define __INTRINS_H__
+  11      =2  
+  12      =2  extern void          _nop_     (void);
+  13      =2  extern bit           _testbit_ (bit);
+  14      =2  extern unsigned char _cror_    (unsigned char, unsigned char);
+  15      =2  extern unsigned int  _iror_    (unsigned int,  unsigned char);
+  16      =2  extern unsigned long _lror_    (unsigned long, unsigned char);
+  17      =2  extern unsigned char _crol_    (unsigned char, unsigned char);
+  18      =2  extern unsigned int  _irol_    (unsigned int,  unsigned char);
+  19      =2  extern unsigned long _lrol_    (unsigned long, unsigned char);
+  20      =2  extern unsigned char _chkfloat_(float);
+  21      =2  extern void          _push_    (unsigned char _sfr);
+  22      =2  extern void          _pop_     (unsigned char _sfr);
+  23      =2  
+  24      =2  #endif
+  25      =2  
+  24      =1  #include <absacc.h>
+   1      =2  /*--------------------------------------------------------------------------
+   2      =2  ABSACC.H
+   3      =2  
+   4      =2  Direct access to 8051, extended 8051 and Philips 80C51MX memory areas.
+   5      =2  Copyright (c) 1988-2002 Keil Elektronik GmbH and Keil Software, Inc.
+   6      =2  All rights reserved.
+   7      =2  --------------------------------------------------------------------------*/
+   8      =2  
+   9      =2  #ifndef __ABSACC_H__
+  10      =2  #define __ABSACC_H__
+  11      =2  
+  12      =2  #define CBYTE ((unsigned char volatile code  *) 0)
+  13      =2  #define DBYTE ((unsigned char volatile data  *) 0)
+  14      =2  #define PBYTE ((unsigned char volatile pdata *) 0)
+  15      =2  #define XBYTE ((unsigned char volatile xdata *) 0)
+  16      =2  
+  17      =2  #define CWORD ((unsigned int volatile code  *) 0)
+  18      =2  #define DWORD ((unsigned int volatile data  *) 0)
+  19      =2  #define PWORD ((unsigned int volatile pdata *) 0)
+  20      =2  #define XWORD ((unsigned int volatile xdata *) 0)
+  21      =2  
+  22      =2  
+  23      =2  #ifdef __CX51__
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 3   
+
+           =2 #define FVAR(object, addr)   (*((object volatile far *) (addr)))
+           =2 #define FARRAY(object, base) ((object volatile far *) (base))
+           =2 #define FCVAR(object, addr)   (*((object const far *) (addr)))
+           =2 #define FCARRAY(object, base) ((object const far *) (base))
+           =2 #else
+  29      =2  #define FVAR(object, addr)    (*((object volatile far *) ((addr)+0x10000L)))
+  30      =2  #define FCVAR(object, addr)   (*((object const far *) ((addr)+0x810000L)))
+  31      =2  #define FARRAY(object, base)  ((object volatile far *) ((base)+0x10000L))
+  32      =2  #define FCARRAY(object, base) ((object const far *) ((base)+0x810000L))
+  33      =2  #endif
+  34      =2  
+  35      =2  #endif
+  25      =1  #include <stdio.h>
+   1      =2  /*--------------------------------------------------------------------------
+   2      =2  STDIO.H
+   3      =2  
+   4      =2  Prototypes for standard I/O functions.
+   5      =2  Copyright (c) 1988-2002 Keil Elektronik GmbH and Keil Software, Inc.
+   6      =2  All rights reserved.
+   7      =2  --------------------------------------------------------------------------*/
+   8      =2  
+   9      =2  #ifndef __STDIO_H__
+  10      =2  #define __STDIO_H__
+  11      =2  
+  12      =2  #ifndef EOF
+  13      =2   #define EOF -1
+  14      =2  #endif
+  15      =2  
+  16      =2  #ifndef NULL
+  17      =2   #define NULL ((void *) 0)
+  18      =2  #endif
+  19      =2  
+  20      =2  #ifndef _SIZE_T
+  21      =2   #define _SIZE_T
+  22      =2   typedef unsigned int size_t;
+  23      =2  #endif
+  24      =2  
+  25      =2  #pragma SAVE
+  26      =2  #pragma REGPARMS
+  27      =2  extern char _getkey (void);
+  28      =2  extern char getchar (void);
+  29      =2  extern char ungetchar (char);
+  30      =2  extern char putchar (char);
+  31      =2  extern int printf   (const char *, ...);
+  32      =2  extern int sprintf  (char *, const char *, ...);
+  33      =2  extern int vprintf  (const char *, char *);
+  34      =2  extern int vsprintf (char *, const char *, char *);
+  35      =2  extern char *gets (char *, int n);
+  36      =2  extern int scanf (const char *, ...);
+  37      =2  extern int sscanf (char *, const char *, ...);
+  38      =2  extern int puts (const char *);
+  39      =2  
+  40      =2  #pragma RESTORE
+  41      =2  
+  42      =2  #endif
+  43      =2  
+  26      =1  #include <string.h>
+   1      =2  /*--------------------------------------------------------------------------
+   2      =2  STRING.H
+   3      =2  
+   4      =2  String functions.
+   5      =2  Copyright (c) 1988-2002 Keil Elektronik GmbH and Keil Software, Inc.
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 4   
+
+   6      =2  All rights reserved.
+   7      =2  --------------------------------------------------------------------------*/
+   8      =2  
+   9      =2  #ifndef __STRING_H__
+  10      =2  #define __STRING_H__
+  11      =2  
+  12      =2  #ifndef _SIZE_T
+           =2  #define _SIZE_T
+           =2  typedef unsigned int size_t;
+           =2 #endif
+  16      =2  
+  17      =2  #ifndef NULL
+           =2  #define NULL ((void *) 0L)
+           =2 #endif
+  20      =2  
+  21      =2  #pragma SAVE
+  22      =2  #pragma REGPARMS
+  23      =2  extern char *strcat (char *s1, char *s2);                               //×Ö·û´®Æ´½Óº¯Êý
+  24      =2  extern char *strncat (char *s1, char *s2, int n);
+  25      =2  
+  26      =2  extern char strcmp (char *s1, char *s2);                                //´®±È½Ï        
+  27      =2  extern char strncmp (char *s1, char *s2, int n);            // ½«Ò»¸ö´®ÖÐµÄÒ»²¿·ÖÓëÁíÒ»¸ö´®±È½Ï, ²»¹Ü´óÐ¡Ð´
+  28      =2  
+  29      =2  extern char *strcpy (char *s1, char *s2);                               //¿½±´Ò»¸ö×Ö·û´®µ½ÁíÒ»¸ö×Ö·û´®
+  30      =2  extern char *strncpy (char *s1, char *s2, int n);
+  31      =2  
+  32      =2  extern int strlen (char *);
+  33      =2  
+  34      =2  extern char *strchr (const char *s, char c);            //ÔÚÒ»¸ö´®ÖÐ²éÕÒ¸ø¶¨×Ö·ûµÄµÚÒ»¸öÆ¥ÅäÖ®´¦
+  35      =2  extern int strpos (const char *s, char c);
+  36      =2  extern char *strrchr (const char *s, char c);           //              ÔÚ´®ÖÐ²éÕÒÖ¸¶¨×Ö·ûµÄ×îºóÒ»¸ö³öÏÖ
+  37      =2  extern int strrpos (const char *s, char c);
+  38      =2  
+  39      =2  extern int strspn (char *s, char *set);                         //ÔÚ´®ÖÐ²éÕÒµÚÒ»¸ö¸ø¶¨×Ö·û¼¯ÄÚÈÝµÄ¶Î
+  40      =2  extern int strcspn (char *s, char *set);
+  41      =2  extern char *strpbrk (char *s, char *set);                              //ÔÚ´®ÖÐ²éÕÒ¸ø¶¨×Ö·û¼¯ÖÐµÄ×Ö·û
+  42      =2  extern char *strrpbrk (char *s, char *set);
+  43      =2  extern char *strstr  (char *s, char *sub);
+  44      =2  extern char *strtok  (char *str, const char *set);                      //²éÕÒÓÉÔÚµÚ¶þ¸ö´®ÖÐÖ¸¶¨µÄ·Ö½ç·û·Ö¸ô¿ªµÄµ¥´Ê
+  45      =2  
+  46      =2  extern char memcmp (void *s1, void *s2, int n);
+  47      =2  extern void *memcpy (void *s1, void *s2, int n);
+  48      =2  extern void *memchr (void *s, char val, int n);
+  49      =2  extern void *memccpy (void *s1, void *s2, char val, int n);
+  50      =2  extern void *memmove (void *s1, void *s2, int n);
+  51      =2  extern void *memset  (void *s, char val, int n);                //½«Ò»¸ö´®ÖÐµÄËùÓÐ×Ö·û¶¼ÉèÎªÖ¸¶¨×Ö·û
+  52      =2  #pragma RESTORE
+  53      =2  
+  54      =2  #endif
+  27      =1  #include <math.h> 
+   1      =2  /*--------------------------------------------------------------------------
+   2      =2  MATH.H
+   3      =2  
+   4      =2  Prototypes for mathematic functions.
+   5      =2  Copyright (c) 1988-2002 Keil Elektronik GmbH and Keil Software, Inc.
+   6      =2  All rights reserved.
+   7      =2  --------------------------------------------------------------------------*/
+   8      =2  
+   9      =2  #ifndef __MATH_H__
+  10      =2  #define __MATH_H__
+  11      =2  
+  12      =2  #pragma SAVE
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 5   
+
+  13      =2  #pragma REGPARMS
+  14      =2  extern char  cabs  (char  val);
+  15      =2  extern int    abs  (int   val);
+  16      =2  extern long  labs  (long  val);
+  17      =2  extern float fabs  (float val);
+  18      =2  extern float sqrt  (float val);
+  19      =2  extern float exp   (float val);
+  20      =2  extern float log   (float val);
+  21      =2  extern float log10 (float val);
+  22      =2  extern float sin   (float val);
+  23      =2  extern float cos   (float val);
+  24      =2  extern float tan   (float val);
+  25      =2  extern float asin  (float val);
+  26      =2  extern float acos  (float val);
+  27      =2  extern float atan  (float val);
+  28      =2  extern float sinh  (float val);
+  29      =2  extern float cosh  (float val);
+  30      =2  extern float tanh  (float val);
+  31      =2  extern float atan2 (float y, float x);
+  32      =2  
+  33      =2  extern float ceil  (float val);
+  34      =2  extern float floor (float val);
+  35      =2  extern float modf  (float val, float *n);
+  36      =2  extern float fmod  (float x, float y);
+  37      =2  extern float pow   (float x, float y);
+  38      =2  
+  39      =2  #pragma RESTORE
+  40      =2  
+  41      =2  #endif
+  28      =1  #include "STC12C56.H"
+   1      =2  /*------------------------------------------------*/
+   2      =2  /* --- ºê¾§¿Æ¼¼ STCMCU ---------------------------*/
+   3      =2  /* --- Mobile: (86)13922805190 -------------------*/
+   4      =2  /* --- Fax: 86-755-82944243 ----------------------*/
+   5      =2  /* --- Tel: 86-755-82948412 ----------------------*/
+   6      =2  /* --- Web: www.STCMCU.com -----------------------*/
+   7      =2  /* ÊÊÓÃÓÚ: STC12C56xx    STC12LE56xx  ------------*/
+   8      =2  /* ------- STC12C56xxAD  STC12LE56xxAD  ----------*/
+   9      =2  /*------------------------------------------------*/
+  10      =2  
+  11      =2  #ifndef __STC12C56_H__
+  12      =2  #define __STC12C56_H__
+  13      =2  
+  14      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+  15      =2  
+  16      =2  sfr  PSW        =   0xd0;       //³ÌÐò×´Ì¬×Ö            Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+  17      =2                                  //Î»ÃèÊö                CY      AC      F0      RS1     RS0     OV      F1
+             -      P
+  18      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+  19      =2  
+  20      =2  sbit CY         =   PSW^7;      //½øÎ»±êÖ¾
+  21      =2  sbit AC         =   PSW^6;      //¸¨Öú½øÎ»±êÖ¾
+  22      =2  sbit F0         =   PSW^5;      //ÓÃ»§±êÖ¾
+  23      =2  sbit RS1        =   PSW^4;      //¼Ä´æÆ÷×éÑ¡ÔñÎ»1
+  24      =2  sbit RS0        =   PSW^3;      //¼Ä´æÆ÷×éÑ¡ÔñÎ»0
+  25      =2  sbit OV         =   PSW^2;      //Òç³ö±êÖ¾
+  26      =2  sbit P          =   PSW^0;      //ACCµÄÅ¼Ð£ÑéÎ»
+  27      =2  
+  28      =2  /////////////////////////////////
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 6   
+
+  29      =2  
+  30      =2  sfr  ACC        =   0xe0;       //ÀÛ¼ÓÆ÷                Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+  31      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+  32      =2  
+  33      =2  sbit ACC7       =   ACC^7;      //ÀÛ¼ÓÆ÷µÚ7Î»
+  34      =2  sbit ACC6       =   ACC^6;      //ÀÛ¼ÓÆ÷µÚ6Î»
+  35      =2  sbit ACC5       =   ACC^5;      //ÀÛ¼ÓÆ÷µÚ5Î»
+  36      =2  sbit ACC4       =   ACC^4;      //ÀÛ¼ÓÆ÷µÚ4Î»
+  37      =2  sbit ACC3       =   ACC^3;      //ÀÛ¼ÓÆ÷µÚ3Î»
+  38      =2  sbit ACC2       =   ACC^2;      //ÀÛ¼ÓÆ÷µÚ2Î»
+  39      =2  sbit ACC1       =   ACC^1;      //ÀÛ¼ÓÆ÷µÚ1Î»
+  40      =2  sbit ACC0       =   ACC^0;      //ÀÛ¼ÓÆ÷µÚ0Î»
+  41      =2  
+  42      =2  /////////////////////////////////
+  43      =2  
+  44      =2  sfr  B          =   0xf0;       //B¼Ä´æÆ÷               Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+  45      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+  46      =2  
+  47      =2  /////////////////////////////////
+  48      =2  
+  49      =2  sfr  SP         =   0x81;       //¶ÑÕ»Ö¸Õë              Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+  50      =2                                  //³õÊ¼Öµ=0000,0111      0       0       0       0       0       1       1 
+             -      1
+  51      =2  
+  52      =2  /////////////////////////////////
+  53      =2  
+  54      =2  sfr  DPL        =   0x82;       //Êý¾ÝÖ¸ÕëµÍ×Ö½Ú        Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+  55      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+  56      =2  
+  57      =2  /////////////////////////////////
+  58      =2  
+  59      =2  sfr  DPH        =   0x83;       //Êý¾ÝÖ¸Õë¸ß×Ö½Ú        Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+  60      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+  61      =2  
+  62      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+  63      =2  
+  64      =2  sfr  PCON       =   0x87;       //µçÔ´¿ØÖÆ¼Ä´æÆ÷        Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+  65      =2                                  //Î»ÃèÊö                SMOD    SMOD0   LVDF    POF     GF1     GF0     PD
+             -      IDL
+  66      =2                                  //³õÊ¼Öµ=0011,0000      0       0       1       1       0       0       0 
+             -      0
+  67      =2  
+  68      =2  #define SMOD        0x80        //´®¿Ú²¨ÌØÂÊ±¶ËÙÎ»,ÖÃ1¿ÉÊ¹²¨ÌØÂÊ¿ì1±¶
+  69      =2  #define SMOD0       0x40        //FE/SM0Ñ¡ÔñÎ»,0:SCON.7ÎªSM0 1:SCON.7ÎªFE
+  70      =2  #define LVDF        0x20        //µÍÑ¹¼ì²âÖÐ¶ÏÇëÇóÎ»,ÓÉÓ²¼þÖÃ1,ÐèÓÉÈí¼þÇå0
+  71      =2  #define POF         0x10        //ÉÏµç¸´Î»±êÖ¾Î»,ÉÏµçÊ±ÓÉÓ²¼þÖÃ1,ÐèÓÉÈí¼þÇå0
+  72      =2  #define GF1         0x08        //Í¨ÓÃ±êÖ¾Î»1
+  73      =2  #define GF0         0x04        //Í¨ÓÃ±êÖ¾Î»0
+  74      =2  #define PD          0x02        //µôµç¿ØÖÆÎ»,Ð´1¿ÉÒÔÊ¹MCU½øÈëPowerDownÄ£Ê½
+  75      =2  #define IDL         0x01        //¿ÕÏÐ¿ØÖÆÎ»,Ð´1¿ÉÒÔÊ¹MCU½øÈëIdleÄ£Ê½
+  76      =2  
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 7   
+
+  77      =2  /////////////////////////////////
+  78      =2  
+  79      =2  sfr  WAKE_CLKO  =   0x8f;       //µôµç»½ÐÑ/Ê±ÖÓÊä³ö¿ØÖÆ Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+  80      =2                                  //Î»ÃèÊö          PCAWAKEUP RXDPINIE T1PINIE T0PINIE    -       -      T1V
+             -LKO  T0CLKO
+  81      =2                                  //³õÊ¼Öµ=0000,xx00      0       0       0       0       x       x       0 
+             -      0
+  82      =2  
+  83      =2  #define PCAWAKEUP   0x80        //ÔÊÐíPCAµÄÉÏÉýÑØ/ÏÂ½µÑØÖÐ¶Ï»½ÐÑµôµçMCU
+  84      =2  #define RXD_PIN_IE  0x40        //ÔÊÐíRXD(P3.0)ÏÂ½µÑØÖÃÎ»RIÖÐ¶ÏÊ±»½ÐÑµôµçMCU(±ØÐë´ò¿ªÏàÓ¦ÖÐ¶Ï)
+  85      =2  #define T1_PIN_IE   0x20        //ÔÊÐíT1(P3.5)ÏÂ½µÑØÖÃÎ»T1ÖÐ¶ÏÊ±»½ÐÑµôµçMCU(±ØÐë´ò¿ªÏàÓ¦ÖÐ¶Ï)
+  86      =2  #define T0_PIN_IE   0x10        //ÔÊÐíT0(P3.4)ÏÂ½µÑØÖÃÎ»T0ÖÐ¶ÏÊ±»½ÐÑµôµçMCU(±ØÐë´ò¿ªÏàÓ¦ÖÐ¶Ï)
+  87      =2  #define T1CLKOEN    0x02        //´ò¿ªP3.5½ÅµÄ¶¨Ê±Æ÷1Ê±ÖÓÒç³öÂö³å,Êä³öµÄÊ±ÖÓÆµÂÊÎª1/2±¶µÄT1Òç³öÂÊ
+  88      =2  #define T0CLKOEN    0x01        //´ò¿ªP3.4½ÅµÄ¶¨Ê±Æ÷0Ê±ÖÓÒç³öÂö³å,Êä³öµÄÊ±ÖÓÆµÂÊÎª1/2±¶µÄT0Òç³öÂÊ
+  89      =2  
+  90      =2  /////////////////////////////////
+  91      =2  
+  92      =2  sfr  CLK_DIV    =   0xc7;       //Ê±ÖÓ·ÖÆµ¼Ä´æÆ÷        Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+  93      =2                                  //Î»ÃèÊö                -       -       -       -       -       CLKS2   CL
+             -KS1   CLKS0
+  94      =2                                  //³õÊ¼Öµ=xxxx,x000      x       x       x       x       x       0       0 
+             -      0
+  95      =2  
+  96      =2  #define FOSCD1      0x00        //ÏµÍ³Ê±ÖÓÎªFosc
+  97      =2  #define FOSCD2      0x01        //ÏµÍ³Ê±ÖÓÎªFosc/2
+  98      =2  #define FOSCD4      0x02        //ÏµÍ³Ê±ÖÓÎªFosc/4
+  99      =2  #define FOSCD8      0x03        //ÏµÍ³Ê±ÖÓÎªFosc/8
+ 100      =2  #define FOSCD16     0x04        //ÏµÍ³Ê±ÖÓÎªFosc/16
+ 101      =2  #define FOSCD32     0x05        //ÏµÍ³Ê±ÖÓÎªFosc/32
+ 102      =2  #define FOSCD64     0x06        //ÏµÍ³Ê±ÖÓÎªFosc/64
+ 103      =2  #define FOSCD128    0x07        //ÏµÍ³Ê±ÖÓÎªFosc/128
+ 104      =2  
+ 105      =2  /////////////////////////////////
+ 106      =2  
+ 107      =2  sfr  WDT_CONTR  =   0xe1;       //¿´ÃÅ¹·¶¨Ê±Æ÷¿ØÖÆÆ÷    Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 108      =2                                  //Î»ÃèÊö             WDT_FLAG   -       EN_WDT  CLR_WDT IDL_WDT PS2     PS
+             -1     PS0
+ 109      =2                                  //³õÊ¼Öµ=0x00,0000      0       x       0       0       0       0       0 
+             -      0
+ 110      =2  
+ 111      =2  #define WDT_FLAG    0x80        //¿´ÃÅ¹·¸´Î»±êÖ¾,µ±¿´ÃÅ¹·Òç³ö²úÉú¸´Î»ºó,Ó²¼þ×Ô¶¯ÖÃ1,ÐèÒªÓÉÈí¼þÇå0
+ 112      =2  #define EN_WDT      0x20        //Èí¼þÊ¹ÄÜ¿´ÃÅ¹·,´ò¿ªºó²»ÄÜÓÃÈí¼þµÄ·½Ê½¹Ø±Õ
+ 113      =2  #define CLR_WDT     0x10        //Çå¿´ÃÅ¹·¶¨Ê±Æ÷
+ 114      =2  #define IDLE_WDT    0x08        //IDLEÄ£Ê½ÏÂ,¿´ÃÅ¹·¶¨Ê±Æ÷ÊÇ·ñ¼ÌÐø¼ÆÊ±
+ 115      =2  
+ 116      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+ 117      =2  
+ 118      =2  sfr  AUXR       =   0x8e;       //¸¨Öú¼Ä´æÆ÷            Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 119      =2                                  //Î»ÃèÊö                T0x12   T1x12   UM0x6   EADCI   ESPI    ELVDI   - 
+             -      -
+ 120      =2                                  //³õÊ¼Öµ=0000,00xx      0       0       0       0       0       0       x 
+             -      x
+ 121      =2  
+ 122      =2  #define T0x12       0x80        //¶¨Ê±Æ÷0Ê±ÖÓ¿ØÖÆ,0:Fosc/12(´«Í³µÄ12·ÖÆµ) 1:Fosc/1(1TÄ£Ê½,²»·ÖÆµ,¼´12±¶ÓÚ´
+             -«Í³ËÙ¶È)
+ 123      =2  #define T1x12       0x40        //¶¨Ê±Æ÷1Ê±ÖÓ¿ØÖÆ,0:Fosc/12(´«Í³µÄ12·ÖÆµ) 1:Fosc/1(1TÄ£Ê½,²»·ÖÆµ,¼´12±¶ÓÚ´
+             -«Í³ËÙ¶È)
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 8   
+
+ 124      =2  #define UR0x6       0x20        //´®¿ÚÄ£Ê½0µÄÊ±ÖÓ¿ØÖÆ,0:Fosc/12(´«Í³µÄ12·ÖÆµ) 1:Fosc/2(2·ÖÆµ,,¼´6±¶ÓÚ´«Í³Ë
+             -Ù¶È)
+ 125      =2  #define EADCI       0x10        //Ê¹ÄÜADCÖÐ¶ÏÎ»
+ 126      =2  #define ESPI        0x08        //Ê¹ÄÜSPIÖÐ¶ÏÎ»
+ 127      =2  #define ELVDI       0x04        //Ê¹ÄÜLVDÖÐ¶ÏÎ»
+ 128      =2  
+ 129      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+ 130      =2  
+ 131      =2  sfr  P0         =   0x80;       //I/O¶Ë¿Ú0              Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 132      =2                                  //Î»ÃèÊö                -       -       -       -       P0.3    P0.2    P0
+             -.1    P0.0
+ 133      =2                                  //³õÊ¼Öµ=xxxx,1111      x       x       x       x       1       1       1 
+             -      1
+ 134      =2  
+ 135      =2  sbit P03        =   P0^3;       //I/O¿ÚP0.3
+ 136      =2  sbit P02        =   P0^2;       //I/O¿ÚP0.2
+ 137      =2  sbit P01        =   P0^1;       //I/O¿ÚP0.1
+ 138      =2  sbit P00        =   P0^0;       //I/O¿ÚP0.0
+ 139      =2  
+ 140      =2  /////////////////////////////////
+ 141      =2  
+ 142      =2  sfr  P1         =   0x90;       //I/O¶Ë¿Ú0              Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 143      =2                                  //Î»ÃèÊö                P1.7    P1.6    P1.5    P1.4    P1.3    P1.2    P1
+             -.1    P1.0
+ 144      =2                                  //³õÊ¼Öµ=1111,1111      1       1       1       1       1       1       1 
+             -      1
+ 145      =2  
+ 146      =2  sbit P17        =   P1^7;       //I/O¿ÚP1.7
+ 147      =2  sbit P16        =   P1^6;       //I/O¿ÚP1.6
+ 148      =2  sbit P15        =   P1^5;       //I/O¿ÚP1.5
+ 149      =2  sbit P14        =   P1^4;       //I/O¿ÚP1.4
+ 150      =2  sbit P13        =   P1^3;       //I/O¿ÚP1.3
+ 151      =2  sbit P12        =   P1^2;       //I/O¿ÚP1.2
+ 152      =2  sbit P11        =   P1^1;       //I/O¿ÚP1.1
+ 153      =2  sbit P10        =   P1^0;       //I/O¿ÚP1.0
+ 154      =2  
+ 155      =2  sbit ADCIN7     =   P1^7;       //ADCÍ¨µÀ7µÄÄ£ÄâÐÅºÅÊäÈë½Å
+ 156      =2  sbit ADCIN6     =   P1^6;       //ADCÍ¨µÀ6µÄÄ£ÄâÐÅºÅÊäÈë½Å
+ 157      =2  sbit ADCIN5     =   P1^5;       //ADCÍ¨µÀ5µÄÄ£ÄâÐÅºÅÊäÈë½Å
+ 158      =2  sbit ADCIN4     =   P1^4;       //ADCÍ¨µÀ4µÄÄ£ÄâÐÅºÅÊäÈë½Å
+ 159      =2  sbit ADCIN3     =   P1^3;       //ADCÍ¨µÀ3µÄÄ£ÄâÐÅºÅÊäÈë½Å
+ 160      =2  sbit ADCIN2     =   P1^2;       //ADCÍ¨µÀ2µÄÄ£ÄâÐÅºÅÊäÈë½Å
+ 161      =2  sbit ADCIN1     =   P1^1;       //ADCÍ¨µÀ1µÄÄ£ÄâÐÅºÅÊäÈë½Å
+ 162      =2  sbit ADCIN0     =   P1^0;       //ADCÍ¨µÀ0µÄÄ£ÄâÐÅºÅÊäÈë½Å
+ 163      =2  
+ 164      =2  sbit SPISCLK    =   P1^7;       //SPI×ÜÏßµÄÊ±ÖÓ½Å
+ 165      =2  sbit SPIMISO    =   P1^6;       //SPI×ÜÏßµÄÖ÷³ö´ÓÈë½Å
+ 166      =2  sbit SPIMOSI    =   P1^5;       //SPI×ÜÏßµÄÖ÷Èë´Ó³ö½Å
+ 167      =2  sbit SPISS      =   P1^4;       //SPI×ÜÏßµÄ´Ó»úÑ¡Ôñ½Å
+ 168      =2  
+ 169      =2  sbit T1CLKO     =   P1^1;       //¶¨Ê±Æ÷1Ê±ÖÓÒç³öÂö³åÊä³ö½Å
+ 170      =2  sbit T0CLKO     =   P1^0;       //¶¨Ê±Æ÷0Ê±ÖÓÒç³öÂö³åÊä³ö½Å
+ 171      =2  
+ 172      =2  /////////////////////////////////
+ 173      =2  
+ 174      =2  sfr  P2         =   0xa0;       //I/O¶Ë¿Ú2              Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 175      =2                                  //Î»ÃèÊö                P2.7    P2.6    P2.5    P2.4    P2.3    P2.2    P2
+             -.1    P2.0
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 9   
+
+ 176      =2                                  //³õÊ¼Öµ=1111,1111      1       1       1       1       1       1       1 
+             -      1
+ 177      =2  
+ 178      =2  sbit P27        =   P2^7;       //I/O¿ÚP2.7
+ 179      =2  sbit P26        =   P2^6;       //I/O¿ÚP2.6
+ 180      =2  sbit P25        =   P2^5;       //I/O¿ÚP2.5
+ 181      =2  sbit P24        =   P2^4;       //I/O¿ÚP2.4
+ 182      =2  sbit P23        =   P2^3;       //I/O¿ÚP2.3
+ 183      =2  sbit P22        =   P2^2;       //I/O¿ÚP2.2
+ 184      =2  sbit P21        =   P2^1;       //I/O¿ÚP2.1
+ 185      =2  sbit P20        =   P2^0;       //I/O¿ÚP2.0
+ 186      =2  
+ 187      =2  sbit CEX3       =   P2^4;       //±È½Ï/²¶»ñ/PWM3Íâ²¿Òý½Å
+ 188      =2  sbit CEX2       =   P2^0;       //±È½Ï/²¶»ñ/PWM2Íâ²¿Òý½Å
+ 189      =2  
+ 190      =2  /////////////////////////////////
+ 191      =2  
+ 192      =2  sfr  P3         =   0xb0;       //I/O¶Ë¿Ú3              Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 193      =2                                  //Î»ÃèÊö                P3.7    -       P3.5    P3.4    P3.3    P3.2    P3
+             -.1    P3.0
+ 194      =2                                  //³õÊ¼Öµ=1x11,1111      1       x       1       1       1       1       1 
+             -      1
+ 195      =2  
+ 196      =2  sbit P37        =   P3^7;       //I/O¿ÚP3.7
+ 197      =2  sbit P35        =   P3^5;       //I/O¿ÚP3.5
+ 198      =2  sbit P34        =   P3^4;       //I/O¿ÚP3.4
+ 199      =2  sbit P33        =   P3^3;       //I/O¿ÚP3.3
+ 200      =2  sbit P32        =   P3^2;       //I/O¿ÚP3.2
+ 201      =2  sbit P31        =   P3^1;       //I/O¿ÚP3.1
+ 202      =2  sbit P30        =   P3^0;       //I/O¿ÚP3.0
+ 203      =2  
+ 204      =2  sbit RXD        =   P3^0;       //´®¿Ú1µÄÊý¾Ý½ÓÊÕ¿Ú
+ 205      =2  sbit TXD        =   P3^1;       //´®¿Ú1µÄÊý¾Ý·¢ËÍ¿Ú
+ 206      =2  sbit INT0       =   P3^2;       //Íâ²¿ÖÐ¶Ï0µÄÐÅºÅÊäÈë¿Ú
+ 207      =2  sbit INT1       =   P3^3;       //Íâ²¿ÖÐ¶Ï1µÄÐÅºÅÊä³ö¿Ú
+ 208      =2  sbit T0         =   P3^4;       //¶¨Ê±Æ÷0µÄÍâ²¿ÐÅºÅÊäÈë¿Ú
+ 209      =2  sbit T1         =   P3^5;       //¶¨Ê±Æ÷1µÄÍâ²¿ÐÅºÅÊäÈë¿Ú
+ 210      =2  
+ 211      =2  sbit CEX0       =   P3^7;       //±È½Ï/²¶»ñ/PWM0Íâ²¿Òý½Å
+ 212      =2  sbit CEX1       =   P3^5;       //±È½Ï/²¶»ñ/PWM1Íâ²¿Òý½Å
+ 213      =2  sbit ECI        =   P3^4;       //±È½Ï/²¶»ñ/PWMÄ£¿éµÄÍâ²¿Ê±ÖÓÊäÈë½Å(×î´óÖµÎªFosc/2)
+ 214      =2  
+ 215      =2  /////////////////////////////////
+ 216      =2  
+ 217      =2  sfr  P1M0       =   0x91;       //I/O¿Ú1Ä£Ê½¿ØÖÆÆ÷1     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 218      =2                                  //³õ/Ê¼Öµ=0000,0000     0       0       0       0       0       0       0 
+             -      0
+ 219      =2  
+ 220      =2  /////////////////////////////////
+ 221      =2  
+ 222      =2  sfr  P1M1       =   0x92;       //I/O¿Ú1Ä£Ê½¿ØÖÆÆ÷0     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 223      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 224      =2  
+ 225      =2  /////////////////////////////////
+ 226      =2  
+ 227      =2  sfr  P0M0       =   0x93;       //I/O¿Ú0Ä£Ê½¿ØÖÆÆ÷1     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 228      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 10  
+
+             -      0
+ 229      =2  
+ 230      =2  /////////////////////////////////
+ 231      =2  
+ 232      =2  sfr  P0M1       =   0x94;       //I/O¿Ú0Ä£Ê½¿ØÖÆÆ÷0     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 233      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 234      =2  
+ 235      =2  /////////////////////////////////
+ 236      =2  
+ 237      =2  sfr  P2M0       =   0x95;       //I/O¿Ú2Ä£Ê½¿ØÖÆÆ÷1     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 238      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 239      =2  
+ 240      =2  /////////////////////////////////
+ 241      =2  
+ 242      =2  sfr  P2M1       =   0x96;       //I/O¿Ú2Ä£Ê½¿ØÖÆÆ÷0     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 243      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 244      =2  
+ 245      =2  /////////////////////////////////
+ 246      =2  
+ 247      =2  sfr  P3M0       =   0xb1;       //I/O¿Ú3Ä£Ê½¿ØÖÆÆ÷1     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 248      =2                                  //³õ/Ê¼Öµ=0000,0000     0       0       0       0       0       0       0 
+             -      0
+ 249      =2  
+ 250      =2  /////////////////////////////////
+ 251      =2  
+ 252      =2  sfr  P3M1       =   0xb2;       //I/O¿Ú3Ä£Ê½¿ØÖÆÆ÷0     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 253      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 254      =2  
+ 255      =2  /////////////////////////////////
+ 256      =2  
+ 257      =2  // PxM0 PxM1
+ 258      =2  //  0    0     ×¼Ë«Ïò¿Ú
+ 259      =2  //  0    1     Ç¿ÍÆÍìÊä³ö
+ 260      =2  //  1    0     ¸ß×èÊäÈëÌ¬
+ 261      =2  //  1    1     ¿ªÂ©Êä³ö
+ 262      =2  
+ 263      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+ 264      =2  
+ 265      =2  sfr  IE         =   0xa8;       //ÖÐ¶ÏÊ¹ÄÜ¼Ä´æÆ÷        Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 266      =2                                  //Î»ÃèÊö                EA   EPCA_LVD EADC_SPI  ES      ET1     EX1     ET
+             -0     EX0
+ 267      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 268      =2  
+ 269      =2  sbit EA         =   IE^7;       //×ÜÖÐ¶Ï¿ª¹Ø
+ 270      =2  sbit EPCA_LVD   =   IE^6;       //PCAºÍLVD×ÜÖÐ¶ÏÊ¹ÄÜÎ»,Òª´ò¿ªPCA/LVDÖÐ¶Ï,»¹ÐèÒªÊ¹ÄÜCCAPMn.ECCFn/AUXR.ELVDI
+ 271      =2  sbit EADC_SPI   =   IE^5;       //ADCºÍSPI×ÜÖÐ¶ÏÊ¹ÄÜÎ»,Òª´ò¿ªADC/SPIÖÐ¶Ï,»¹ÐèÒªÊ¹ÄÜAUXR.EADCI/AUXR.ESPII
+ 272      =2  sbit ES         =   IE^4;       //´®¿ÚÖÐ¶ÏÊ¹ÄÜÎ»
+ 273      =2  sbit ET1        =   IE^3;       //¶¨Ê±Æ÷1ÖÐ¶ÏÊ¹ÄÜÎ»
+ 274      =2  sbit EX1        =   IE^2;       //Íâ²¿ÖÐ¶Ï1ÖÐ¶ÏÊ¹ÄÜÎ»
+ 275      =2  sbit ET0        =   IE^1;       //¶¨Ê±Æ÷0ÖÐ¶ÏÊ¹ÄÜÎ»
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 11  
+
+ 276      =2  sbit EX0        =   IE^0;       //Íâ²¿ÖÐ¶Ï0ÖÐ¶ÏÊ¹ÄÜÎ»
+ 277      =2  
+ 278      =2  /////////////////////////////////
+ 279      =2  
+ 280      =2  #define X0_INTNO    0           //Íâ²¿ÖÐ¶Ï0ÖÐ¶ÏºÅ,Èë¿ÚµØÖ·Îª0003H
+ 281      =2  #define T0_INTNO    1           //¶¨Ê±Æ÷0ÖÐ¶ÏºÅ,Èë¿ÚµØÖ·Îª000BH
+ 282      =2  #define X1_INTNO    2           //Íâ²¿ÖÐ¶Ï1ÖÐ¶ÏºÅ,Èë¿ÚµØÖ·Îª0013H
+ 283      =2  #define T1_INTNO    3           //¶¨Ê±Æ÷1ÖÐ¶ÏºÅ,Èë¿ÚµØÖ·Îª001BH
+ 284      =2  #define UART_INTNO  4           //´®¿ÚÖÐ¶ÏºÅ,Èë¿ÚµØÖ·Îª0023H
+ 285      =2  #define ADC_SPI_INTNO   5       //SPI/ADCÖÐ¶ÏºÅ,Èë¿ÚµØÖ·Îª002BH
+ 286      =2  #define PCA_LVD_INTNO   6       //PCA/LVDÖÐ¶ÏºÅ,Èë¿ÚµØÖ·Îª0033H
+ 287      =2  
+ 288      =2  /////////////////////////////////
+ 289      =2  
+ 290      =2  sfr  IPH        =   0xb7;       //ÖÐ¶ÏÓÅÏÈ¼¶¼Ä´æÆ÷¸ßÎ»  Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 291      =2                                  //Î»ÃèÊö                -    PCA_LVDH PADC_SPIH PSH     PT1H    PX1H    PT
+             -0H    PX0H
+ 292      =2                                  //³õÊ¼Öµ=x000,0000      x       0       0       0       0       0       0 
+             -      0
+ 293      =2  
+ 294      =2  #define PPCA_LVDH   0x40        //PCA/LVDÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆ¸ßÎ»
+ 295      =2  #define PADC_SPIH   0x20        //ADC/SPIÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆ¸ßÎ»
+ 296      =2  #define PSH         0x10        //´®¿ÚÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆ¸ßÎ»
+ 297      =2  #define PT1H        0x08        //¶¨Ê±Æ÷1ÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆ¸ßÎ»
+ 298      =2  #define PX1H        0x04        //Íâ²¿ÖÐ¶Ï1ÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆ¸ßÎ»
+ 299      =2  #define PT0H        0x02        //¶¨Ê±Æ÷0ÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆ¸ßÎ»
+ 300      =2  #define PX0H        0x01        //Íâ²¿ÖÐ¶Ï0ÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆ¸ßÎ»
+ 301      =2  
+ 302      =2  /////////////////////////////////
+ 303      =2  
+ 304      =2  sfr  IP         =   0xb8;       //ÖÐ¶ÏÓÅÏÈ¼¶¼Ä´æÆ÷      Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 305      =2                                  //Î»ÃèÊö                -    PPCA_LVD PADC_SPI  PS      PT1     PX1     PT
+             -0     PX0
+ 306      =2                                  //³õÊ¼Öµ=x000,0000      x       0       0       0       0       0       0 
+             -      0
+ 307      =2  
+ 308      =2  sbit PPCA_LVD   =   IP^6;       //PCA/LVDÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆµÍÎ»
+ 309      =2  sbit PADC_SPI   =   IP^5;       //ADC/SPIÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆµÍÎ»
+ 310      =2  sbit PS         =   IP^4;       //´®¿ÚÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆµÍÎ»
+ 311      =2  sbit PT1        =   IP^3;       //¶¨Ê±Æ÷1ÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆµÍÎ»
+ 312      =2  sbit PX1        =   IP^2;       //Íâ²¿ÖÐ¶Ï1ÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆµÍÎ»
+ 313      =2  sbit PT0        =   IP^1;       //¶¨Ê±Æ÷0ÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆµÍÎ»
+ 314      =2  sbit PX0        =   IP^0;       //Íâ²¿ÖÐ¶Ï0ÖÐ¶ÏÓÅÏÈ¼¶¿ØÖÆµÍÎ»
+ 315      =2  
+ 316      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+ 317      =2  
+ 318      =2  sfr  TCON       =   0x88;       //¶¨Ê±Æ÷0/1¿ØÖÆ¼Ä´æÆ÷   Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 319      =2                                  //Î»ÃèÊö                TF1     TR1     TF0     TR0     IE1     IT1     IE
+             -0     IT0
+ 320      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 321      =2  
+ 322      =2  sbit TF1        = TCON^7;       //¶¨Ê±Æ÷1Òç³ö±êÖ¾,ÓÉÓ²¼þÖÃ1,¿ÉÓÉÈí¼þÇå0»òÕßÔÚÖÐ¶Ï´¦Àí³ÌÐòÍê³ÉºóÓÉÓ²¼þ×Ô¶¯Ç
+             -å0
+ 323      =2  sbit TR1        = TCON^6;       //¶¨Ê±Æ÷1µÄÆô¶¯¿ØÖÆÎ»,1:Æô¶¯¶¨Ê±Æ÷ 0:Í£Ö¹¶¨Ê±Æ÷
+ 324      =2  sbit TF0        = TCON^5;       //¶¨Ê±Æ÷0Òç³ö±êÖ¾,ÓÉÓ²¼þÖÃ1,¿ÉÓÉÈí¼þÇå0»òÕßÔÚÖÐ¶Ï´¦Àí³ÌÐòÍê³ÉºóÓÉÓ²¼þ×Ô¶¯Ç
+             -å0
+ 325      =2  sbit TR0        = TCON^4;       //¶¨Ê±Æ÷0µÄÆô¶¯¿ØÖÆÎ»,1:Æô¶¯¶¨Ê±Æ÷ 0:Í£Ö¹¶¨Ê±Æ÷
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 12  
+
+ 326      =2  sbit IE1        = TCON^3;       //Íâ²¿ÖÐ¶Ï1µÄÖÐ¶ÏÇëÇóÎ»,ÓÉÓ²¼þÖÃ1,¿ÉÓÉÈí¼þÇå0»òÕßÔÚÖÐ¶Ï´¦Àí³ÌÐòÍê³ÉºóÓÉÓ²¼
+             -þ×Ô¶¯Çå0
+ 327      =2  sbit IT1        = TCON^2;       //Íâ²¿ÖÐ¶Ï1µÄ´¥·¢ÀàÐÍ,0:µÍµçÆ½´¥·¢Íâ²¿ÖÐ¶Ï 1:ÏÂ½µÑØ´¥·¢Íâ²¿ÖÐ¶Ï
+ 328      =2  sbit IE0        = TCON^1;       //Íâ²¿ÖÐ¶Ï0µÄÖÐ¶ÏÇëÇóÎ»,ÓÉÓ²¼þÖÃ1,¿ÉÓÉÈí¼þÇå0»òÕßÔÚÖÐ¶Ï´¦Àí³ÌÐòÍê³ÉºóÓÉÓ²¼
+             -þ×Ô¶¯Çå0
+ 329      =2  sbit IT0        = TCON^0;       //Íâ²¿ÖÐ¶Ï0µÄ´¥·¢ÀàÐÍ,0:µÍµçÆ½´¥·¢Íâ²¿ÖÐ¶Ï 1:ÏÂ½µÑØ´¥·¢Íâ²¿ÖÐ¶Ï
+ 330      =2  
+ 331      =2  /////////////////////////////////
+ 332      =2  
+ 333      =2  sfr  TMOD       =   0x89;       //¶¨Ê±Æ÷0/1Ä£Ê½¼Ä´æÆ÷   Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 334      =2                                  //Î»ÃèÊö                GATE    C/T#    M1      M0      GATE    C/T#    M1
+             -      M0
+ 335      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 336      =2  
+ 337      =2  #define GATE1       0x80        //¶¨Ê±Æ÷1Æô¶¯¿ØÖÆÎ»,0:TR1Îª1Ê±Æô¶¯¶¨Ê±Æ÷1 1:TR1Îª1ÇÒINT1Îª¸ßµçÆ½Ê±²ÅÆô¶¯¶¨
+             -Ê±Æ÷1
+ 338      =2  #define C_T1        0x40        //¶¨Ê±Æ÷/¼ÆÊýÆ÷Ñ¡ÔñÎ»,0:¶¨Ê±Æ÷(Ê±ÖÓÔ´ÎªÄÚ²¿Ê±ÖÓ) 1:¼ÆÊýÆ÷(Ê±ÖÓÔ´ÎªT1Òý½ÅµÄ
+             -Íâ²¿Ê±ÖÓ)
+ 339      =2  #define T1_M0       0x00        //¶¨Ê±Æ÷1²Ù×÷Ä£Ê½0:13Î»¶¨Ê±Æ÷
+ 340      =2  #define T1_M1       0x10        //¶¨Ê±Æ÷1²Ù×÷Ä£Ê½1:16Î»¶¨Ê±Æ÷
+ 341      =2  #define T1_M2       0x20        //¶¨Ê±Æ÷1²Ù×÷Ä£Ê½2:8Î»×Ô¶¯ÖØÔØ¶¨Ê±Æ÷
+ 342      =2  #define T1_M3       0x30        //¶¨Ê±Æ÷1²Ù×÷Ä£Ê½3:¶¨Ê±Æ÷1Í£Ö¹
+ 343      =2  #define GATE0       0x08        //¶¨Ê±Æ÷1Æô¶¯¿ØÖÆÎ»,0:TR0Îª1Ê±Æô¶¯¶¨Ê±Æ÷1 1:TR0Îª1ÇÒINT0Îª¸ßµçÆ½Ê±²ÅÆô¶¯¶¨
+             -Ê±Æ÷0
+ 344      =2  #define C_T0        0x04        //¶¨Ê±Æ÷/¼ÆÊýÆ÷Ñ¡ÔñÎ»,0:¶¨Ê±Æ÷(Ê±ÖÓÔ´ÎªÄÚ²¿Ê±ÖÓ) 1:¼ÆÊýÆ÷(Ê±ÖÓÔ´ÎªT0Òý½ÅµÄ
+             -Íâ²¿Ê±ÖÓ)
+ 345      =2  #define T0_M0       0x00        //¶¨Ê±Æ÷0²Ù×÷Ä£Ê½0:13Î»¶¨Ê±Æ÷
+ 346      =2  #define T0_M1       0x01        //¶¨Ê±Æ÷0²Ù×÷Ä£Ê½1:16Î»¶¨Ê±Æ÷
+ 347      =2  #define T0_M2       0x02        //¶¨Ê±Æ÷0²Ù×÷Ä£Ê½2:8Î»×Ô¶¯ÖØÔØ¶¨Ê±Æ÷
+ 348      =2  #define T0_M3       0x03        //¶¨Ê±Æ÷0²Ù×÷Ä£Ê½3:TL0ºÍTH0ÎªÁ½×é¶ÀÁ¢8Î»¶¨Ê±Æ÷
+ 349      =2  
+ 350      =2  /////////////////////////////////
+ 351      =2  
+ 352      =2  sfr  TL0        = 0x8a;         //¶¨Ê±Æ÷0µÄµÍ8Î»¼ÆÊýÖµ  Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 353      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 354      =2  
+ 355      =2  /////////////////////////////////
+ 356      =2  
+ 357      =2  sfr  TL1        = 0x8b;         //¶¨Ê±Æ÷1µÄµÍ8Î»¼ÆÊýÖµ  Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 358      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 359      =2  
+ 360      =2  /////////////////////////////////
+ 361      =2  
+ 362      =2  sfr  TH0        = 0x8c;         //¶¨Ê±Æ÷0µÄ¸ß8Î»¼ÆÊýÖµ  Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 363      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 364      =2  
+ 365      =2  /////////////////////////////////
+ 366      =2  
+ 367      =2  sfr  TH1        = 0x8d;         //¶¨Ê±Æ÷1µÄ¸ß8Î»¼ÆÊýÖµ  Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 368      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 369      =2  
+ 370      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 13  
+
+             -//////
+ 371      =2  
+ 372      =2  sfr  SCON       =   0x98;       //´®¿Ú¿ØÖÆ¼Ä´æÆ÷        Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 373      =2                                  //Î»ÃèÊö                SM0/FE  SM1     SM2     REN     TB8     RB8     TI
+             -      Ri
+ 374      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 375      =2  
+ 376      =2  sbit FE         =   SCON^7;     //Ö¡´íÎó¼ì²âÎ»,µ±´®¿ÚÄ£¿éÔÚ½ÓÊÕÊý¾ÝÊ±Ã»ÓÐ¼ì²âµ½ÕýÈ·µÄÍ£Ö¹Î»Ê±,FE±»Ó²¼þÖÃ1,
+             -ÐèÒªÓÉÈí¼þÀ´Çå0(µ±SMOD0Îª1Ê±,FEÓÐÐ§)
+ 377      =2  sbit SM0        =   SCON^7;     //´®¿ÚÄ£Ê½ÉèÖÃÎ»
+ 378      =2  sbit SM1        =   SCON^6;     //SM0/SM1=0/0:ÒÆÎ»¼Ä´æÆ÷ 0/1:8Î»¿É±ä²¨ÌØÂÊ 1/0:9Î»¹Ì¶¨²¨ÌØÂÊ 1/1:9Î»¿É±ä²¨
+             -ÌØÂÊ
+ 379      =2  sbit SM2        =   SCON^5;     //×Ô¶¯µØÖ·Ê¶±ðÊ¹ÄÜÎ»
+ 380      =2  sbit REN        =   SCON^4;     //Ê¹ÄÜ´®¿Ú½ÓÊÕÄ£¿é
+ 381      =2  sbit TB8        =   SCON^3;     //·¢ËÍµÄµÚ9Î»Êý¾Ý
+ 382      =2  sbit RB8        =   SCON^2;     //½ÓÊÕµÄµÚ9Î»Êý¾Ý
+ 383      =2  sbit TI         =   SCON^1;     //·¢ËÍÍê³ÉÖÐ¶Ï±êÖ¾
+ 384      =2  sbit RI         =   SCON^0;     //½ÓÊÕÍê³ÉÖÐ¶Ï±êÖ¾
+ 385      =2  
+ 386      =2  /////////////////////////////////
+ 387      =2  
+ 388      =2  sfr  SBUF       =   0x99;       //´®¿Ú½ÓÊÕ/·¢ËÍÊý¾Ý     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 389      =2                                  //³õÊ¼Öµ=xxxx,xxxx      x       x       x       x       x       x       x 
+             -      x
+ 390      =2  
+ 391      =2  /////////////////////////////////
+ 392      =2  
+ 393      =2  sfr  SADDR      =   0xa9;       //´®¿ÚÉè±¸´ÓµØÖ·¼Ä´æÆ÷  Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 394      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 395      =2  
+ 396      =2  /////////////////////////////////
+ 397      =2  
+ 398      =2  sfr  SADEN      =   0xb9;       //´®¿ÚÉè±¸´ÓµØÖ·ÆÁ±ÎÎ»  Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 399      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 400      =2  
+ 401      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+ 402      =2  
+ 403      =2  sfr  ADC_CONTR  =   0xc5;       //ADC¿ØÖÆ¼Ä´æÆ÷         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 404      =2                                  //Î»ÃèÊö            ADC_POWER  SPEED1 SPEED0 ADC_FLAG ADC_START CHS2    CH
+             -S1    CHS0
+ 405      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 406      =2  
+ 407      =2  #define ADC_POWER   0x80        //ADCÄ£¿éµçÔ´¿ØÖÆÎ»
+ 408      =2  #define ADC_SPEEDLL 0x00        //Ã¿´Î×ª»»ÐèÒª1080¸öÊ±ÖÓÖÜÆÚ
+ 409      =2  #define ADC_SPEEDL  0x20        //Ã¿´Î×ª»»ÐèÒª810¸öÊ±ÖÓÖÜÆÚ
+ 410      =2  #define ADC_SPEEDH  0x40        //Ã¿´Î×ª»»ÐèÒª540¸öÊ±ÖÓÖÜÆÚ
+ 411      =2  #define ADC_SPEEDHH 0x60        //Ã¿´Î×ª»»ÐèÒª270¸öÊ±ÖÓÖÜÆÚ
+ 412      =2  #define ADC_FLAG    0x10        //ADC×ª»»Íê³É±êÖ¾
+ 413      =2  #define ADC_START   0x08        //ADC¿ªÊ¼×ª»»¿ØÖÆÎ»
+ 414      =2  #define ADC_CHS2    0x04        //ADCÍ¨µÀÑ¡ÔñÎ»2
+ 415      =2  #define ADC_CHS1    0x02        //ADCÍ¨µÀÑ¡ÔñÎ»1
+ 416      =2  #define ADC_CHS0    0x01        //ADCÍ¨µÀÑ¡ÔñÎ»0
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 14  
+
+ 417      =2  
+ 418      =2  /////////////////////////////////
+ 419      =2  
+ 420      =2  sfr  ADC_DATA   =   0xc6;       //ADC½á¹û¸ß×Ö½Ú         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 421      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 422      =2  
+ 423      =2  /////////////////////////////////
+ 424      =2  
+ 425      =2  sfr  ADC_LOW2   =   0xbe;       //ADC½á¹ûµÍ×Ö½Ú         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 426      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 427      =2  
+ 428      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+ 429      =2  
+ 430      =2  sfr  ISP_DATA   =   0xe2;       //ISPÊý¾Ý¼Ä´æÆ÷         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 431      =2                                  //³õÊ¼Öµ=1111,1111      1       1       1       1       1       1       1 
+             -      1
+ 432      =2  
+ 433      =2  /////////////////////////////////
+ 434      =2  
+ 435      =2  sfr  ISP_ADDRH  =   0xe3;       //ISPµØÖ·¸ßÎ»¼Ä´æÆ÷     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 436      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 437      =2  
+ 438      =2  /////////////////////////////////
+ 439      =2  
+ 440      =2  sfr  ISP_ADDRL  =   0xe4;       //ISPµØÖ·µÍÎ»¼Ä´æÆ÷     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 441      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 442      =2  
+ 443      =2  /////////////////////////////////
+ 444      =2  
+ 445      =2  sfr  ISP_CMD    =   0xe5;       //ISPÃüÁî¼Ä´æÆ÷         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 446      =2                                  //³õÊ¼Öµ=xxxx,xx00      x       x       x       x       x       x       0 
+             -      0
+ 447      =2  
+ 448      =2  #define ISP_IDLE    0x00        //ISP´ý»úÃüÁî
+ 449      =2  #define ISP_READ    0x01        //ISP¶Á×Ö½ÚÊý¾ÝÃüÁî
+ 450      =2  #define ISP_PROGRAM 0x02        //ISP×Ö½Ú±à³ÌÃüÁî
+ 451      =2  #define ISP_ERASE   0x03        //ISPÉÈÇø²Á³ýÃüÁî(Ã¿ÉÈÇø512×Ö½Ú))
+ 452      =2  
+ 453      =2  /////////////////////////////////
+ 454      =2  
+ 455      =2  sfr  ISP_TRIG   =   0xe6;       //ISPÃüÁî´¥·¢¼Ä´æÆ÷     Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 456      =2                                  //³õÊ¼Öµ=xxxx,xxxx      x       x       x       x       x       x       x 
+             -      x
+ 457      =2  
+ 458      =2  #define ISP_TRIG0   0x46        //ISP¹¦ÄÜ´¥·¢ÃüÁî1
+ 459      =2  #define ISP_TRIG1   0xb9        //ISP¹¦ÄÜ´¥·¢ÃüÁî2
+ 460      =2  
+ 461      =2  /////////////////////////////////
+ 462      =2  
+ 463      =2  sfr  ISP_CONTR  =   0xe7;       //ISP¿ØÖÆ¼Ä´æÆ÷         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 15  
+
+             -t1    Bit0
+ 464      =2                                  //Î»ÃèÊö                ISPEN   SWBS    SWRST   CMD_FAIL -      WT2     WT
+             -1     WT0
+ 465      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 466      =2  
+ 467      =2  #define ISPEN       0x80        //ISPÊ¹ÄÜ¿ª¹Ø
+ 468      =2  #define SWBS        0x40        //ÈíÆô¶¯Ñ¡Ôñ,0:´ÓÓÃ»§APÆô¶¯ 1:´ÓISPÆô¶¯
+ 469      =2  #define SWRST       0x20        //´¥·¢Èí¼þ¸´Î»
+ 470      =2  #define CMD_FAIL    0x10        //ISPÃüÁîÊ§°Ü±êÖ¾
+ 471      =2  
+ 472      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+ 473      =2  
+ 474      =2  sfr  SPSTAT     =   0x84;       //SPI×´Ì¬¼Ä´æÆ÷         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 475      =2                                  //Î»ÃèÊö                SPIF    WCOL    -       -       -       -       - 
+             -      -
+ 476      =2                                  //³õÊ¼Öµ=11xx,xxxx      1       1       x       x       x       x       x 
+             -      x
+ 477      =2  
+ 478      =2  #define SPIF        0x80        //SPI´«ÊäÍê³É±êÖ¾,µ±SPIÖÐ¶ÏÊ¹ÄÜÊ±»á´¥·¢SPIÖÐ¶ÏÇëÇó,ÐèÒªÓÃÈí¼þÏò´ËÎ»Ð´"1"À´
+             -Çå0
+ 479      =2  #define WCOL        0x40        //SPIÐ´³åÍ»±êÖ¾,ÐèÒªÓÃÈí¼þÏò´ËÎ»Ð´"1"À´Çå0
+ 480      =2  
+ 481      =2  /////////////////////////////////
+ 482      =2  
+ 483      =2  sfr  SPCTL      =   0x85;       //SPI¿ØÖÆ¼Ä´æÆ÷         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 484      =2                                  //Î»ÃèÊö                SSIG    SPEN    DORD    MSTR    CPOL    CPHA    SP
+             -R1    SPR0
+ 485      =2                                  //³õÊ¼Öµ=0000,0100      0       0       0       0       0       1       0 
+             -      0
+ 486      =2  
+ 487      =2  #define SSIG        0x80        //SSºöÂÔÎ»,1:ÓÉMSTRÈ·¶¨Ö÷/´Ó 0:ÓÉSS½ÅÈ·¶¨Ö÷/´Ó
+ 488      =2  #define SPEN        0x40        //SPIÄ£¿éÊ¹ÄÜÎ»
+ 489      =2  #define DORD        0x20        //SPIÊý¾ÝË³Ðò,1:LSB(ÏÈÊÕ/·¢×îµÍÎ») 0:MSB(ÏÈÊÕ/·¢×î¸ßÎ»)
+ 490      =2  #define MSTR        0x10        //Ö÷/´ÓÄ£Ê½Ñ¡ÔñÎ»
+ 491      =2  #define CPOL        0x08        //SPIÊ±ÖÓ¼«ÐÔ
+ 492      =2  #define CPHA        0x04        //SPIÏàÎ»Ñ¡Ôñ
+ 493      =2  #define SPSPEEDHH   0x00        //×î¿ìµÄËÙ¶È,CPU_CLK/4
+ 494      =2  #define SPSPEEDH    0x01        //×î¿ìµÄËÙ¶È,CPU_CLK/16
+ 495      =2  #define SPSPEEDL    0x02        //×î¿ìµÄËÙ¶È,CPU_CLK/64
+ 496      =2  #define SPSPEEDLL   0x03        //×î¿ìµÄËÙ¶È,CPU_CLK/128
+ 497      =2  
+ 498      =2  /////////////////////////////////
+ 499      =2  
+ 500      =2  sfr  SPDAT      =   0x86;       //SPIÊý¾Ý¼Ä´æÆ÷         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 501      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 502      =2  
+ 503      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+ 504      =2  
+ 505      =2  sfr  CCON       =   0xd8;       //PCA¿ØÖÆ¼Ä´æÆ÷         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 506      =2                                  //Î»ÃèÊö                CF      CR      -       -       CCF3    CCF2    CC
+             -F1    CCF0
+ 507      =2                                  //³õÊ¼Öµ=00xx,0000      0       0       x       x       0       0       0 
+             -      0
+ 508      =2  
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 16  
+
+ 509      =2  sbit CF         =   CCON^7;     //PCA¼ÆÊýÆ÷Òç³ö±êÖ¾,µ±PCAÖÐ¶ÏÊ¹ÄÜÊ±»á´¥·¢PCAÖÐ¶ÏÇëÇó,ÐèÒªÓÃÈí¼þÇå0
+ 510      =2  sbit CR         =   CCON^6;     //PCA¼ÆÊýÆ÷Æô¶¯¿ØÖÆÎ»,Ð´"1"Æô¶¯¶«¼ÆÊýÆ÷
+ 511      =2  sbit CCF3       =   CCON^3;     //PCAÄ£¿é3ÖÐ¶Ï±êÖ¾,ÐèÒªÓÃÈí¼þÇå0
+ 512      =2  sbit CCF2       =   CCON^2;     //PCAÄ£¿é2ÖÐ¶Ï±êÖ¾,ÐèÒªÓÃÈí¼þÇå0
+ 513      =2  sbit CCF1       =   CCON^1;     //PCAÄ£¿é1ÖÐ¶Ï±êÖ¾,ÐèÒªÓÃÈí¼þÇå0
+ 514      =2  sbit CCF0       =   CCON^0;     //PCAÄ£¿é0ÖÐ¶Ï±êÖ¾,ÐèÒªÓÃÈí¼þÇå0
+ 515      =2  
+ 516      =2  /////////////////////////////////
+ 517      =2  
+ 518      =2  sfr  CMOD       =   0xd9;       //PCAÄ£Ê½¼Ä´æÆ÷         Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 519      =2                                  //Î»ÃèÊö                CIDL    -       -       -       CPS2    CPS1    CP
+             -S0    ECF
+ 520      =2                                  //³õÊ¼Öµ=0xxx,0000      0       x       x       x       0       0       0 
+             -      0
+ 521      =2  
+ 522      =2  #define CIDL        0x80        //¼ÆÊ±Æ÷ÕóÁÐ¿ÕÏÐ¿ØÖÆ,0:¿ÕÏÐÄ£Ê½ÏÂPCA¼ÌÐø¹¤×÷ 1:¿ÕÏÐÄ£Ê½ÏÂPCAÍ£Ö¹¹¤×÷
+ 523      =2  #define PCACLK0     0x00        //Fosc/12
+ 524      =2  #define PCACLK1     0x02        //Fosc/2
+ 525      =2  #define PCACLK2     0x04        //¶¨Ê±Æ÷0µÄÒç³öÂÊ
+ 526      =2  #define PCACLK3     0x06        //ECIÍâ²¿Ê±ÖÓ
+ 527      =2  #define PCACLK4     0x08        //Fosc/1
+ 528      =2  #define PCACLK5     0x0a        //Fosc/4
+ 529      =2  #define PCACLK6     0x0c        //Fosc/6
+ 530      =2  #define PCACLK7     0x0e        //Fosc/8
+ 531      =2  #define ECF         0x01        //PCA¼ÆÊýÆ÷Òç³öÖÐ¶ÏÔÊÐíÎ»
+ 532      =2  
+ 533      =2  /////////////////////////////////
+ 534      =2  
+ 535      =2  sfr  CCAPM0     =   0xda;       //PCAÄ£¿é0Ä£Ê½¼Ä´æÆ÷    Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 536      =2                                  //Î»ÃèÊö                -       ECOM0   CAPP0   CAPN0   MAT0    TOG0    PW
+             -M0    ECCF0
+ 537      =2                                  //³õÊ¼Öµ=x000,0000      x       0       0       0       0       0       0 
+             -      0
+ 538      =2  
+ 539      =2  #define PCA0_ECOM   0x40        //Ê¹ÄÜ±È½ÏÆ÷0
+ 540      =2  #define PCA0_CAPP   0x20        //Ê¹ÄÜPCAÄ£¿é0µÄÉÏÉýÑØ²¶»ñ
+ 541      =2  #define PCA0_CAPN   0x10        //Ê¹ÄÜPCAÄ£¿é0µÄÏÂ½µÑØ²¶»ñ
+ 542      =2  #define PCA0_MAT    0x08        //Æ¥ÅäÊ¹ÄÜ,µ±PCAµÄ¼ÆÊýÖµÓëÄ£¿é0Éè¶¨µÄÖµÏàÆ¥ÅäÊ±,ÖÃCCON.CCF0
+ 543      =2  #define PCA0_TOG    0x04        //·­×ª¿ØÖÆÎ»,µ±PCAµÄ¼ÆÊýÖµÓëÄ£¿é0Éè¶¨µÄÖµÏàÆ¥ÅäÊ±,·­×ªCEX0µÄµçÆ½
+ 544      =2  #define PCA0_PWM    0x02        //Âö¿íµ÷ÖÆÄ£Ê½,Ê¹ÄÜCEX0ÎªÂö¿íµ÷ÖÆÊä³ö¿Ú
+ 545      =2  #define PCA0_ECCF   0x01        //Ê¹ÄÜCCF0ÖÐ¶Ï
+ 546      =2  
+ 547      =2  /////////////////////////////////
+ 548      =2  
+ 549      =2  sfr  CCAPM1     =   0xdb;       //PCAÄ£¿é1Ä£Ê½¼Ä´æÆ÷    Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 550      =2                                  //Î»ÃèÊö                -       ECOM1   CAPP1   CAPN1   MAT1    TOG1    PW
+             -M1    ECCF1
+ 551      =2                                  //³õÊ¼Öµ=x000,0000      x       0       0       0       0       0       0 
+             -      0
+ 552      =2  
+ 553      =2  #define PCA1_ECOM   0x40        //Ê¹ÄÜ±È½ÏÆ÷1
+ 554      =2  #define PCA1_CAPP   0x20        //Ê¹ÄÜPCAÄ£¿é1µÄÉÏÉýÑØ²¶»ñ
+ 555      =2  #define PCA1_CAPN   0x10        //Ê¹ÄÜPCAÄ£¿é1µÄÏÂ½µÑØ²¶»ñ
+ 556      =2  #define PCA1_MAT    0x08        //Æ¥ÅäÊ¹ÄÜ,µ±PCAµÄ¼ÆÊýÖµÓëÄ£¿é1Éè¶¨µÄÖµÏàÆ¥ÅäÊ±,ÖÃCCON.CCF1
+ 557      =2  #define PCA1_TOG    0x04        //·­×ª¿ØÖÆÎ»,µ±PCAµÄ¼ÆÊýÖµÓëÄ£¿é1Éè¶¨µÄÖµÏàÆ¥ÅäÊ±,·­×ªCEX1µÄµçÆ½
+ 558      =2  #define PCA1_PWM    0x02        //Âö¿íµ÷ÖÆÄ£Ê½,Ê¹ÄÜCEX1ÎªÂö¿íµ÷ÖÆÊä³ö¿Ú
+ 559      =2  #define PCA1_ECCF   0x01        //Ê¹ÄÜCCF1ÖÐ¶Ï
+ 560      =2  
+ 561      =2  /////////////////////////////////
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 17  
+
+ 562      =2  
+ 563      =2  sfr  CCAPM2     =   0xdc;       //PCAÄ£¿é2Ä£Ê½¼Ä´æÆ÷    Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 564      =2                                  //Î»ÃèÊö                -       ECOM2   CAPP2   CAPN2   MAT2    TOG2    PW
+             -M2    ECCF2
+ 565      =2                                  //³õÊ¼Öµ=x000,0000      x       0       0       0       0       0       0 
+             -      0
+ 566      =2  
+ 567      =2  #define PCA2_ECOM   0x40        //Ê¹ÄÜ±È½ÏÆ÷2
+ 568      =2  #define PCA2_CAPP   0x20        //Ê¹ÄÜPCAÄ£¿é2µÄÉÏÉýÑØ²¶»ñ
+ 569      =2  #define PCA2_CAPN   0x10        //Ê¹ÄÜPCAÄ£¿é2µÄÏÂ½µÑØ²¶»ñ
+ 570      =2  #define PCA2_MAT    0x08        //Æ¥ÅäÊ¹ÄÜ,µ±PCAµÄ¼ÆÊýÖµÓëÄ£¿é2Éè¶¨µÄÖµÏàÆ¥ÅäÊ±,ÖÃCCON.CCF2
+ 571      =2  #define PCA2_TOG    0x04        //·­×ª¿ØÖÆÎ»,µ±PCAµÄ¼ÆÊýÖµÓëÄ£¿é2Éè¶¨µÄÖµÏàÆ¥ÅäÊ±,·­×ªCEX2µÄµçÆ½
+ 572      =2  #define PCA2_PWM    0x02        //Âö¿íµ÷ÖÆÄ£Ê½,Ê¹ÄÜCEX2ÎªÂö¿íµ÷ÖÆÊä³ö¿Ú
+ 573      =2  #define PCA2_ECCF   0x01        //Ê¹ÄÜCCF2ÖÐ¶Ï
+ 574      =2  
+ 575      =2  /////////////////////////////////
+ 576      =2  
+ 577      =2  sfr  CCAPM3     =   0xdd;       //PCAÄ£¿é3Ä£Ê½¼Ä´æÆ÷    Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 578      =2                                  //Î»ÃèÊö                -       ECOM3   CAPP3   CAPN3   MAT3    TOG3    PW
+             -M3    ECCF3
+ 579      =2                                  //³õÊ¼Öµ=x000,0000      x       0       0       0       0       0       0 
+             -      0
+ 580      =2  
+ 581      =2  #define PCA3_ECOM   0x40        //Ê¹ÄÜ±È½ÏÆ÷3
+ 582      =2  #define PCA3_CAPP   0x20        //Ê¹ÄÜPCAÄ£¿é3µÄÉÏÉýÑØ²¶»ñ
+ 583      =2  #define PCA3_CAPN   0x10        //Ê¹ÄÜPCAÄ£¿é3µÄÏÂ½µÑØ²¶»ñ
+ 584      =2  #define PCA3_MAT    0x08        //Æ¥ÅäÊ¹ÄÜ,µ±PCAµÄ¼ÆÊýÖµÓëÄ£¿é3Éè¶¨µÄÖµÏàÆ¥ÅäÊ±,ÖÃCCON.CCF3
+ 585      =2  #define PCA3_TOG    0x04        //·­×ª¿ØÖÆÎ»,µ±PCAµÄ¼ÆÊýÖµÓëÄ£¿é3Éè¶¨µÄÖµÏàÆ¥ÅäÊ±,·­×ªCEX3µÄµçÆ½
+ 586      =2  #define PCA3_PWM    0x02        //Âö¿íµ÷ÖÆÄ£Ê½,Ê¹ÄÜCEX3ÎªÂö¿íµ÷ÖÆÊä³ö¿Ú
+ 587      =2  #define PCA3_ECCF   0x01        //Ê¹ÄÜCCF3ÖÐ¶Ï
+ 588      =2  
+ 589      =2  /////////////////////////////////
+ 590      =2  
+ 591      =2  //CCAPM0   -   ECOM CAPP CAPN MAT  TOG  PWM  CCF
+ 592      =2  // 00H     0    0    0    0    0    0    0    0     ÎÞ²Ù×÷,´ý»ú×´Ì¬
+ 593      =2  // 42H     0    1    0    0    0    0    1    0     8Î»PWMÊä³ö,ÎÞÖÐ¶Ï
+ 594      =2  // 63H     0    1    1    0    0    0    1    1     8Î»PWMÊä³ö,²úÉúCEX0ÉÏÉýÑØÖÐ¶Ï
+ 595      =2  // 53H     0    1    0    1    0    0    1    1     8Î»PWMÊä³ö,²úÉúCEX0ÏÂ½µÑØÖÐ¶Ï
+ 596      =2  // 73H     0    1    1    1    0    0    1    1     8Î»PWMÊä³ö,²úÉúCEX0Ìø±äÖÐ¶Ï
+ 597      =2  // 20H     0    x    1    0    0    0    0    0     16Î»²¶»ñÄ£Ê½,CEX0ÉÏÉýÑØ´¥·¢²¶»ñ
+ 598      =2  // 10H     0    x    0    1    0    0    0    0     16Î»²¶»ñÄ£Ê½,CEX0ÏÂ½µÑØ´¥·¢²¶»ñ
+ 599      =2  // 30H     0    x    1    1    0    0    0    0     16Î»²¶»ñÄ£Ê½,CEX0Ìø±ä´¥·¢²¶»ñ
+ 600      =2  // 48H     0    1    0    0    1    0    0    0     16Î»Èí¼þ¶¨Ê±Æ÷
+ 601      =2  // 4CH     0    1    0    0    1    1    0    0     16Î»¸ßËÙÂö³åÊä³ö
+ 602      =2  
+ 603      =2  /////////////////////////////////
+ 604      =2  
+ 605      =2  sfr  CL         =   0xe9;       //PCA¼ÆÊýÆ÷µÍ8Î»        Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 606      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 607      =2  
+ 608      =2  /////////////////////////////////
+ 609      =2  
+ 610      =2  sfr  CH         =   0xf9;       //PCA¼ÆÊýÆ÷¸ß8Î»        Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 611      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 612      =2  
+ 613      =2  /////////////////////////////////
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 18  
+
+ 614      =2  
+ 615      =2  sfr  CCAP0L     =   0xea;       //PCAÄ£¿é0¼Ä´æÆ÷µÍ8Î»   Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 616      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 617      =2  
+ 618      =2  /////////////////////////////////
+ 619      =2  
+ 620      =2  sfr  CCAP1L     =   0xeb;       //PCAÄ£¿é1¼Ä´æÆ÷µÍ8Î»   Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 621      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 622      =2  
+ 623      =2  /////////////////////////////////
+ 624      =2  
+ 625      =2  sfr  CCAP2L     =   0xec;       //PCAÄ£¿é2¼Ä´æÆ÷µÍ8Î»   Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 626      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 627      =2  
+ 628      =2  /////////////////////////////////
+ 629      =2  
+ 630      =2  sfr  CCAP3L     =   0xed;       //PCAÄ£¿é3¼Ä´æÆ÷µÍ8Î»   Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 631      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 632      =2  
+ 633      =2  /////////////////////////////////
+ 634      =2  
+ 635      =2  sfr  CCAP0H     =   0xfa;       //PCAÄ£¿é0¼Ä´æÆ÷¸ß8Î»   Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 636      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 637      =2  
+ 638      =2  /////////////////////////////////
+ 639      =2  
+ 640      =2  sfr  CCAP1H     =   0xfb;       //PCAÄ£¿é1¼Ä´æÆ÷¸ß8Î»   Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 641      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 642      =2  
+ 643      =2  /////////////////////////////////
+ 644      =2  
+ 645      =2  sfr  CCAP2H     =   0xfc;       //PCAÄ£¿é2¼Ä´æÆ÷¸ß8Î»   Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 646      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 647      =2  
+ 648      =2  /////////////////////////////////
+ 649      =2  
+ 650      =2  sfr  CCAP3H     =   0xfd;       //PCAÄ£¿é3¼Ä´æÆ÷¸ß8Î»   Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 651      =2                                  //³õÊ¼Öµ=0000,0000      0       0       0       0       0       0       0 
+             -      0
+ 652      =2  
+ 653      =2  /////////////////////////////////
+ 654      =2  
+ 655      =2  sfr  PCA_PWM0   =   0xf2;       //PCA0Ä£Ê½PWM¸¨Öú¼Ä´æÆ÷ Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 656      =2                                  //Î»ÃèÊö                -       -       -       -       -       -       EP
+             -C0H   EPC0L
+ 657      =2                                  //³õÊ¼Öµ=xxxx,xx00      x       x       x       x       x       x       0 
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 19  
+
+             -      0
+ 658      =2  
+ 659      =2  /////////////////////////////////
+ 660      =2  
+ 661      =2  sfr  PCA_PWM1   =   0xf3;       //PCA1Ä£Ê½PWM¸¨Öú¼Ä´æÆ÷ Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 662      =2                                  //Î»ÃèÊö                -       -       -       -       -       -       EP
+             -C1H   EPC1L
+ 663      =2                                  //³õÊ¼Öµ=xxxx,xx00      x       x       x       x       x       x       0 
+             -      0
+ 664      =2  
+ 665      =2  /////////////////////////////////
+ 666      =2  
+ 667      =2  sfr  PCA_PWM2   =   0xf4;       //PCA2Ä£Ê½PWM¸¨Öú¼Ä´æÆ÷ Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 668      =2                                  //Î»ÃèÊö                -       -       -       -       -       -       EP
+             -C2H   EPC2L
+ 669      =2                                  //³õÊ¼Öµ=xxxx,xx00      x       x       x       x       x       x       0 
+             -      0
+ 670      =2  
+ 671      =2  /////////////////////////////////
+ 672      =2  
+ 673      =2  sfr  PCA_PWM3   =   0xf5;       //PCA3Ä£Ê½PWM¸¨Öú¼Ä´æÆ÷ Bit7    Bit6    Bit5    Bit4    Bit3    Bit2    Bi
+             -t1    Bit0
+ 674      =2                                  //Î»ÃèÊö                -       -       -       -       -       -       EP
+             -C3H   EPC3L
+ 675      =2                                  //³õÊ¼Öµ=xxxx,xx00      x       x       x       x       x       x       0 
+             -      0
+ 676      =2  
+ 677      =2  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -//////
+ 678      =2  
+ 679      =2  #endif
+  29      =1  
+  30      =1  #define const code 
+  31      =1  #ifndef TRUE
+  32      =1  #define TRUE  1
+  33      =1  #endif 
+  34      =1  #ifndef FALSE
+  35      =1  #define FALSE 0
+  36      =1  #endif
+  37      =1  
+  38      =1  
+  39      =1  #define Bin(b7,b6,b5,b4,b3,b2,b1,b0)    ((b7<<7)|(b6<<6)|(b5<<5)|(b4<<4)|(b3<<3)|(b2<<2)|(b1<<1)|(b0<<0))
+  40      =1  
+  41      =1  //Ö÷Ïß³ÌÃüÁî
+  42      =1  #define BUS0_REC                0x20                                                            //×ÜÏß0½ÓÊÕÍê³É
+  43      =1  #define BUS0_SND                0x40                                                            //×ÜÏß0·¢ËÍÍê³É  
+  44      =1  #define KEY_DOWN                0x60                                                            //°´¼ü°´ÏÂ
+  45      =1  #define KEY_ALWAYS              0x70
+  46      =1  #define KEY_UP                  0x80                                                            //°´¼üµ¯Æð
+  47      =1  #define TIMER_OUT               0xa0                                                            //³¬Ê±ÃüÁî      
+  48      =1  //°´¼ü¶¨Òå      
+  49      =1  #define NO_KEY                  0xff                                                            //ÎÞ¼ü°´ÏÂ      
+  50      =1  
+  51      =1  sbit    MP3_DREQ        =       P3^2;
+  52      =1  sbit    KEY_COPY        =       P3^5;
+  53      =1  sbit    MP3_XDCS        =       P3^7;
+  54      =1  
+  55      =1  sbit    PRG_STATE       =       P1^0;
+  56      =1  sbit    MP3_XRESET      =       P1^1;
+  57      =1  sbit    MP3_XCS         =       P1^2;
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 20  
+
+  58      =1  sbit    TER_CS          =       P1^3;
+  59      =1  sbit    SST25VF_CS              =       P1^4;
+  60      =1  sbit    MOSI            =       P1^5;
+  61      =1  sbit    MISO            =       P1^6;
+  62      =1  sbit    SCLK            =       P1^7;
+  63      =1  
+  64      =1  
+  65      =1  //°üº¬Í·ÎÄ¼þ
+  66      =1  #include "OS_CFG.H"
+   1      =2  /*********************************************************************************************************
+   2      =2  **                                                             Small RTOS(51)
+   3      =2  **                                   The Real-Time Kernel(For Keil c51)
+   4      =2  **
+   5      =2  **                                  (c) Copyright 2002-2002, chenmingji
+   6      =2  **                                           All Rights Reserved
+   7      =2  **
+   8      =2  **                                                  V1.20.0
+   9      =2  **
+  10      =2  **
+  11      =2  **--------------ÎÄ¼þÐÅÏ¢--------------------------------------------------------------------------------
+  12      =2  **ÎÄ   ¼þ   Ãû: OS_CFG.H
+  13      =2  **´´   ½¨   ÈË: ³ÂÃ÷¼Æ
+  14      =2  **×îºóÐÞ¸ÄÈÕÆÚ: 2002Äê12ÔÂ30ÈÕ
+  15      =2  **Ãè¡¡      Êö: ex1µÄÏµÍ³ÅäÖÃÎÄ¼þ
+  16      =2  **
+  17      =2  **--------------ÀúÊ·°æ±¾ÐÅÏ¢----------------------------------------------------------------------------
+  18      =2  ** ´´½¨ÈË: ³ÂÃ÷¼Æ
+  19      =2  ** °æ  ±¾: V0.50
+  20      =2  ** ÈÕ¡¡ÆÚ: 2002Äê2ÔÂ22ÈÕ
+  21      =2  ** Ãè¡¡Êö: Ô­Ê¼°æ±¾
+  22      =2  **
+  23      =2  **------------------------------------------------------------------------------------------------------
+  24      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  25      =2  ** °æ  ±¾: V1.00
+  26      =2  ** ÈÕ¡¡ÆÚ: 2002Äê6ÔÂ20ÈÕ
+  27      =2  ** Ãè¡¡Êö: Ê¹ÓÃ»§¿ÉÒÔ½øÐÐ¸ü¶àµÄÅäÖÃ
+  28      =2  **
+  29      =2  **------------------------------------------------------------------------------------------------------
+  30      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  31      =2  ** °æ  ±¾: V1.10~1.12.1
+  32      =2  ** ÈÕ¡¡ÆÚ: 2002Äê9ÔÂ1ÈÕ~2002Äê12ÔÂ2ÈÕ
+  33      =2  ** Ãè¡¡Êö: ¸ù¾ÝÐÂ°æ±¾ÐèÒª¸ü¸ÄÒ»Ð©¶¨Òå
+  34      =2  **
+  35      =2  **------------------------------------------------------------------------------------------------------
+  36      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  37      =2  ** °æ  ±¾: V1.20.0
+  38      =2  ** ÈÕ¡¡ÆÚ: 2003Äê8ÔÂ3ÈÕ
+  39      =2  ** Ãè¡¡Êö: ¸ù¾ÝÐÂ°æ±¾ÐèÒªÔö¼ÓÅäÖÃOSWait_EN£»
+  40      =2  **         ¼õÉÙÒ»Ð©¹ØÓÚÖÐ¶ÏÇ¶Ì×µÄÅäÖÃ
+  41      =2  **
+  42      =2  **--------------µ±Ç°°æ±¾ÐÞ¶©------------------------------------------------------------------------------
+  43      =2  ** ÐÞ¸ÄÈË: 
+  44      =2  ** ÈÕ¡¡ÆÚ:
+  45      =2  ** Ãè¡¡Êö:
+  46      =2  **
+  47      =2  **------------------------------------------------------------------------------------------------------
+  48      =2  ********************************************************************************************************/
+  49      =2  
+  50      =2  #define OS_MAX_TASKS            4           /* ×î´óÈÎÎñÊý1~16                                           */
+  51      =2  #define OS_TICKS_PER_SEC        200         /* ÉùÃ÷1ÃëÏµÍ³ÏµÍ³½ÚÅÄÊý                                    */
+  52      =2  #define EN_USER_TICK_TIMER      1           /* ½ûÖ¹(0)»òÔÊÐí(1)ÏµÍ³¶¨Ê±ÖÐ¶Ïµ÷ÓÃÓÃ»§º¯ÊýUserTickTimer()  */
+  53      =2  #define EN_TIMER_SHARING        1           /* ½ûÖ¹(0)»òÔÊÐí(1)¶¨Ê±Æ÷ÖÐ¶Ïµ÷ÓÃOSTimeTick()               */
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 21  
+
+  54      =2  #define TICK_TIMER_SHARING      0           /* ¶¨Òå½øÈë¶àÉÙ´ÎÓ²¼þÖÐ¶ÏÎªÒ»´ÎÏµÍ³¶¨Ê±Æ÷ÈíÖÐ¶Ï             */
+  55      =2  #define OSWait_EN               1           /* ½ûÖ¹(0)»òÔÊÐí(1)µ÷ÓÃ¼æÈÝº¯ÊýOSWait  */
+  56      =2  
+  57      =2  
+  58      =2  #define EN_OS_Q                 1           /* ½ûÖ¹(0)»òÔÊÐí(1)ÏûÏ¢¶ÓÁÐ                                 */
+  59      =2  #define EN_OS_Q_CHK             0           /* ½ûÖ¹(0)»òÔÊÐí(1)Ð£ÑéÏûÏ¢¶ÓÁÐÖ¸Õë                         */
+  60      =2  #define OS_Q_MEM_SEL            idata       /* ÏûÏ¢¶ÓÁÐ´æ´¢¿Õ¼äÑ¡Ôñ£¬keil c51ÓÐÓÃ£¬±ØÐëÎªidata¡¢xdata   */
+  61      =2                                              /* ²»ÊÇkeil c51Ê±Ëü±ØÐëÎª¿Õ¸ñ                               */
+  62      =2  #define EN_OS_Q_PENT            1           /* ½ûÖ¹(0)»òÔÊÐí(1)µÈ´ý¶ÓÁÐÖÐµÄÏûÏ¢                         */
+  63      =2  #define EN_OS_Q_ACCEPT          0           /* ½ûÖ¹(0)»òÔÊÐí(1)ÎÞµÈ´ýµÄ´Ó¶ÓÁÐÖÐÈ¡µÃÏûÏ¢                 */
+  64      =2  #define EN_OS_Q_POST            1           /* ½ûÖ¹(0)»òÔÊÐí(1)FIFO·½Ê½Ïò¶ÔÁÐ·¢ËÍÏûÏ¢                   */
+  65      =2  #define EN_OS_Q_POST_FRONT      0           /* ½ûÖ¹(0)»òÔÊÐí(1)LIFO·½Ê½Ïò¶ÔÁÐ·¢ËÍÏûÏ¢                   */
+  66      =2  #define EN_OS_Q_NMsgs           0           /* ½ûÖ¹(0)»òÔÊÐí(1)È¡µÃ¶ÓÁÐÖÐÏûÏ¢Êý                         */
+  67      =2  #define EN_OS_Q_SIZE            0           /* ½ûÖ¹(0)»òÔÊÐí(1)È¡µÃ¶ÓÁÐ×ÜÈÝÁ¿                           */
+  68      =2  #define EN_OS_Q_FLUSH           0           /* ½ûÖ¹(0)»òÔÊÐí(1)Çå¿Õ¶ÓÁÐ                                 */
+  69      =2  
+  70      =2  #define EN_OS_SEM               0           /* ½ûÖ¹(0)»òÔÊÐí(1)ÐÅºÅÁ¿                                   */
+  71      =2  #define EN_OS_SEM_CHK           0           /* ½ûÖ¹(0)»òÔÊÐí(1)Ð£ÑéÐÅºÅÁ¿Ë÷Òý                           */
+  72      =2  #define OS_SEM_MEM_SEL          idata       /* ÐÅºÅÁ¿´¢¿Õ¼äÑ¡Ôñ£¬keil c51ÓÐÓÃ£¬±ØÐëÎªidata¡¢xdata       */
+  73      =2                                              /* ²»ÊÇkeil c51Ê±Ëü±ØÐëÎª¿Õ¸ñ                               */
+  74      =2  #define OS_MAX_SEMS             0           /* ×î´óÐÅºÅÁ¿ÊýÄ¿                                           */
+  75      =2  #define EN_OS_SEM_PENT          1           /* ½ûÖ¹(0)»òÔÊÐí(1)µÈ´ýÐÅºÅÁ¿                               */
+  76      =2  #define EN_OS_SEM_ACCEPT        1           /* ½ûÖ¹(0)»òÔÊÐí(1)ÎÞµÈ´ýÇëÇóÐÅºÅÁ¿                         */
+  77      =2  #define EN_OS_SEM_POST          1           /* ½ûÖ¹(0)»òÔÊÐí(1)ÖÐ·¢ËÍÐÅºÅÁ¿                             */
+  78      =2  #define EN_OS_SEM_QUERY         1           /* ½ûÖ¹(0)»òÔÊÐí(1)²éÑ¯ÐÅºÅÁ¿                               */
+  79      =2  
+  80      =2  #define EN_OS_MEM               0           /* ½ûÖ¹(0)»òÔÊÐí(1)¶¯Ì¬ÄÚ´æ·ÖÅä                             */
+  81      =2  #define EN_OS_MEM_FREE          0           /* ½ûÖ¹(0)»òÔÊÐí(1)ÊÍ·Å¶¯Ì¬·ÖÅäµÄÄÚ´æ                        *
+             -/
+  82      =2  #define EN_OS_MEM_CHK           1           /* ½ûÖ¹(0)»òÔÊÐí(1)ÄÚ´æ»ØÊÕÊ±ÑéÖ¤ÄÚ´æ¿éÊÇ·ñÓÐÐ§               
+             -*/
+  83      =2  #define EN_UserMemChkErr        0           /* ½ûÖ¹(0)»òÔÊÐí(1)ÄÚ´æ»ØÊÕÑéÖ¤³ö´íµ÷ÓÃÓÃ»§º¯ÊýUserMemChkErr  
+             - */
+  84      =2  
+  85      =2  #if EN_TIMER_SHARING == 0
+           =2 #define TIME_ISR_TASK_ID     COMM_TASK_ID   /* ¶¨ÒåÏµÍ³¶¨Ê±Æ÷ÈíÖÐ¶Ï´¥·¢µÄÈÎÎñID                         */
+           =2 #endif
+  88      =2  
+  89      =2  #ifdef IN_OS_CPU_C 
+  90      =2  #if EN_USER_TICK_TIMER > 0      
+  91      =2  //extern void UserTickTimer(void);            /* ÏµÍ³¶¨Ê±ÖÐ¶ÏÖÐµ÷ÓÃµÄÓÃ»§º¯Êý                             
+             -   
+  92      =2  //#define UserTickTimer()       {uiIsrTimerCount+=ISR_INC_COUNT;CCAP0L = (uint8)uiIsrTimerCount;CCAP0H = (uint8
+             -)(uiIsrTimerCount>>8);CCF0=0;WDT_CONTR = 0x3a;}   /* ÏµÍ³¶¨Ê±ÖÐ¶ÏÖÐµ÷ÓÃµÄÓÃ»§º¯                                                                */
+  93      =2  
+  94      =2  #endif
+  95      =2  #endif
+  96      =2  /*********************************************************************************************************
+  97      =2  **                            End Of File
+  98      =2  ********************************************************************************************************/
+  67      =1  #include "OS_CPU.H"
+   1      =2  /*********************************************************************************************************
+   2      =2  **                                                             Small RTOS 51
+   3      =2  **                                   The Real-Time Kernel For Keil c51
+   4      =2  **
+   5      =2  **                                  (c) Copyright 2002-2003, chenmingji
+   6      =2  **                                           All Rights Reserved
+   7      =2  **
+   8      =2  **                                                  V1.20.0
+   9      =2  **
+  10      =2  **
+  11      =2  **--------------ÎÄ¼þÐÅÏ¢--------------------------------------------------------------------------------
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 22  
+
+  12      =2  **ÎÄ   ¼þ   Ãû: OS_CPU.h
+  13      =2  **´´   ½¨   ÈË: ³ÂÃ÷¼Æ
+  14      =2  **×îºóÐÞ¸ÄÈÕÆÚ:  2003Äê8ÔÂ17ÈÕ
+  15      =2  **Ãè¡¡      Êö: Small RTOS 51ÓëCPU(¼È8051ÏµÁÐ)Ïà¹ØµÄCÓïÑÔÍ·ÎÄ¼þ,¶¨ÒåÒ»Ð©ÓëCPUÏà¹ØµÄºê¡£
+  16      =2  **
+  17      =2  **--------------ÀúÊ·°æ±¾ÐÅÏ¢----------------------------------------------------------------------------
+  18      =2  ** ´´½¨ÈË: ³ÂÃ÷¼Æ
+  19      =2  ** °æ  ±¾: V0.50
+  20      =2  ** ÈÕ¡¡ÆÚ: 2002Äê2ÔÂ22ÈÕ
+  21      =2  ** Ãè¡¡Êö: Ô­Ê¼°æ±¾
+  22      =2  **
+  23      =2  **------------------------------------------------------------------------------------------------------
+  24      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  25      =2  ** °æ  ±¾: V1.00
+  26      =2  ** ÈÕ¡¡ÆÚ: 2002Äê6ÔÂ20ÈÕ
+  27      =2  ** Ãè¡¡Êö: ÎÞ±ä»¯
+  28      =2  **
+  29      =2  **------------------------------------------------------------------------------------------------------
+  30      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  31      =2  ** °æ  ±¾: V1.10~1.12.1
+  32      =2  ** ÈÕ¡¡ÆÚ: 2002Äê9ÔÂ1ÈÕ~2002Äê12ÔÂ2ÈÕ
+  33      =2  ** Ãè¡¡Êö: ¸ù¾ÝÐÂ°æ±¾ÐèÒªÔö¼ÓÒ»Ð©ºê¶¨Òå
+  34      =2  **
+  35      =2  **------------------------------------------------------------------------------------------------------
+  36      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  37      =2  ** °æ  ±¾: V1.20.0
+  38      =2  ** ÈÕ¡¡ÆÚ: 2003Äê8ÔÂ17ÈÕ
+  39      =2  ** Ãè¡¡Êö: ¸ù¾ÝÐÂ°æ±¾ÐèÒªÔö¼ÓEN_REENTRANT
+  40      =2  **
+  41      =2  **--------------µ±Ç°°æ±¾ÐÞ¶©------------------------------------------------------------------------------
+  42      =2  ** ÐÞ¸ÄÈË: 
+  43      =2  ** ÈÕ¡¡ÆÚ:
+  44      =2  ** Ãè¡¡Êö:
+  45      =2  **
+  46      =2  **------------------------------------------------------------------------------------------------------
+  47      =2  ********************************************************************************************************/
+  48      =2  #define EN_SP2        0                                         /* ½ûÖ¹(0)»òÔÊÐí(1)Èí·ÇÆÁ±ÎÖÐ¶Ï           
+             -    */
+  49      =2  #define EN_REENTRANT  0                                         /* ½ûÖ¹(0)»òÔÊÐí(1)¹ÜÀíÖØÈëÕ»             
+             -    */
+  50      =2  
+  51      =2  #ifdef __C51__
+  52      =2  
+  53      =2  //#define idata                                   /* ·Çkeil c51Ê±±ØÐë¼ÓÖ¹ÕâÒ»¾ä                           
+             -    */
+  54      =2  //#define data                                    /* ·Çkeil c51Ê±±ØÐë¼ÓÖ¹ÕâÒ»¾ä                           
+             -    */
+  55      =2  //#define xdata                                   /* ·Çkeil c51Ê±±ØÐë¼ÓÖ¹ÕâÒ»¾ä                           
+             -    */
+  56      =2  //#define reentrant                               /* ·Çkeil c51Ê±±ØÐë¼ÓÖ¹ÕâÒ»¾ä                           
+             -    */
+  57      =2  //#define small                                   /* ·Çkeil c51Ê±±ØÐë¼ÓÖ¹ÕâÒ»¾ä                           
+             -    */
+  58      =2  //#define code                                    /* ·Çkeil c51Ê±±ØÐë¼ÓÖ¹ÕâÒ»¾ä                           
+             -    */
+  59      =2  
+  60      =2  typedef unsigned char  uint8;                                   /* ¶¨Òå¿ÉÒÆÖ²µÄÎÞ·ûºÅ8Î»ÕûÊý¹Ø¼ü×Ö        
+             -    */
+  61      =2  typedef signed   char  int8;                                    /* ¶¨Òå¿ÉÒÆÖ²µÄÓÐ·ûºÅ8Î»ÕûÊý¹Ø¼ü×Ö        
+             -    */
+  62      =2  typedef unsigned int   uint16;                                  /* ¶¨Òå¿ÉÒÆÖ²µÄÎÞ·ûºÅ16Î»ÕûÊý¹Ø¼ü×Ö       
+             -    */
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 23  
+
+  63      =2  typedef signed   int   int16;                                   /* ¶¨Òå¿ÉÒÆÖ²µÄÓÐ·ûºÅ16Î»ÕûÊý¹Ø¼ü×Ö       
+             -    */
+  64      =2  typedef unsigned long  uint32;                                  /* ¶¨Òå¿ÉÒÆÖ²µÄÎÞ·ûºÅ32Î»ÕûÊý¹Ø¼ü×Ö       
+             -    */
+  65      =2  typedef signed   long  int32;                                   /* ¶¨Òå¿ÉÒÆÖ²µÄÓÐ·ûºÅ32Î»ÕûÊý¹Ø¼ü×Ö       
+             -    */
+  66      =2  
+  67      =2  extern void OSCPUInit(void) small;
+  68      =2  extern void OSTaskStkInit(void (code * task)(void), void xdata *ptos, uint8 TaskID);
+  69      =2  extern void OSTaskStkDel(uint8 TaskID) small;
+  70      =2  
+  71      =2  #ifndef NULL
+           =2 #define NULL 0
+           =2 #endif
+  74      =2  
+  75      =2  #define  OS_INT_ENTER() OSIntNesting++, EA = 1
+  76      =2  
+  77      =2  #define  OS_ENTER_CRITICAL()  EA = 0,Os_Enter_Sum++             /* ½ûÖ¹ÖÐ¶Ï                                     */      
+  78      =2  #define  OS_EXIT_CRITICAL()   if (--Os_Enter_Sum==0) EA = 1  /* ÔÊÐíÖÐ¶Ï                                        
+             -*/         
+  79      =2  
+  80      =2  #define  HIGH_BYTE  0                                           /* uint16µÄ¸ßÎ»×Ö½Ú                       
+             -       */
+  81      =2  #define  LOW_BYTE   1                                           /* uint16µÄµÍÎ»×Ö½Ú                       
+             -       */
+  82      =2  
+  83      =2  #define  OS_TASK_SW()         OSCtxSw()                         /* ÈÎÎñÇÐ»»º¯Êý                           
+             -       */
+  84      =2  
+  85      =2  
+  86      =2  #define  IDATA_RAM_SIZE  0x100                                  /* idata´óÐ¡                              
+             -      */
+  87      =2  
+  88      =2  extern void OSCtxSw(void);
+  89      =2  extern void OSIntCtxSw(void);
+  90      =2  #ifndef IN_OS_CPU_C
+           =2 extern void OSStartHighRdy(void)  small;
+           =2 #endif
+  93      =2  
+  94      =2  #define  Sp2Space       8                                       /* ¸ß¼¶ÖÐ¶Ï£¨Èí·ÇÆÁ±ÎÖÐ¶Ï£©¶ÑÕ»´óÐ¡ EN_SP2
+             -Îª0Ê±ÎÞÐ§*/
+  95      =2  
+  96      =2  #define OS_TIME_ISR     6                                       /* ÏµÍ³¶¨Ê±Æ÷Ê¹ÓÃµÄÖÐ¶Ï                   
+             -      */
+  97      =2  
+  98      =2  #endif
+  99      =2  
+ 100      =2  
+ 101      =2  
+ 102      =2  #ifndef __C51__   
+           =2 SET_EA   MACRO
+           =2              SETB     EA
+           =2          ENDM
+           =2          
+           =2 #endif
+ 108      =2  
+ 109      =2  /*********************************************************************************************************
+ 110      =2  **                            End Of File
+ 111      =2  ********************************************************************************************************/
+  68      =1  #include "..\os\OS.H"
+   1      =2  /*********************************************************************************************************
+   2      =2  **                                                             Small RTOS(51)
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 24  
+
+   3      =2  **                                   The Real-Time Kernel(For Keil c51)
+   4      =2  **
+   5      =2  **                                  (c) Copyright 2002-2003, chenmingji
+   6      =2  **                                           All Rights Reserved
+   7      =2  **
+   8      =2  **                                                  V1.20.0
+   9      =2  **
+  10      =2  **
+  11      =2  **--------------ÎÄ¼þÐÅÏ¢--------------------------------------------------------------------------------
+  12      =2  **ÎÄ   ¼þ   Ãû: OS.h
+  13      =2  **´´   ½¨   ÈË: ³ÂÃ÷¼Æ
+  14      =2  **×îºóÐÞ¸ÄÈÕÆÚ:  2003Äê8ÔÂ17ÈÕ
+  15      =2  **Ãè¡¡     Êö: Small RTOS(51) CÓïÑÔÍ·ÎÄ¼þ,¶¨ÒåÒ»Ð©ºêºÍÉùÃ÷Ò»Ð©º¯ÊýºÍ±äÁ¿
+  16      =2  **
+  17      =2  **--------------ÀúÊ·°æ±¾ÐÅÏ¢----------------------------------------------------------------------------
+  18      =2  ** ´´½¨ÈË: ³ÂÃ÷¼Æ
+  19      =2  ** °æ  ±¾: V0.50~V1.00
+  20      =2  ** ÈÕ¡¡ÆÚ: 2002Äê2ÔÂ22ÈÕ~2002Äê6ÔÂ20ÈÕ
+  21      =2  ** Ãè¡¡Êö: »ù±¾Íê³ÉSmall RTOSºË
+  22      =2  **
+  23      =2  **------------------------------------------------------------------------------------------------------
+  24      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  25      =2  ** °æ  ±¾: V1.10~V1.21
+  26      =2  ** ÈÕ¡¡ÆÚ: 2002Äê9ÔÂ1ÈÕ~2003Äê1ÔÂ23ÈÕ
+  27      =2  ** Ãè¡¡Êö: ÍêÉÆSmall RTOS
+  28      =2  **
+  29      =2  **------------------------------------------------------------------------------------------------------
+  30      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  31      =2  ** °æ  ±¾: V1.20.0
+  32      =2  ** ÈÕ¡¡ÆÚ: 2003Äê8ÔÂ17ÈÕ
+  33      =2  ** Ãè¡¡Êö: Ôö¼ÓÖ§³ÖÈÎÎñ¶¯Ì¬½¨Á¢ºÍÉ¾³ý£¬º¯Êý¹¦ÄÜÏòÒ»°ãµÄRTOS¿¿Æë
+  34      =2  **--------------µ±Ç°°æ±¾ÐÞ¶©------------------------------------------------------------------------------
+  35      =2  ** ÐÞ¸ÄÈË: 
+  36      =2  ** ÈÕ¡¡ÆÚ:
+  37      =2  ** Ãè¡¡Êö:
+  38      =2  **
+  39      =2  **------------------------------------------------------------------------------------------------------
+  40      =2  ********************************************************************************************************/
+  41      =2  
+  42      =2  #define  OS_VERSION    120                              /* ÏµÍ³°æ±¾ºÅ                                   */
+  43      =2  
+  44      =2  #define  OSVersion()     OS_VERSION                     /* ·µ»ØÏµÍ³°æ±¾                                 */
+  45      =2  #define  OSRunningTaskID() OSTaskID                     /* ·µ»Øµ±Ç°ÈÎÎñID                               */
+             - 
+  46      =2  
+  47      =2  #define K_SIG      1                                    /* µÈ´ýÐÅºÅ                                     */
+  48      =2  #define K_TMO      2                                    /* µÈ´ý³¬Ê±                                     */
+  49      =2  
+  50      =2  #define NOT_OK     255                                  /* ²ÎÊý´íÎó                                     */
+  51      =2  #define TMO_EVENT  8                                    /* ³¬Ê±µ½                                       */
+  52      =2  #define SIG_EVENT  4                                    /* ÓÐÐÅºÅ                                       */
+  53      =2  
+  54      =2   
+  55      =2  #ifndef IN_OS_CORE
+  56      =2  
+  57      =2  /* ¼æÈÝV1.21.1°æ±¾µÄºê */
+  58      =2  #define OSSendSignal(a)     OSTaskResume((a))
+  59      =2  #define OSIntSendSignal(a)  OSTaskResume((a))
+  60      =2  #define OSClearSignal(a)    OS_TaskSuspend((a))
+  61      =2  #define OSTaskCreate(a, b, c) _OSTaskCreate((c),(a),(b))
+  62      =2  
+  63      =2  
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 25  
+
+  64      =2  extern uint8 data OSWaitTick[];
+  65      =2  extern uint8 code OSMapTbl[];
+  66      =2  extern uint8 data Os_Enter_Sum;
+  67      =2  extern uint8 data OSTaskID;
+  68      =2  extern uint8 data OSNextTaskID;
+  69      =2  extern uint8 data OSIntNesting;
+  70      =2  
+  71      =2  
+  72      =2  extern void OSInit(void) small;
+  73      =2  /*********************************************************************************************************
+  74      =2  ** º¯ÊýÃû³Æ: OSInit
+  75      =2  ** ¹¦ÄÜÃèÊö: ÏµÍ³±äÁ¿³õÊ¼»¯
+  76      =2  ** Êä¡¡Èë: ÎÞ
+  77      =2  ** Êä¡¡³ö: ÎÞ
+  78      =2  ** È«¾Ö±äÁ¿: 
+  79      =2  ** µ÷ÓÃÄ£¿é: OSCPUInit
+  80      =2  ********************************************************************************************************/
+  81      =2  
+  82      =2  extern void OSStart(void);
+  83      =2  /*********************************************************************************************************
+  84      =2  ** º¯ÊýÃû³Æ: OSStart
+  85      =2  ** ¹¦ÄÜÃèÊö: Æô¶¯¶àÈÎÎñ»·¾³
+  86      =2  ** Êä¡¡Èë: ÎÞ
+  87      =2  ** Êä¡¡³ö : ÎÞ
+  88      =2  ** È«¾Ö±äÁ¿: ÎÞ
+  89      =2  ** µ÷ÓÃÄ£¿é: OSFindNextRunningTask,OSStartHighRdy
+  90      =2  ********************************************************************************************************/
+  91      =2  
+  92      =2  extern uint8 _OSTaskCreate(uint8 TaskID, void (code * task)(void), void xdata *ptos) small;
+  93      =2  /*********************************************************************************************************
+  94      =2  ** º¯ÊýÃû³Æ: _OSTaskCreate
+  95      =2  ** ¹¦ÄÜÃèÊö: ´´½¨ÈÎÎñ
+  96      =2  ** Êä¡¡Èë: TaskID:ÈÎÎñID
+  97      =2  **         task  :ÈÎÎñµØÖ·
+  98      =2  **         ptos  :ÈÎÎñ¶ÑÕ»£¬ÔÚ51ÖÐÎªÖØÈëÕ»
+  99      =2  ** Êä¡¡³ö: ÎÞ
+ 100      =2  ** È«¾Ö±äÁ¿: 
+ 101      =2  ** µ÷ÓÃÄ£¿é: ÎÞ
+ 102      =2  ********************************************************************************************************/
+ 103      =2  
+ 104      =2  extern uint8 OSTaskDel(uint8 TaskID) small;
+ 105      =2  /*********************************************************************************************************
+ 106      =2  ** º¯ÊýÃû³Æ: OSTaskDel
+ 107      =2  ** ¹¦ÄÜÃèÊö: ´´½¨ÈÎÎñ
+ 108      =2  ** Êä¡¡Èë: TaskID:ÈÎÎñID
+ 109      =2  ** Êä¡¡³ö: ÎÞ
+ 110      =2  ** È«¾Ö±äÁ¿: 
+ 111      =2  ** µ÷ÓÃÄ£¿é: ÎÞ
+ 112      =2  ********************************************************************************************************/
+ 113      =2         
+ 114      =2  extern void OSTaskResume(uint8 TaskID) small;
+ 115      =2  /*********************************************************************************************************
+ 116      =2  ** º¯ÊýÃû³Æ: OSTaskResume
+ 117      =2  ** ¹¦ÄÜÃèÊö: ÖÐ»Ö¸´ÈÎÎñ
+ 118      =2  ** Êä¡¡Èë: TaskID : ÈÎÎñID
+ 119      =2  ** Êä¡¡³ö: ÎÞ
+ 120      =2  ** È«¾Ö±äÁ¿: ÎÞ
+ 121      =2  ** µ÷ÓÃÄ£¿é: OSSched
+ 122      =2  ********************************************************************************************************/
+ 123      =2  
+ 124      =2  extern void OS_TaskSuspend(uint8 TaskID)    small;
+ 125      =2  /*********************************************************************************************************
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 26  
+
+ 126      =2  ** º¯ÊýÃû³Æ: OS_TaskSuspend
+ 127      =2  ** ¹¦ÄÜÃèÊö: Ê¹Ö¸¶¨ÈÎÎñÐÝÃß£¬µ«²»½øÐÐÈÎÎñÇÐ»»
+ 128      =2  ** Êä¡¡Èë: TaskID : ÈÎÎñID
+ 129      =2  ** Êä¡¡³ö: ÎÞ
+ 130      =2  ** È«¾Ö±äÁ¿: OSWaitTick
+ 131      =2  ** µ÷ÓÃÄ£¿é: ÎÞ
+ 132      =2  **
+ 133      =2  ** ×÷¡¡Õß: ³ÂÃ÷¼Æ
+ 134      =2  ** ÈÕ¡¡ÆÚ: 2002Äê6ÔÂ20ÈÕ
+ 135      =2  **-------------------------------------------------------------------------------------------------------
+ 136      =2  ** ÐÞ¸ÄÈË:
+ 137      =2  ** ÈÕ¡¡ÆÚ:
+ 138      =2  **-------------------------------------------------------------------------------------------------------
+ 139      =2  ********************************************************************************************************/
+ 140      =2  
+ 141      =2  extern void OSTaskSuspend(uint8 TaskID)    small;
+ 142      =2  /*********************************************************************************************************
+ 143      =2  ** º¯ÊýÃû³Æ: OSTaskSuspend
+ 144      =2  ** ¹¦ÄÜÃèÊö: Ê¹Ö¸¶¨ÈÎÎñÐÝÃß
+ 145      =2  ** Êä¡¡Èë: TaskID : ÈÎÎñID
+ 146      =2  ** Êä¡¡³ö: ÎÞ
+ 147      =2  ** È«¾Ö±äÁ¿: Îå
+ 148      =2  ** µ÷ÓÃÄ£¿é: OS_TaskSuspend
+ 149      =2  **
+ 150      =2  ** ×÷¡¡Õß: ³ÂÃ÷¼Æ
+ 151      =2  ** ÈÕ¡¡ÆÚ: 2002Äê6ÔÂ20ÈÕ
+ 152      =2  **-------------------------------------------------------------------------------------------------------
+ 153      =2  ** ÐÞ¸ÄÈË:
+ 154      =2  ** ÈÕ¡¡ÆÚ:
+ 155      =2  **-------------------------------------------------------------------------------------------------------
+ 156      =2  ********************************************************************************************************/
+ 157      =2  
+ 158      =2  extern void OSTimeDly(uint8 ticks)     small;
+ 159      =2  /*********************************************************************************************************
+ 160      =2  ** º¯ÊýÃû³Æ: OSTimeDly
+ 161      =2  ** ¹¦ÄÜÃèÊö: ÏµÍ³µÈ´ýº¯Êý,ÈÎÎñµ÷ÓÃ´Ëº¯Êý¿ÉÒÔµÈ´ýÒ»¶¨Ê±¼ä
+ 162      =2  ** Êä¡¡Èë:  ticks : µÈ´ý³¬Ê±Ê±µÄÏµÍ³àÖàªÊý
+ 163      =2  ** Êä¡¡³ö : ÎÞ
+ 164      =2  **
+ 165      =2  ** È«¾Ö±äÁ¿: OSWaitTick
+ 166      =2  ** µ÷ÓÃÄ£¿é: OSIntTaskResume,OSSched
+ 167      =2  ********************************************************************************************************/
+ 168      =2  
+ 169      =2  extern void OSTimeDlyResume(uint8 TaskID)    small;
+ 170      =2  /*********************************************************************************************************
+ 171      =2  ** º¯ÊýÃû³Æ: OSTimeDlyResume
+ 172      =2  ** ¹¦ÄÜÃèÊö: ÈÃ´¦ÔÚÑÓÊ±ÆÚµÄÈÎÎñ½áÊøÑÓÊ±
+ 173      =2  ** Êä¡¡Èë:  TaskID : ÈÎÎñID
+ 174      =2  ** Êä¡¡³ö : ÎÞ
+ 175      =2  ** È«¾Ö±äÁ¿: OSWaitTick
+ 176      =2  ** µ÷ÓÃÄ£¿é: OSTaskResume
+ 177      =2  ********************************************************************************************************/
+ 178      =2  
+ 179      =2  extern void  OSTimeTick (void)  small;
+ 180      =2  /*********************************************************************************************************
+ 181      =2  ** º¯ÊýÃû³Æ: OSTimeTick
+ 182      =2  ** ¹¦ÄÜÃèÊö: ÏµÍ³Ê±ÖÓ´¦Àíº¯Êý,´¦Àí¸÷¸öÈÎÎñµÄÑÓÊ±
+ 183      =2  ** Êä¡¡Èë: ÎÞ
+ 184      =2  ** Êä¡¡³ö: ÎÞ
+ 185      =2  ** È«¾Ö±äÁ¿: OSWaitTick
+ 186      =2  ** µ÷ÓÃÄ£¿é: OSIntSendSignal
+ 187      =2  ********************************************************************************************************/
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 27  
+
+ 188      =2  
+ 189      =2  extern uint8 OSWait (uint8 typ, uint8 ticks)    small;
+ 190      =2  /*********************************************************************************************************
+ 191      =2  ** º¯ÊýÃû³Æ: OSWait
+ 192      =2  ** ¹¦ÄÜÃèÊö: ÏµÍ³µÈ´ýº¯Êý,ÈÎÎñµ÷ÓÃ´Ëº¯Êý¿ÉÒÔµÈ´ýÒ»¶¨Ê±¼ä»òÐÅºÅ
+ 193      =2  ** Êä¡¡Èë: typ: µÈ´ýÊÂ¼þÀàÐÍ,Ä¿Ç°¿ÉÒÔÈ¡ÒÔÏÂÖµ,»òÊÇÆäÖÐÈÎÒâ¸öÖµµÄ°´Î»»ò
+ 194      =2  **             K_SIG: µÈ´ýÐÅºÅ
+ 195      =2  **             K_TMO: µÈ´ý³¬Ê±
+ 196      =2  **        ticks : µÈ´ý³¬Ê±Ê±µÄÏµÍ³àÖàªÊý
+ 197      =2  ** Êä¡¡³ö : NOT_OK : ²ÎÊý´íÎó
+ 198      =2  **         TMO_EVENT : ³¬Ê±µ½
+ 199      =2  **         SIG_EVENT : ÓÐÐÅºÅ
+ 200      =2  ** È«¾Ö±äÁ¿: OSWaitTick
+ 201      =2  ** µ÷ÓÃÄ£¿é: OSTaskSuspend,OSTimeDly,OS_ENTER_CRITICAL,OS_EXIT_CRITICAL
+ 202      =2  ********************************************************************************************************/
+ 203      =2  
+ 204      =2  extern uint8 OSIntExit (void)    small;
+ 205      =2  /*********************************************************************************************************
+ 206      =2  ** º¯ÊýÃû³Æ: OSIntExit
+ 207      =2  ** ¹¦ÄÜÃèÊö: ÖÐ¶ÏÍË³ö´¦Àíº¯Êý,ÔÚ´Ë½øÐÐÖÐ¶ÏºóµÄÈÎÎñÇÐ»»
+ 208      =2  ** Êä¡¡Èë: ÎÞ
+ 209      =2  ** Êä¡¡³ö: 0:ÎÞÐèÈÎÎñÇÐ»»
+ 210      =2  **         1:ÐèÒªÈÎÎñÇÐ»»
+ 211      =2  ** È«¾Ö±äÁ¿: OSIntNesting,OSNextTaskID
+ 212      =2  ** µ÷ÓÃÄ£¿é: OSIntCtxSw
+ 213      =2  ********************************************************************************************************/
+ 214      =2  
+ 215      =2  extern void OSSched (void)  small;
+ 216      =2  /*********************************************************************************************************
+ 217      =2  ** º¯ÊýÃû³Æ: OSSched
+ 218      =2  ** ¹¦ÄÜÃèÊö: ·ÇÖÐ¶ÏµÄÈÎÎñÇÐ»»º¯Êý
+ 219      =2  ** Êä¡¡Èë: ÎÞ
+ 220      =2  ** Êä¡¡³ö: ÎÞ
+ 221      =2  ** È«¾Ö±äÁ¿: OSIntNesting,OSNextTaskID
+ 222      =2  ** µ÷ÓÃÄ£¿é: OS_TASK_SW
+ 223      =2  ********************************************************************************************************/
+ 224      =2  
+ 225      =2  extern void OSFindNextRunningTask(void) small;
+ 226      =2  /*********************************************************************************************************
+ 227      =2  ** º¯ÊýÃû³Æ: OSFindNextRunningTask
+ 228      =2  ** ¹¦ÄÜÃèÊö: ²éÕÒÏÂÒ»¸öÓÅÏÈ¼¶×î¸ßµÄ¾ÍÐ÷ÈÎÎñ
+ 229      =2  ** Êä¡¡Èë: ÎÞ
+ 230      =2  ** Êä¡¡³ö: OSNextTaskID:´æ´¢²éÕÒ½á¹û
+ 231      =2  ** È«¾Ö±äÁ¿: OSTaskRuning,OSTaskCreated
+ 232      =2  ** µ÷ÓÃÄ£¿é: ÎÞ
+ 233      =2  **
+ 234      =2  ** ×÷¡¡Õß: ³ÂÃ÷¼Æ
+ 235      =2  ** ÈÕ¡¡ÆÚ: 2002Äê6ÔÂ20ÈÕ
+ 236      =2  **-------------------------------------------------------------------------------------------------------
+ 237      =2  ** ÐÞ¸ÄÈË:
+ 238      =2  ** ÈÕ¡¡ÆÚ:
+ 239      =2  **-------------------------------------------------------------------------------------------------------
+ 240      =2  ********************************************************************************************************/
+ 241      =2  #endif
+ 242      =2  
+ 243      =2  /*********************************************************************************************************
+ 244      =2  **                            End Of File
+ 245      =2  ********************************************************************************************************/
+  69      =1  #include "..\os\OS_Q.h"
+   1      =2  /*********************************************************************************************************
+   2      =2  **                                                             Small RTOS(51)
+   3      =2  **                                   The Real-Time Kernel(For Keil c51)
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 28  
+
+   4      =2  **
+   5      =2  **                                  (c) Copyright 2002-2003, chenmingji
+   6      =2  **                                           All Rights Reserved
+   7      =2  **
+   8      =2  **                                                  V1.20.0
+   9      =2  **
+  10      =2  **
+  11      =2  **--------------ÎÄ¼þÐÅÏ¢--------------------------------------------------------------------------------
+  12      =2  **ÎÄ   ¼þ   Ãû: OS_Q.h
+  13      =2  **´´   ½¨   ÈË: ³ÂÃ÷¼Æ
+  14      =2  **×îºóÐÞ¸ÄÈÕÆÚ:  2003Äê8ÔÂ3ÈÕ
+  15      =2  ** Ãè¡¡Êö: Small RTOS(51)ÏûÏ¢¶ÓÁÐÍ·ÎÄ¼þ£¬¶¨ÒåÒ»Ð©ºêºÍÉùÃ÷Ò»Ð©º¯Êý
+  16      =2  **
+  17      =2  **--------------ÀúÊ·°æ±¾ÐÅÏ¢----------------------------------------------------------------------------
+  18      =2  ** ´´½¨ÈË: ³ÂÃ÷¼Æ
+  19      =2  ** °æ  ±¾: V1.10~V1.12.0
+  20      =2  ** ÈÕ¡¡ÆÚ: 2002Äê6ÔÂ20ÈÕ~2002Äê12ÔÂ30ÈÕ
+  21      =2  ** Ãè¡¡Êö: ÍêÉÆÏûÏ¢¶ÓÁÐ´úÂë
+  22      =2  **
+  23      =2  **------------------------------------------------------------------------------------------------------
+  24      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  25      =2  ** °æ  ±¾: V1.20.0
+  26      =2  ** ÈÕ¡¡ÆÚ: 2003Äê8ÔÂ3ÈÕ
+  27      =2  ** Ãè¡¡Êö: É¾³ýOSInt*º¯Êý£¬¸ù¾ÝÐÂ°æ±¾ÒªÇó¸Ä±äÒ»Ð©´úÂë
+  28      =2  **
+  29      =2  **--------------µ±Ç°°æ±¾ÐÞ¶©-----------------------------------------------------------------------------
+  30      =2  ** ÐÞ¸ÄÈË:
+  31      =2  ** ÈÕ¡¡ÆÚ:
+  32      =2  ** Ãè¡¡Êö:
+  33      =2  **
+  34      =2  **------------------------------------------------------------------------------------------------------
+  35      =2  ********************************************************************************************************/
+  36      =2  
+  37      =2  
+  38      =2  #ifndef NOT_OK
+           =2 #define NOT_OK      255                                 /* ²ÎÊý´íÎó                                     */
+           =2 #endif
+  41      =2  
+  42      =2  #define OS_Q_FULL   8                                   /* ¶ÓÁÐÂú                                       */
+  43      =2  #define OS_Q_NOT_OK 4                                   /* ÎÞÏûÏ¢                                       */
+  44      =2  #define OS_Q_TMO    2                                   /* ³¬Ê±µ½                                       */
+  45      =2  #define OS_Q_OK     1                                   /* ²Ù×÷³É¹¦                                     */
+  46      =2  
+  47      =2  #ifndef IN_OS_Q
+  48      =2  extern uint8 OSQCreate(uint8 OS_Q_MEM_SEL *Buf, uint8 SizeOfBuf);
+  49      =2  /*********************************************************************************************************
+  50      =2  ** º¯ÊýÃû³Æ: OSQCreate
+  51      =2  ** ¹¦ÄÜÃèÊö: ³õÊ¼»¯ÏûÏ¢¶ÓÁÐ
+  52      =2  ** Êä¡¡Èë: Buf:Îª¶ÓÁÐ·ÖÅäµÄ´æ´¢¿Õ¼äµØÖ·
+  53      =2  **         SizeOfBuf:Îª¶ÓÁÐ·ÖÅäµÄ´æ´¢¿Õ¼ä´óÐ¡
+  54      =2  ** Êä¡¡³ö: NOT_OK:²ÎÊý´íÎó
+  55      =2  **         OS_Q_OK:³É¹¦
+  56      =2  ** È«¾Ö±äÁ¿: ÎÞ
+  57      =2  ** µ÷ÓÃÄ£¿é: ÎÞ
+  58      =2  ********************************************************************************************************/
+  59      =2  extern uint8 OSQPend(uint8 data *Ret, uint8 OS_Q_MEM_SEL *Buf, uint8 Tick);
+  60      =2  /*********************************************************************************************************
+  61      =2  ** º¯ÊýÃû³Æ: OSQPend
+  62      =2  ** ¹¦ÄÜÃèÊö: µÈ´ýÏûÏ¢¶ÓÁÐÖÐµÄÏûÏ¢
+  63      =2  ** Êä¡¡Èë: Ret:·µ»ØµÄÏûÏ¢
+  64      =2  **         Buf:Ö¸Ïò¶ÓÁÐµÄÖ¸Õë
+  65      =2  **         Tick:µÈ´ýÊ±¼ä
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 29  
+
+  66      =2  ** Êä¡¡³ö: NOT_OK:²ÎÊý´íÎó
+  67      =2  **         OS_Q_OK:ÊÕµ½ÏûÏ¢
+  68      =2  **         OS_Q_TMO:³¬Ê±µ½
+  69      =2  **         OS_Q_NOT_OK:ÎÞÏûÏ¢
+  70      =2  ** È«¾Ö±äÁ¿: ÎÞ
+  71      =2  ** µ÷ÓÃÄ£¿é: OSRunningTaskID,OSClearSignal,OSSched,OS_ENTER_CRITICAL,OS_EXIT_CRITICAL
+  72      =2  ********************************************************************************************************/
+  73      =2  extern uint8 OSQAccept(uint8 data *Ret, uint8 OS_Q_MEM_SEL *Buf);
+  74      =2  /*********************************************************************************************************
+  75      =2  ** º¯ÊýÃû³Æ: OSQAccept
+  76      =2  ** ¹¦ÄÜÃèÊö: ÎÞµÈ´ý´ÓÏûÏ¢¶ÓÁÐÖÐÈ¡µÃÏûÏ¢
+  77      =2  ** Êä¡¡Èë: Ret:·µ»ØµÄÏûÏ¢
+  78      =2  **         Buf:Ö¸Ïò¶ÓÁÐµÄÖ¸Õë
+  79      =2  ** Êä¡¡³ö: NOT_OK:²ÎÊý´íÎó
+  80      =2  **         OS_Q_OK:ÊÕµ½ÏûÏ¢
+  81      =2  **         OS_Q_TMO:³¬Ê±µ½
+  82      =2  **         OS_Q_NOT_OK:ÎÞÏûÏ¢
+  83      =2  ** È«¾Ö±äÁ¿: ÎÞ
+  84      =2  ** µ÷ÓÃÄ£¿é: OSClearSignal,OSSched,OS_ENTER_CRITICAL,OS_EXIT_CRITICAL
+  85      =2  ********************************************************************************************************/
+  86      =2  extern uint8 OSQPost(uint8 OS_Q_MEM_SEL *Buf, uint8 Data);
+  87      =2  /*********************************************************************************************************
+  88      =2  ** º¯ÊýÃû³Æ: OSQPost
+  89      =2  ** ¹¦ÄÜÃèÊö: FIFO·½Ê½·¢ËÍÏûÏ¢
+  90      =2  ** Êä¡¡Èë: Buf:Ö¸Ïò¶ÓÁÐµÄÖ¸Õë
+  91      =2  **         Data:ÏûÏ¢Êý¾Ý
+  92      =2  ** Êä¡¡³ö: OS_Q_FULL:¶ÓÁÐÂú
+  93      =2  **         OS_Q_OK:·¢ËÍ³É¹¦
+  94      =2  ** È«¾Ö±äÁ¿: ÎÞ
+  95      =2  ** µ÷ÓÃÄ£¿é: OSQIntPost,OSSched
+  96      =2  ********************************************************************************************************/
+  97      =2  extern uint8 OSQPostFront(uint8 OS_Q_MEM_SEL *Buf, uint8 Data);
+  98      =2  /*********************************************************************************************************
+  99      =2  ** º¯ÊýÃû³Æ: OSQPostFront
+ 100      =2  ** ¹¦ÄÜÃèÊö: LIFO·½Ê½·¢ËÍÏûÏ¢
+ 101      =2  ** Êä¡¡Èë: Buf:Ö¸Ïò¶ÓÁÐµÄÖ¸Õë
+ 102      =2  **         Data:ÏûÏ¢Êý¾Ý
+ 103      =2  ** Êä¡¡³ö: OS_Q_FULL:¶ÓÁÐÂú
+ 104      =2  **         OS_Q_OK:·¢ËÍ³É¹¦
+ 105      =2  ** È«¾Ö±äÁ¿: ÎÞ
+ 106      =2  ** µ÷ÓÃÄ£¿é: OSQIntPostFront,OSSched
+ 107      =2  ********************************************************************************************************/
+ 108      =2  /* ¼æÈÝV1.12.1µÄºê */
+ 109      =2  #define OSQIntPost(Buf, Data) OSQPost(Buf, Data)
+ 110      =2  #define OSQIntPostFront(Buf, Data) OSQPostFront(Buf, Data)
+ 111      =2  
+ 112      =2  extern uint8 OSQNMsgs(uint8 OS_Q_MEM_SEL *Buf);
+ 113      =2  /*********************************************************************************************************
+ 114      =2  ** º¯ÊýÃû³Æ: OSQNMsgs
+ 115      =2  ** ¹¦ÄÜÃèÊö: È¡µÃÏûÏ¢¶ÓÁÐÖÐÏûÏ¢Êý
+ 116      =2  ** Êä¡¡Èë: Buf:Ö¸Ïò¶ÓÁÐµÄÖ¸Õë
+ 117      =2  ** Êä¡¡³ö: ÏûÏ¢Êý
+ 118      =2  ** È«¾Ö±äÁ¿: ÎÞ
+ 119      =2  ** µ÷ÓÃÄ£¿é: OS_ENTER_CRITICAL,OS_EXIT_CRITICAL
+ 120      =2  ********************************************************************************************************/
+ 121      =2  extern uint8 OSQSize(uint8 OS_Q_MEM_SEL *Buf);
+ 122      =2  /*********************************************************************************************************
+ 123      =2  ** º¯ÊýÃû³Æ: OSQSize
+ 124      =2  ** ¹¦ÄÜÃèÊö: È¡µÃÏûÏ¢¶ÓÁÐ×ÜÈÝÁ¿
+ 125      =2  ** Êä¡¡Èë: Buf:Ö¸Ïò¶ÓÁÐµÄÖ¸Õë
+ 126      =2  ** Êä¡¡³ö: ÏûÏ¢¶ÓÁÐ×ÜÈÝÁ¿
+ 127      =2  ** È«¾Ö±äÁ¿: ÎÞ
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 30  
+
+ 128      =2  ** µ÷ÓÃÄ£¿é: OS_ENTER_CRITICAL,OS_EXIT_CRITICAL
+ 129      =2  ********************************************************************************************************/
+ 130      =2  extern void OSQFlush (uint8 OS_Q_MEM_SEL *Buf);
+ 131      =2  /*********************************************************************************************************
+ 132      =2  ** º¯ÊýÃû³Æ: OSQFlush
+ 133      =2  ** ¹¦ÄÜÃèÊö: Çå¿Õ¶ÓÁÐ
+ 134      =2  ** Êä¡¡Èë: Buf:Ö¸Ïò¶ÓÁÐµÄÖ¸Õë
+ 135      =2  ** Êä¡¡³ö: ÎÞ
+ 136      =2  ** È«¾Ö±äÁ¿: ÎÞ
+ 137      =2  ** µ÷ÓÃÄ£¿é: OS_ENTER_CRITICAL,OS_EXIT_CRITICAL
+ 138      =2  **
+ 139      =2  ** ×÷¡¡Õß: ³ÂÃ÷¼Æ
+ 140      =2  ** ÈÕ¡¡ÆÚ: 2002Äê9ÔÂ1ÈÕ
+ 141      =2  **-------------------------------------------------------------------------------------------------------
+ 142      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+ 143      =2  ** ÈÕ¡¡ÆÚ: 2002Äê10ÔÂ26ÈÕ
+ 144      =2  **-------------------------------------------------------------------------------------------------------
+ 145      =2  ** ÐÞ¸ÄÈË:
+ 146      =2  ** ÈÕ¡¡ÆÚ:
+ 147      =2  **-------------------------------------------------------------------------------------------------------
+ 148      =2  ********************************************************************************************************/
+ 149      =2  #endif
+ 150      =2  /*********************************************************************************************************
+ 151      =2  **                            End Of File
+ 152      =2  ********************************************************************************************************/
+  70      =1  #include "..\os\OS_SEM.h" 
+   1      =2  /*********************************************************************************************************
+   2      =2  **                                                             Small RTOS(51)
+   3      =2  **                                   The Real-Time Kernel(For Keil c51)
+   4      =2  **
+   5      =2  **                                  (c) Copyright 2002-2003, chenmingji
+   6      =2  **                                           All Rights Reserved
+   7      =2  **
+   8      =2  **                                                  V1.20.0
+   9      =2  **
+  10      =2  **
+  11      =2  **--------------ÎÄ¼þÐÅÏ¢--------------------------------------------------------------------------------
+  12      =2  **ÎÄ   ¼þ   Ãû: OS_sem.h
+  13      =2  **´´   ½¨   ÈË: ³ÂÃ÷¼Æ
+  14      =2  **×îºóÐÞ¸ÄÈÕÆÚ:  2002Äê12ÔÂ2ÈÕ
+  15      =2  ** Ãè¡¡Êö: Small RTOS(51)ÐÅºÅÁ¿Í·ÎÄ¼þ£¬¶¨ÒåÒ»Ð©ºêºÍÉùÃ÷Ò»Ð©º¯Êý
+  16      =2  **
+  17      =2  **--------------ÀúÊ·°æ±¾ÐÅÏ¢----------------------------------------------------------------------------
+  18      =2  ** ´´½¨ÈË: ³ÂÃ÷¼Æ
+  19      =2  ** °æ  ±¾: V1.10~V1.12.0
+  20      =2  ** ÈÕ¡¡ÆÚ: 2002Äê9ÔÂ1ÈÕ~2002Äê12ÔÂ30ÈÕ
+  21      =2  ** Ãè¡¡Êö: ÍêÉÆÐÅºÅÁ¿´úÂë
+  22      =2  **
+  23      =2  **------------------------------------------------------------------------------------------------------
+  24      =2  ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+  25      =2  ** °æ  ±¾: V1.20.0
+  26      =2  ** ÈÕ¡¡ÆÚ: 2003Äê8ÔÂ3ÈÕ
+  27      =2  ** Ãè¡¡Êö: É¾³ýOSInt*º¯Êý£¬¸ù¾ÝÐÂ°æ±¾ÒªÇó¸Ä±äÒ»Ð©´úÂë
+  28      =2  **
+  29      =2  **--------------µ±Ç°°æ±¾ÐÞ¶©-----------------------------------------------------------------------------
+  30      =2  ** ÐÞ¸ÄÈË:
+  31      =2  ** ÈÕ¡¡ÆÚ:
+  32      =2  ** Ãè¡¡Êö:
+  33      =2  **
+  34      =2  **------------------------------------------------------------------------------------------------------
+  35      =2  ********************************************************************************************************/
+  36      =2  
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 31  
+
+  37      =2  
+  38      =2  #ifndef NOT_OK
+           =2 #define NOT_OK      255                                 /* ²ÎÊý´íÎó                                     */
+           =2 #endif
+  41      =2  
+  42      =2  #define OS_SEM_NOT_OK 4                                 /* ÎÞÐÅºÅ                                       */
+  43      =2  #define OS_SEM_TMO    2                                 /* ³¬Ê±µ½                                       */
+  44      =2  #define OS_SEM_OK     1                                 /* ²Ù×÷³É¹¦                                     */
+  45      =2  
+  46      =2  #ifndef IN_OS_SEM
+  47      =2  extern uint8 OSSemCreate(uint8 Index,uint8 Data);
+  48      =2  /*********************************************************************************************************
+  49      =2  ** º¯ÊýÃû³Æ: OSSemCreate
+  50      =2  ** ¹¦ÄÜÃèÊö: ³õÊ¼»¯ÏûÏ¢¶ÓÁÐ
+  51      =2  ** Êä¡¡Èë: Index:ÐÅºÅÁ¿Ë÷Òý
+  52      =2  **         data:ÐÅºÅÁ¿³õÊ¼Öµ
+  53      =2  ** Êä¡¡³ö: NOT_OK:Ã»ÓÐÕâ¸öÐÅºÅÁ¿
+  54      =2  **         OS_SEM_OK:³É¹¦
+  55      =2  ** È«¾Ö±äÁ¿: ÎÞ
+  56      =2  ** µ÷ÓÃÄ£¿é: ÎÞ
+  57      =2  ********************************************************************************************************/
+  58      =2  extern uint8 OSSemPend(uint8 Index, uint8 Tick);
+  59      =2  /*********************************************************************************************************
+  60      =2  ** º¯ÊýÃû³Æ: OSSemPend
+  61      =2  ** ¹¦ÄÜÃèÊö: µÈ´ýÒ»¸öÐÅºÅÁ¿
+  62      =2  ** Êä¡¡Èë: Index:ÐÅºÅÁ¿Ë÷Òý
+  63      =2  **         Tick:µÈ´ýÊ±¼ä
+  64      =2  ** Êä¡¡³ö: NOT_OK:²ÎÊý´íÎó
+  65      =2  **         OS_SEM_OK:µÃµ½ÐÅºÅÁ¿
+  66      =2  **         OS_SEM_TMO:³¬Ê±µ½
+  67      =2  **         OS_SEM_NOT_OK:Ã»ÓÐµÃµ½ÐÅºÅÁ¿
+  68      =2  ** È«¾Ö±äÁ¿: ÎÞ
+  69      =2  ** µ÷ÓÃÄ£¿é: OSRunningTaskID,OSClearSignal,OSSched,OS_ENTER_CRITICAL,OS_EXIT_CRITICAL
+  70      =2  ********************************************************************************************************/
+  71      =2  extern uint8 OSSemAccept(uint8 Index);
+  72      =2  /*********************************************************************************************************
+  73      =2  ** º¯ÊýÃû³Æ: OSSemAccept
+  74      =2  ** ¹¦ÄÜÃèÊö: ÎÞµÈ´ýÇëÇóÐÅºÅÁ¿
+  75      =2  ** Êä¡¡Èë: Index:ÐÅºÅÁ¿Ë÷Òý
+  76      =2  ** Êä¡¡³ö: NOT_OK:²ÎÊý´íÎó
+  77      =2  **         OS_SEM_OK:µÃµ½ÐÅºÅÁ¿
+  78      =2  **         OS_SEM_TMO:³¬Ê±µ½
+  79      =2  **         OS_SEM_NOT_OK:Ã»ÓÐµÃµ½ÐÅºÅÁ¿
+  80      =2  ** È«¾Ö±äÁ¿: ÎÞ
+  81      =2  ** µ÷ÓÃÄ£¿é: OSClearSignal,OSSched,OS_ENTER_CRITICAL,OS_EXIT_CRITICAL
+  82      =2  ********************************************************************************************************/
+  83      =2  
+  84      =2  #define OSSemIntPost(Index) OSSemPost(Index)
+  85      =2  
+  86      =2  extern uint8 OSSemPost(uint8 Index);
+  87      =2  /*********************************************************************************************************
+  88      =2  ** º¯ÊýÃû³Æ: OSSemPost
+  89      =2  ** ¹¦ÄÜÃèÊö: ·¢ËÍÒ»¸öÐÅºÅÁ¿
+  90      =2  ** Êä¡¡Èë: Index:ÐÅºÅÁ¿Ë÷Òý
+  91      =2  ** Êä¡¡³ö: NOT_OK:²ÎÊý´íÎó
+  92      =2  **         OS_SEM_OK:·¢ËÍ³É¹¦
+  93      =2  ** È«¾Ö±äÁ¿: ÎÞ
+  94      =2  ** µ÷ÓÃÄ£¿é: OSSemIntPost,OSSched
+  95      =2  ********************************************************************************************************/
+  96      =2  extern uint8 OSSemQuery(uint8 Index);
+  97      =2  /*********************************************************************************************************
+  98      =2  ** º¯ÊýÃû³Æ: OSSemQuery
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 32  
+
+  99      =2  ** ¹¦ÄÜÃèÊö: ²éÑ¯ÐÅºÅÁ¿
+ 100      =2  ** Êä¡¡Èë: Index:ÐÅºÅÁ¿Ë÷Òý
+ 101      =2  ** Êä¡¡³ö: ÐÅºÅÁ¿µÄÖµ
+ 102      =2  ** È«¾Ö±äÁ¿: ÎÞ
+ 103      =2  ** µ÷ÓÃÄ£¿é: OS_ENTER_CRITICAL,OS_EXIT_CRITICAL
+ 104      =2  ********************************************************************************************************/
+ 105      =2  #endif
+ 106      =2  /*********************************************************************************************************
+ 107      =2  **                            End Of File
+ 108      =2  ********************************************************************************************************/
+  71      =1  #include "SingleBus.h"
+   1      =2  /*
+   2      =2  **********************************Copyright (c) ****************************
+   3      =2  *                                                       cwg
+   4      =2  *                              All Rights Reserved
+   5      =2  *                                       QQ:7084394
+   6      =2  *
+   7      =2  *---------------------------------File Info---------------------------------
+   8      =2  *File Name              :SingleBus.h
+   9      =2  *Descriptor             :µ¥×ÜÏßÍ·ÎÄ¼þ
+  10      =2  *Create By              :³ÂÎÀ¹ú
+  11      =2  *Create Date            :2008-8-8
+  12      =2  *Version                :V1.0
+  13      =2  *Note                   :
+  14      =2  *
+  15      =2  *---------------------------------------------------------------------------
+  16      =2  *Modified By            :
+  17      =2  *Modified Date          :
+  18      =2  *Version                :
+  19      =2  *Note                   :
+  20      =2  *
+  21      =2  ****************************************************************************
+  22      =2  */
+  23      =2  //×ÜÏß0ºê¶¨Òå
+  24      =2  #define         BUS0_FREQ_SIZE          7
+  25      =2  #define         BUS0_FREQ_SIZE_HI       (BUS0_FREQ_SIZE << 4)
+  26      =2  #define         BUS0_TX_Q_ZISE          (BUS0_FREQ_SIZE*20 + 1)
+  27      =2  #define         DisableBus0RecInt()     {EX1 = 0;} 
+  28      =2  #define         EnableBus0RecInt()      {IE1 = 0;EX1 = 1;}
+  29      =2  #define         BUS0_SEND_CON           0x3c
+  30      =2  #define         BUS0_CAN_SEND           0x0c 
+  31      =2  #define         BUS0_ON_REC                     0x03
+  32      =2  #define         BUS0_REQ_SEND           0x28
+  33      =2  #define         BUS0_SEND_FINISH        0x0c 
+  34      =2  #define         BUS0_ON_WORK            0x23
+  35      =2  //µ¥×ÜÏß×Ô¶¯ÖØÔØÊ±¼ä
+  36      =2  //#define               TIMER0_COUNT            ((256-(Fbus*9375/12/1000000))) 
+  37      =2  
+  38      =2  //300us
+  39      =2  //#define TIMER0_H  0xfe
+  40      =2  //#define TIMER0_L  0x34
+  41      =2  
+  42      =2  //100uS
+  43      =2  #define TIMER0_H  0xff
+  44      =2  #define TIMER0_L  0x67
+  45      =2  
+  46      =2  
+  47      =2  /*Êý¾ÝÖ¡¸ñÊ½
+  48      =2  ×Ö½Ú1£º·¢ËÍ·½ÇøµØÖ·£¨Ò»¸ö×Ö½Ú£©
+  49      =2  ×Ö½Ú2£º·¢ËÍ·½·¿µØÖ·£¨Ò»¸ö×Ö½Ú£©
+  50      =2  ×Ö½Ú3£º·¢ËÍ·½´²µØÖ·£¨Ò»¸ö×Ö½Ú£©
+  51      =2  ×Ö½Ú4£ºÃüÁî´úÂë£¨Ò»¸ö×Ö½Ú£©
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 33  
+
+  52      =2  ×Ö½Ú5£º½ÓÊÕ·½ÇøµØÖ·£¨Ò»¸ö×Ö½Ú£©
+  53      =2  ×Ö½Ú6£º½ÓÊÕ·½·¿µØÖ·£¨Ò»¸ö×Ö½Ú£©
+  54      =2  ×Ö½Ú7£º½ÓÊÕ·½´²µØÖ·£¨Ò»¸ö×Ö½Ú£©
+  55      =2  ×¢:Êý¾ÝèåÔÚ²»Í¬µÄÃüÁîÖÐ¿ÉÄÜÓÐ²»Í¬º¬Òå
+  56      =2  */
+  57      =2  /*µ¥×ÜÏßÐ­Òé
+  58      =2    ÃüÁî´úÂë:Ò»×Ö½Ú
+  59      =2    Êý¾Ý´úÂë:6×Ö½Ú(¸ù¾ÝÃüÁîµÄ²»Í¬Êý¾Ý¸ñÊ½)
+  60      =2  */
+  61      =2  typedef struct
+  62      =2  {
+  63      =2          uint8 bySndSecAddr;                     /*Ö÷¶¯·¢ËÍ·½ÇøµØÖ·*/
+  64      =2          uint8 bySndRoomAddr;            /*Ö÷¶¯·¢ËÍ·½·¿µØÖ·*/
+  65      =2          uint8 bySndBedAddr;                     /*Ö÷¶¯·¢ËÍ·½´²µØÖ·*/
+  66      =2          uint8 byCmd;                            /*ÃüÁî*/
+  67      =2          uint8 byRecSecAddr;                     /*½ÓÊÕ·½ÇøµØÖ·*/
+  68      =2          uint8 byRecRoomAddr;            /*½ÓÊÕ·½·¿µØÖ·*/
+  69      =2          uint8 byRecBedAddr;                     /*½ÓÊÕ·½´²µØÖ·*/        
+  70      =2  } STBusFreq, *pSTBusFreq;       
+  71      =2  /*************************ÃüÁî¶¨Òå**********************/
+  72      =2  #define CMD_QUEST                               0x01    /*²éÑ¯ÃüÁî*/
+  73      =2  #define CMD_ANSWER                              0x02    /*Ó¦´ðÃüÁî*/
+  74      =2  #define CMD_LANDING                             0x03    /*µÇ¼ÇÃüÁî*/                    /*ºóÃæÁ½¸ö×Ö½ÚÎªÓÅÏÈ¼¶ºÍ0x00*/
+  75      =2  #define CMD_ENTER                               0x04    /*È·ÈÏÃüÁî*/                    /*Ö»ÄÜÎªÖ÷»ú¶Ô´Ó»ú·¢ËÍ*/
+  76      =2  /*****************************************************************/
+  77      =2  #define CMD_COMM_CALL                   0x05    /*ÆÕÍ¨ºô½ÐÃüÁî*/                /*ºóÃæÁ½¸ö×Ö½ÚÎªÓÅÏÈ¼¶ºÍÖ÷·½×´Ì¬*/
+  78      =2  #define CMD_INFUSION_CALL               0x06    /*ÊäÒººô½ÐÃüÁî*/
+  79      =2  #define CMD_SERVICE_CALL                0x07    /*·þÎñºô½ÐÃüÁî*/
+  80      =2  #define CMD_EMERGENCY_CALL              0x08    /*½ô¼±ºô½ÐÃüÁî*/
+  81      =2  #define CMD_HELP_CALL                   0x09    /*ÇóÔ®ºô½ÐÃüÁî*/                /* ±ØÐëµÃµ½Ö÷»úµÄÈ·ÈÏÃüÁî*/
+  82      =2  #define CMD_INSPECTOR_CALL              0x0a    /*²é·¿ºô½ÐÃüÁî*/                /* ±ØÐëµÃµ½Ö÷»úµÄÈ·ÈÏÃüÁî*/
+  83      =2  /*****************************************************************/
+  84      =2  #define CMD_COMM_ANSWER                 0x0b    /*ÆÕÍ¨Ó¦´ðÃüÁî*/                
+  85      =2  #define CMD_INFUSION_ANSWER             0x0c    /*´¦ÀíÊäÒºÃüÁî*/
+  86      =2  #define CMD_SERVICE_ANSWER              0x0d    /*´¦Àí·þÎñÃüÁî*/
+  87      =2  #define CMD_EMERGENCY_ANSWER    0x0e    /*´¦Àí½ô¼±ÃüÁî*/
+  88      =2  #define CMD_HELP_ANSWER                 0x0f    /*´¦ÀíÇóÔ®ÃüÁî*/
+  89      =2  /*****************************************************************/
+  90      =2  #define CMD_INFUSION_CLEAR              0x10    /*Çå³ýÊäÒºÃüÁî*/                /* ¶ÔÓ¦µÄÇå³ýÃüÁî*/
+  91      =2  #define CMD_SERVICE_CLEAR               0x11    /*Çå³ý·þÎñÃüÁî*/
+  92      =2  #define CMD_EMERGENCY_CLEAR             0x12    /*Çå³ý½ô¼±ÃüÁî*/
+  93      =2  #define CMD_HELP_CLEAR                  0x13    /*Çå³ýÇóÔ®ÃüÁî*/
+  94      =2  /*****************************************************************/
+  95      =2  #define CMD_BROADCAST1                  0x14    /*1Àà¹ã²¥ºô½ÐÃüÁî*/
+  96      =2  #define CMD_BROADCAST2                  0x15    /*2Àà¹ã²¥ºô½ÐÃüÁî*/
+  97      =2  #define CMD_CALL_LISTEN                 0x16    /*½ÓÌýºô½ÐÃüÁî*/
+  98      =2  #define CMD_PRIORITY_SET                0x17    /*ÓÅÏÈ¼¶Ö¸¶¨ÃüÁî*/              /*ÏµÍ³ÃüÁî£ºµÚÒ»¸ö×Ö½Ú¸ß3Î»ÎªÓÅÏÈ¼¶£¬½ÓÊÕ·½µØÖ·*/
+  99      =2  #define CMD_SYSTERM_RESET               0x18    /*ÏµÍ³¸´Î»ÃüÁî*/
+ 100      =2  /*****************************************************************/
+ 101      =2  #define CMD_DATA_SEND                   0x19    /*ÈÕÆÚ·¢ËÍÃüÁî*/                /*Ç°Á½¸ö×Ö½Ú£¬Äê£º4Î»BCDÂë£¬ºóÃæÁ½¸ö×Ö½Ú£ºÔÂºÍÈÕÆÚ£º4Î»BCDÂ
+             -ë*/
+ 102      =2  #define CMD_TIME_SEND                   0x1a    /*Ê±¼ä·¢ËÍÃüÁî*/
+ 103      =2  #define CMD_SCHEDULE_SEND               0x1b    /*Ò»ÀÀ±í·¢ËÍÃüÁî*/
+ 104      =2  #define CMD_NUMBER_SET                  0x1c    /*ÐÞ¸Ä±àºÅÃüÁî*/                /*ÐÂµÄµØÖ·ÔÚÇ°2¸ö×Ö½Ú£¬±»ÐÞ¸ÄµØÖ·ÔÚºóÁ½¸ö×Ö½Ú*/
+ 105      =2  #define CMD_LAMP_CONTROL                0x1d    /*µÆ¿ØÃüÁî*/
+ 106      =2  /*****************************************************************/
+ 107      =2  #define CMD_CONTROL_SEND                0x1e    /*¿ØÖÆ×Ö´«µÝÃüÁî*/
+ 108      =2  #define CMD_FLOOR_SET                   0x1f    /*ÐÞ¸ÄÂ¥²ãºÅÃüÁî*/
+ 109      =2  #define CMD_BROADCAST3                  0x20    /*3Àà¹ã²¥ºô½ÐÃüÁî*/
+ 110      =2  #define CMD_INFUSION_ENTER              0x21    /*È·ÈÏÊäÒºÃüÁî*/
+ 111      =2  #define CMD_SERVICE_ENTER               0x22    /*È·ÈÏ·þÎñÃüÁî*/
+ 112      =2  #define CMD_HELP_ENTER                  0x23    /*È·ÈÏÇóÔ®ÃüÁî*/
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 34  
+
+ 113      =2  #define CMD_EMERGENCY_ENTER             0x24    /*È·ÈÏ½ô¼±ÃüÁî*/
+ 114      =2  /*****************************************************************/
+ 115      =2  #define CMD_CLEAR_INSPERCTOR    0x25    /*Çå³ý²é·¿ÃüÁî*/
+ 116      =2  #define CMD_START_VOICE                 0x26    /*Æô¶¯²¥ÒôÃüÁî*/
+ 117      =2  #define CMD_STOP_VOICE                  0x27    /*Í£Ö¹²¥ÒôÃüÁî*/
+ 118      =2  #define CMD_MUSIC_PLAY                  0x28    /*±³¾°ÒôÀÖÃüÁî*/
+ 119      =2  #define CMD_REQUEST_INFO                0x29    /*ÇëÇó·¢ËÍÐÅÏ¢ÃüÁî*/
+ 120      =2  /*****************************************************************/
+ 121      =2  #define CMD_CHANNEL_CHANGE              0x2a    /*ÇÐ»»Í¨»°Í¨µÀ*/
+ 122      =2  #define CMD_CHANNEL_CLOSE               0x2b    /*¹Ø±ÕÍ¨»°Í¨µÀ*/
+ 123      =2  #define CMD_POWER_ON                    0x2c    /*ÉÏµç¸´Î»ÃüÁî*/
+ 124      =2  #define CMD_INSPERCTOR_ENTER    0x2d    /*È·ÈÏ²é·¿ÃüÁî*/
+ 125      =2  #define CMD_STOP_INDICATION             0x2e    /*ÖÕÖ¹ÐÅÏ¢Ö¸Ê¾*/
+ 126      =2  #define CMD_INFO_INDICATION             0x2f    /*ÐÅÏ¢Ö¸Ê¾ÃüÁî*/
+ 127      =2  /*Ö÷¶¯ºô½Ð·½µØÖ·ÔÚÇ°Á½¸ö×Ö½Ú£¬ºóÃæÁ½¸ö×Ö½ÚÎªºô½ÐÀàÐÍ£º¸ß3Î»ÓÅÏÈ¼¶£¬µÍ5Î»ÎªÀà±ð*/
+ 128      =2  /*****************************************************************/
+ 129      =2  #define CMD_MUSIC                               0x30    /*ÒôÀÖÃüÁî*/
+ 130      =2  #define CMD_INCREACE_VOL                0x31    /*ÒôÁ¿Ôö¼ÓÃüÁî*/
+ 131      =2  #define CMD_DECREACE_VOL                0x32    /*ÒôÁ¿¼õÐ¡ÃüÁî*/
+ 132      =2  #define CMD_OPEN_LCD                    0x3e    /*´ò¿ªÏÔÊ¾ÃüÁî*/
+ 133      =2  #define CMD_CLOSE_LCD                   0x3f    /*¹Ø±ÕÏÔÊ¾ÃüÁî*/
+ 134      =2  /*****************************************************************/
+ 135      =2  #define CMD_OPEN_485BUS_OUT             0x40    /*´ò¿ª485Êä³ö*/
+ 136      =2  #define CMD_OPEN_485BUS_IN              0x41    /*´ò¿ª485ÊäÈëÃüÁî*/
+ 137      =2  #define CMD_CLOSE_485BUS                0x42    /*¹Ø±Õ485ÃüÁî*/
+ 138      =2  /*****************************************************************/
+ 139      =2  #define CMD_KEY_AVALID                  0x44    /*°´¼üÓÐÐ§ÃüÁî*/
+ 140      =2  #define CMD_KEY_INVALID                 0x45    /*°´¼üÊ§Ð§ÃüÁî*/
+ 141      =2  #define CMD_KEY_DOWN                    0x46    /*°´¼üÑ¹ÏÂÃüÁî*/
+ 142      =2  #define CMD_KEY_UP                              0x47    /*°´¼üÊÍ·ÅÃüÁî*/
+ 143      =2  #define CMD_ERROR_REPORT                0x48    /*¹ÊÕÏ±¨¸æÃüÁî*/
+ 144      =2  #define CMD_CLEAR_LCD                   0x49    /*Çå³ýÒº¾§ÐÅÏ¢ÃüÁî*/
+ 145      =2  #define CMD_RECEIVE_INFO                0x4a    /*ÊÕµ½ÐÅÏ¢ÃüÁî*/
+ 146      =2  #define CMD_SELECT_INFO                 0x4b    /*Ñ¡ÔñÐÅÏ¢ÃüÁî*/
+ 147      =2  #define CMD_NO_BUG                              0x4c    /*ÇëÎð´òÈÅÃüÁî*/
+ 148      =2  #define CMD_NO_BUG_AVALID               0x4d    /*ÇëÎð´òÈÅÓÐÐ§ÃüÁî*/
+ 149      =2  #define CMD_BUG_END                             0x4e    /*½áÊø´òÈÅÃüÁî*/
+ 150      =2  /*****************************************************************/
+ 151      =2  #define CMD_ONLINE_WRITE                0xf3    /*ÔÚÏßÐ´ÈëÃüÁî*/
+ 152      =2  #define CMD_ONLIEN_READ                 0xf4    /*ÔÚÏß¶Á³öÃüÁî*/
+ 153      =2  #define CMD_ONLINE_OUTPUT               0xf5    /*ÔÚÏßÊä³öÃüÁî*/
+ 154      =2  /*****************************************************************/
+ 155      =2  #define CMD_LED_OFFLINE_WRITE   0xf0    /*ledeepromÀëÏßÐ´ÈëÃüÁî*/
+ 156      =2  #define CMD_LED_OFFLINE_READ    0xf1    /*ledeepromÀëÏß¶Á³öÃüÁî*/
+ 157      =2  #define CMD_LED_OFFLINE_OUTPUT  0xf2    /*ledeepromÀëÏßÊä³öÃüÁî*/
+ 158      =2  /*****************************************************************/
+ 159      =2  #define CMD_EEPROM_OFFLINE_WR   0xfe    /*eepromÀëÏßÐ´ÈëÃüÁî*/
+ 160      =2  #define CMD_EEPROM_OFFLINE_RD   0xf1    /*eepromÀëÏß¶Á³öÃüÁî*/
+ 161      =2  #define CMD_EEPROM_OFFLINE_OUTT 0xf2    /*eepromÀëÏßÊä³öÃüÁî*/ 
+ 162      =2  /****************************************************************/        
+ 163      =2  #ifdef _IN_SINGLE_BUS_
+           =2 //Éè±¸×´Ì¬¶¨Òå
+           =2 uint8   bdata   byDevState1;
+           =2 sbit    bLanding        =       byDevState1^0;                          //ÉÏµçµÇ¼Ç×´Ì¬  
+           =2 #else
+ 168      =2  extern  uint8   byDevState1;
+ 169      =2  extern  bit             bLanding;
+ 170      =2  void SingleBusInit(void); 
+ 171      =2  void ReadParameter(void);       
+ 172      =2  void InitParameter(void);
+ 173      =2  void Bus0OutputData(uint8* pbyData);  
+ 174      =2  void MakeCH0TimerOut(uint8 byTimerOut, uint8 byTimerOutCount);
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 35  
+
+ 175      =2  void Bus0RecDeal(void);
+ 176      =2  void Bus0SendDeal(void);
+ 177      =2  void Bus0Manage(void); 
+ 178      =2  void TimerOutDeal(void);
+ 179      =2  void TimerOutManager(void);
+ 180      =2  #endif
+  72      =1  #include "Key.h"
+   1      =2  /*
+   2      =2  ************************Copyright(c)************************
+   3      =2  *                                  ºþÄÏÒ»ÌØµç×Ó¹É·ÝÓÐÏÞ¹«Ë¾
+   4      =2  *                               All Rights Reserved
+   5      =2  *                                        
+   6      =2  *
+   7      =2  *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8      =2  *ÎÄ¼þÃû³Æ               :Key.h
+   9      =2  *ÎÄ¼þÃèÊö               :°´¼üÇý¶¯³ÌÐòÍ·ÎÄ¼þ
+  10      =2  *´´½¨ÈË                 :ÒüÔËÍ¬
+  11      =2  *´´½¨ÈÕÆÚ               :2008-9-22
+  12      =2  *°æ±¾ºÅ                 :V1.0
+  13      =2  *×¢ÊÍ                   :²ÉÓÃ°´¼üÓëµÆÏÔÊ¾¿ØÖÆ¹²ÓÃÒ»¸öI/O¿ÚµÄ·½Ê½                                        
+  14      =2  *----------------------------------------------------------
+  15      =2  *ÐÞ¸ÄÈË                         :
+  16      =2  *ÐÞ¸ÄÈÕÆÚ                       :
+  17      =2  *°æ±¾ºÅ                 :
+  18      =2  *×¢ÊÍ                   :
+  19      =2  ***********************************************************
+  20      =2  */
+  21      =2  #ifndef KEY_H
+  22      =2  #define KEY_H
+  23      =2  
+  24      =2  #define         KEY_DELAY                       100                                                     //ÉèÖÃ³¤°´¼üÊ±¼ä
+  25      =2  //°´¼ü¶¨Òå
+  26      =2  #define COPY_KEY_VAL                    0x01                                                    //Êý¾Ý¿½±´¼ü
+  27      =2  #define NO_KEY_VAL                      0xff                                                            //ÎÞ¼ü°´ÏÂ
+  28      =2  
+  29      =2  #ifndef _IN_KEY_
+  30      =2  #define _IN_KEY_
+  31      =2  extern bit bPrgState;
+  32      =2                                          
+  33      =2  extern void SetLedState(uint8 byState);
+  34      =2  extern void KeyDownDeal(uint8 byKey);
+  35      =2  extern void KeyUpDeal(uint8 byKey);
+  36      =2  extern void KeyAlwaysDeal(uint8 byKey);
+  37      =2  extern void KeyManager(void);
+  38      =2  
+  39      =2  #endif
+  40      =2  
+  41      =2  #endif
+  73      =1  #include "IAP.h"
+   1      =2  /*
+   2      =2  ************************Copyright(c)************************
+   3      =2  *                                  ºþÄÏÒ»ÌØµç×Ó¹É·ÝÓÐÏÞ¹«Ë¾
+   4      =2  *                               All Rights Reserved
+   5      =2  *                                        
+   6      =2  *
+   7      =2  *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8      =2  *ÎÄ¼þÃû³Æ               :IAP.h
+   9      =2  *ÎÄ¼þÃèÊö               :Ð´FlashÇý¶¯Í·ÎÄ¼þ
+  10      =2  *´´½¨ÈË                 :ÒüÔËÍ¬
+  11      =2  *´´½¨ÈÕÆÚ               :2008-9-22
+  12      =2  *°æ±¾ºÅ                 :V1.0
+  13      =2  *×¢ÊÍ                   :²ÉÓÃSTCÏµÁÐCPU,¸ÃÀàÐÍCPU½«ÄÚ²¿Flash×÷
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 36  
+
+  14      =2                                       EEPromÊ¹ÓÃ,²Á³ýÐèÒÔÉÈÇøÎªµ¥Î»,ÔÚ½øÐÐ
+  15      =2                                       IAP²Ù×÷¹ý³ÌÖÐ,CPU°´ÕÕÉè¶¨µÄÊ±¼ä¹ÒÆð,
+  16      =2                                       ´ËÊ±CPU²»ÄÜ¹»½øÐÐÈÎºÎ¹¤×÷
+  17      =2  *----------------------------------------------------------
+  18      =2  *ÐÞ¸ÄÈË                         :
+  19      =2  *ÐÞ¸ÄÈÕÆÚ                       :
+  20      =2  *°æ±¾ºÅ                 :
+  21      =2  *×¢ÊÍ                   :
+  22      =2  ***********************************************************
+  23      =2  */
+  24      =2  #define         IAP_READ                        0x01                                            //IAP¶ÁÃüÁî
+  25      =2  #define         IAP_WRITE                       0x02                                            //IAPÐ´ÃüÁî
+  26      =2  #define         IAP_ERASE                       0x03                                            //IAP²Á³ýÃüÁî
+  27      =2  #define         IAP_WAIT_TIME           0x02                                            //IAPµÈ´ýÊ±¼ä 20MÒÔÏÂ
+  28      =2  //#define               IAP_WAIT_TIME           0x03                                            //IAPµÈ´ýÊ±¼ä   12MÒÔÏÂ
+  29      =2  
+  30      =2  //#define       ISP_DATA        IAP_DATA        
+  31      =2  //#define       ISP_CONTR       IAP_CONTR       
+  32      =2  //#define       ISP_CMD         IAP_CMD         
+  33      =2  //#define       ISP_ADDRH       IAP_ADDRH       
+  34      =2  //#define       ISP_ADDRL       IAP_ADDRL       
+  35      =2  //#define       ISP_TRIG        IAP_TRIG        
+  36      =2  
+  37      =2  
+  38      =2  #ifndef _IN_IAP_
+  39      =2  #define _IN_IAP_
+  40      =2  void EnableIAP(uint8 byCmd);
+  41      =2  void DisableIAP(void);
+  42      =2  uint8 IapReadByte(uint16 uiAddr);
+  43      =2  void IapWriteByte(uint16 uiAddr, uint8 byData);
+  44      =2  void IapErase(uint16 uiAddr);
+  45      =2  #endif
+  74      =1  #include "VS10XX.h"
+   1      =2  /** \file vs10xx.h
+   2      =2   * Headers for interfacing with the mp3 player chip.
+   3      =2   * Interfacing the New Way, not handling BSYNC -> not compatible with VS1001.
+   4      =2   */
+   5      =2  
+   6      =2  
+   7      =2  #ifndef VS10XX_H
+   8      =2  #define VS10XX_H
+   9      =2  
+  10      =2  
+  11      =2  /** VS10xx SCI Write Command byte is 0x02 */
+  12      =2  #define VS_WRITE_COMMAND 0x02
+  13      =2  
+  14      =2  /** VS10xx SCI Read Command byte is 0x03 */
+  15      =2  #define VS_READ_COMMAND 0x03
+  16      =2  
+  17      =2  
+  18      =2  #define SPI_MODE        0x0   /**< VS10xx register */
+  19      =2  #define SPI_STATUS      0x1   /**< VS10xx register */
+  20      =2  #define SPI_BASS        0x2   /**< VS10xx register */
+  21      =2  #define SPI_CLOCKF      0x3   /**< VS10xx register */
+  22      =2  #define SPI_DECODE_TIME 0x4   /**< VS10xx register */
+  23      =2  #define SPI_AUDATA      0x5   /**< VS10xx register */
+  24      =2  #define SPI_WRAM        0x6   /**< VS10xx register */
+  25      =2  #define SPI_WRAMADDR    0x7   /**< VS10xx register */
+  26      =2  #define SPI_HDAT0       0x8   /**< VS10xx register */
+  27      =2  #define SPI_HDAT1       0x9   /**< VS10xx register */
+  28      =2  #define SPI_AIADDR      0xa   /**< VS10xx register */
+  29      =2  #define SPI_VOL         0xb   /**< VS10xx register */
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 37  
+
+  30      =2  #define SPI_AICTRL0     0xc   /**< VS10xx register */
+  31      =2  #define SPI_AICTRL1     0xd   /**< VS10xx register */
+  32      =2  #define SPI_AICTRL2     0xe   /**< VS10xx register */
+  33      =2  #define SPI_AICTRL3     0xf   /**< VS10xx register */
+  34      =2  
+  35      =2  #define SM_DIFF         0x01   /**< VS10xx register */
+  36      =2  #define SM_JUMP         0x02   /**< VS10xx register */
+  37      =2  #define SM_RESET        0x04   /**< VS10xx register */
+  38      =2  #define SM_OUTOFWAV     0x08   /**< VS10xx register */
+  39      =2  #define SM_PDOWN        0x10   /**< VS10xx register */
+  40      =2  #define SM_TESTS        0x20   /**< VS10xx register */
+  41      =2  #define SM_STREAM       0x40   /**< VS10xx register */
+  42      =2  #define SM_PLUSV        0x80   /**< VS10xx register */
+  43      =2  #define SM_DACT         0x100   /**< VS10xx register */
+  44      =2  #define SM_SDIORD       0x200   /**< VS10xx register */
+  45      =2  #define SM_SDISHARE     0x400   /**< VS10xx register */
+  46      =2  #define SM_SDINEW       0x800   /**< VS10xx register */
+  47      =2  #define SM_ADPCM        0x1000   /**< VS10xx register */
+  48      =2  #define SM_ADPCM_HP     0x2000   /**< VS10xx register */
+  49      =2  
+  50      =2  
+  51      =2  
+  52      =2  /** Put the MP3 player chip in reset */
+  53      =2  #define Mp3PutInReset(){MP3_XRESET=0;}
+  54      =2  
+  55      =2  /** Release the MP3 player chip from reset */
+  56      =2  #define Mp3ReleaseFromReset(){MP3_XRESET=1;}
+  57      =2  
+  58      =2  
+  59      =2  /** Pull the VS10xx Control Chip Select line Low */
+  60      =2  #define Mp3SelectControl(){MP3_XCS=0;}
+  61      =2  
+  62      =2  /** Pull the VS10xx Control Chip Select line High */
+  63      =2  #define Mp3DeselectControl(){MP3_XCS=1;}
+  64      =2  
+  65      =2  /** Pull the VS10xx Data Chip Select line Low */
+  66      =2  #define Mp3SelectData(){MP3_XDCS=0;}
+  67      =2  
+  68      =2  /** Pull the VS10xx Data Chip Select line High */
+  69      =2  #define Mp3DeselectData(){MP3_XDCS=1;}
+  70      =2  
+  71      =2  
+  72      =2  #ifndef _IN_VS10XX_
+  73      =2  extern void Mp3WriteRegister(uint8 addressbyte,uint8 highbyte,uint8 lowbyte);
+  74      =2  extern void Mp3SetVolume(uint8 leftchannel,uint8 rightchannel);
+  75      =2  extern unsigned int Mp3ReadRegister (unsigned char addressbyte);
+  76      =2  extern void VS1003Init(void);
+  77      =2  extern void VsSineTest();
+  78      =2  extern void VS1003SendDat(uint8 dat);
+  79      =2  extern void VS1003FlushBuffer(void);
+  80      =2  
+  81      =2  
+  82      =2  #endif
+  83      =2  
+  84      =2  #endif
+  75      =1  #include "SPI.h"
+   1      =2  /*
+   2      =2  ************************Copyright(c)************************
+   3      =2  *                                  ºþÄÏÒ»ÌØµç×Ó¹É·ÝÓÐÏÞ¹«Ë¾
+   4      =2  *                               All Rights Reserved
+   5      =2  *                                        
+   6      =2  *
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 38  
+
+   7      =2  *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8      =2  *ÎÄ¼þÃû³Æ               :SPI.h
+   9      =2  *ÎÄ¼þÃèÊö               :SPI Çý¶¯³ÌÐòÍ·ÎÄ¼þ
+  10      =2  *´´½¨ÈË                 :ÒüÔËÍ¬
+  11      =2  *´´½¨ÈÕÆÚ               :2008-9-22
+  12      =2  *°æ±¾ºÅ                 :V1.0
+  13      =2  *×¢ÊÍ                   :                                       
+  14      =2  *----------------------------------------------------------
+  15      =2  *ÐÞ¸ÄÈË                         :
+  16      =2  *ÐÞ¸ÄÈÕÆÚ                       :
+  17      =2  *°æ±¾ºÅ                 :
+  18      =2  *×¢ÊÍ                   :
+  19      =2  ***********************************************************
+  20      =2  */
+  21      =2  /* SPI macros */
+  22      =2          
+  23      =2          /** switch to fast SPI Clock */
+  24      =2  #define SPISetFastClock(){SPCTL=0x71;}  /* 0x73 is much slower*/
+  25      =2          
+  26      =2          
+  27      =2          /** SPI data return register */
+  28      =2  #define SPI_RESULT_BYTE SPDAT
+  29      =2  
+  30      =2  #ifndef _IN_SPI_
+  31      =2  #define _IN_SPI_
+  32      =2  
+  33      =2  extern void SpiInit(void);
+  34      =2  extern uint8 SPI_WriteByte(unsigned char dat);
+  35      =2  extern unsigned char SPIGetChar();
+  36      =2  extern void SPI8Clocks(unsigned char nClocks);
+  37      =2  
+  38      =2  
+  39      =2  #endif
+  40      =2  
+  76      =1  #include "SST25VF.h"
+   1      =2  /*
+   2      =2  ************************Copyright(c)************************
+   3      =2  *                                  ºþÄÏÒ»ÌØµç×Ó¹É·ÝÓÐÏÞ¹«Ë¾
+   4      =2  *                               All Rights Reserved
+   5      =2  *                                        
+   6      =2  *
+   7      =2  *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8      =2  *ÎÄ¼þÃû³Æ               :MB85RS256.h
+   9      =2  *ÎÄ¼þÃèÊö               :MB85RS256Ìúµç´æ´¢Æ÷Í·ÎÄ¼þ
+  10      =2  *´´½¨ÈË                 :ÒüÔËÍ¬
+  11      =2  *´´½¨ÈÕÆÚ               :2008-9-22
+  12      =2  *°æ±¾ºÅ                 :V1.0
+  13      =2  *×¢ÊÍ                   :
+  14      =2  *----------------------------------------------------------
+  15      =2  *ÐÞ¸ÄÈË                         :
+  16      =2  *ÐÞ¸ÄÈÕÆÚ                       :
+  17      =2  *°æ±¾ºÅ                 :
+  18      =2  *×¢ÊÍ                   :
+  19      =2  ***********************************************************
+  20      =2  */
+  21      =2  
+  22      =2  
+  23      =2  /*#define WREN    0x06
+  24      =2  #define WRITE   0x02
+  25      =2  #define READ    0x03
+  26      =2  #define RDSR    0x05
+  27      =2  #define EWSR    0X50
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 39  
+
+  28      =2  #define WRSR    0x01
+  29      =2  #define WRDI    0x04
+  30      =2  #define SECTOR_ERASE  0X20
+  31      =2  #define BLOCK_ERASE   0X52
+  32      =2  #define CHIP_ERASE    0X60
+  33      =2  #define AAI_WRITE         0XAF
+  34      =2  #define READ_ID1      0X90
+  35      =2  #define READ_ID2      0XAB*/
+  36      =2  
+  37      =2  
+  38      =2  #ifndef _IN_SST25VF_
+  39      =2  #define _IN_SST25VF_
+  40      =2  
+  41      =2  extern unsigned char xdata FRAM_BUFF[];
+  42      =2  
+  43      =2  extern void SST25VF_Init();
+  44      =2  extern void Send_Byte(unsigned char out);
+  45      =2  extern unsigned char Get_Byte();
+  46      =2  extern void Poll_SO();
+  47      =2  extern void CE_High();
+  48      =2  extern void CE_Low();
+  49      =2  extern void Hold_Low();
+  50      =2  extern void Unhold();
+  51      =2  extern void WP_Low();
+  52      =2  extern void UnWP();
+  53      =2  extern unsigned char Read_Status_Register();
+  54      =2  extern void EWSR();
+  55      =2  extern void WRSR(byte);
+  56      =2  extern void WREN();
+  57      =2  extern void WRDI();
+  58      =2  extern void EBSY();
+  59      =2  extern void DBSY();
+  60      =2  extern unsigned char Read_ID(ID_addr);
+  61      =2  extern unsigned long Jedec_ID_Read(); 
+  62      =2  extern unsigned char Read(unsigned long Dst);
+  63      =2  extern void Read_Cont(unsigned long Dst, unsigned long no_bytes,uint8 *pBuffer);
+  64      =2  extern unsigned char HighSpeed_Read(unsigned long Dst); 
+  65      =2  extern void HighSpeed_Read_Cont(unsigned long Dst, unsigned long no_bytes,uint8 *pBuffer);
+  66      =2  extern void Byte_Program(unsigned long Dst, unsigned char byte);
+  67      =2  extern void Auto_Add_IncA(unsigned long Dst, unsigned char byte1, unsigned char byte2);
+  68      =2  extern void Auto_Add_IncB(unsigned char byte1, unsigned char byte2);
+  69      =2  extern void Auto_Add_IncA_EBSY(unsigned long Dst, unsigned char byte1, unsigned char byte2);
+  70      =2  extern void Auto_Add_IncB_EBSY(unsigned char byte1, unsigned char byte2);
+  71      =2  extern void Chip_Erase();
+  72      =2  extern void Sector_Erase(unsigned long Dst);
+  73      =2  extern void Block_Erase_32K(unsigned long Dst);
+  74      =2  extern void Block_Erase_64K(unsigned long Dst);
+  75      =2  extern void Wait_Busy();
+  76      =2  extern void Wait_Busy_AAI();
+  77      =2  extern void WREN_Check();
+  78      =2  extern void WREN_AAI_Check();
+  79      =2  
+  80      =2  extern void Verify(unsigned char byte, unsigned char cor_byte);
+  81      =2  extern void Byte_Write(unsigned long Dst, unsigned char byte);
+  82      =2  extern void AAI_Write(unsigned long Dst, uint8 *p,uint8 no_bytes);
+  83      =2  extern void Byte_Write1(unsigned long Dst, unsigned char byte);
+  84      =2  extern void AAI_Write1(unsigned long Dst, uint8 *p,uint8 no_bytes);
+  85      =2  extern void FRAM_TEST(void);
+  86      =2  
+  87      =2  
+  88      =2  
+  89      =2  #endif
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 40  
+
+  90      =2  
+  77      =1  
+  78      =1           
+  79      =1  //Éè±¸ÅäÖÃ×Ö¶¨Òå
+  80      =1  typedef struct
+  81      =1  {
+  82      =1          uint8   byInitFlag;                                                                     //³õÊ¼»¯²ÎÊý±êÖ¾
+  83      =1          
+  84      =1  } STEepromCfgData, *pSTEepromCfgData; 
+  85      =1  //³¬Ê±¿ØÖÆ½á¹¹Ìå
+  86      =1  typedef struct
+  87      =1  {
+  88      =1          uint8                           byTimerOutSet;                                          //Ò»´Î³¬Ê±Ê±¼äÉèÖÃ(20msµ¥Î»)
+  89      =1          uint8                           byTimerOut;                                                     //Ò»´Î³¬Ê±Ê±¼ä(20msµ¥Î»)
+  90      =1          uint8                           byTimerOutCount;                                        //ÔÊÐí³¬Ê±´ÎÊý 
+  91      =1  } STTimerOut, *pSTTimerOut;             
+  92      =1  
+  93      =1  //È«¾Ö¿ØÖÆ½á¹¹Ìå
+  94      =1  typedef struct
+  95      =1  {
+  96      =1          uint8                           byChar1;                                                        //×Ö½ÚÊý¾Ý1     
+  97      =1          uint16                          uiShortType;                                            //¶ÌÕûÐÍÊý¾Ý    
+  98      =1          uint8                           xdata* pbyData;                                         //Êý¾ÝÖ¸Õë
+  99      =1          STBusFreq                       stBusDealFreq;                                          //µ¥×ÜÏß´¦Àí½á¹¹Ìå
+ 100      =1          STTimerOut                      stCH0TimerOut;                                          //Éè±¸µ±Ç°×´Ì¬³¬Ê±¿ØÖÆ½á¹¹Ìå
+ 101      =1          STEepromCfgData         stEepromCfgData;                                        //ÏµÍ³ÅäÖÃ×Ö                    
+ 102      =1  } STLocalControl, *pSTLocalControl;             
+ 103      =1  
+ 104      =1  //5msPCAÖÐ¶Ï¼ÆÊ±´ÎÊý£¬Fosc=18.432MHz,·ÖÆµÏµÊýÎª2 
+ 105      =1  #define Fosc                            18432000
+ 106      =1  #define Fbus                            184320
+ 107      =1          
+ 108      =1                          
+ 109      =1  #define ISR_INC_COUNT           (Fosc/2/OS_TICKS_PER_SEC)
+ 110      =1  #define IAP_ADDR                        0x0000          //STC12C5624ÄÚµÄE2Ö»ÄÜÊÇÊý¾ÝE2
+ 111      =1  #define INIT_FLAG           0x5a
+ 112      =1  
+ 113      =1  
+ 114      =1  #ifndef _IN_MAIN_
+ 115      =1  extern void Send_Data(uint8 *Databuf,uint8 l);
+ 116      =1  extern void Send_Data_Byte(uint8 SndData);
+ 117      =1  extern void delay_nus(uint16 i);
+ 118      =1  extern void delay_nms(uint16 ms);
+ 119      =1  
+ 120      =1  
+ 121      =1  extern uint16   xdata uiIsrTimerCount ;                                 //ÏµÍ³Ê±ÖÓ¶¨Ê±Öµ
+ 122      =1  extern uint8    OS_Q_MEM_SEL    byMainCmdQ[];                                           //Ö÷Ïß³ÌÏûÏ¢¶ÓÁÐ
+ 123      =1  extern STLocalControl   xdata stLocalControl;                                           //È«¾Ö±äÁ¿½á¹¹Ìå
+ 124      =1  extern uint8    data volumn;
+ 125      =1  
+ 126      =1  extern void ConsoleWrite(char code *str);
+ 127      =1  
+ 128      =1  
+ 129      =1  #endif
+  45          
+  46          extern idata uint8 STACK[1];                    /* ¶ÑÕ»ÆðÊ¼Î»ÖÃ,ÔÚOS_CPU_A¶¨Òå */
+  47          uint8 idata * data OSTsakStackBotton[OS_MAX_TASKS + 2];/* ÈÎÎñ¶ÑÕ»µ×²¿Î»ÖÃ            */
+  48          
+  49          #if EN_SP2 > 0
+              uint8 idata  Sp2[Sp2Space];                     /* ¸ß¼¶ÖÐ¶Ï¶ÑÕ»           */
+              #endif
+  52          
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 41  
+
+  53          #if OS_MAX_TASKS < 9            
+  54          uint8 data OSFastSwap[1];                        /* ÈÎÎñÊÇ·ñ¿ÉÒÔ¿ìËÙÇÐ»» */
+  55          #else
+              uint8 data OSFastSwap[2];
+              #endif
+  58          
+  59          extern data uint16 C_XBP;
+  60          
+  61          
+  62          unsigned char  timer_i=0;
+  63          
+  64          void TaskIdle(void)   small;
+  65          /*********************************************************************************************************
+  66          ** º¯ÊýÃû³Æ: OSCPUInit
+  67          ** ¹¦ÄÜÃèÊö: Small RTOS ÓëÏµÍ³Ïà¹ØµÄ³õÊ¼»¯
+  68          ** Êä¡¡Èë: ÎÞ
+  69          ** Êä¡¡³ö : ÎÞ
+  70          ** È«¾Ö±äÁ¿: OSTaskID,OSTsakStackBotton,SP
+  71          ** µ÷ÓÃÄ£¿é: LoadCtx
+  72          ** 
+  73          ** ×÷¡¡Õß: ³ÂÃ÷¼Æ
+  74          ** ÈÕ¡¡ÆÚ: 2002Äê2ÔÂ22ÈÕ
+  75          **-------------------------------------------------------------------------------------------------------
+  76          ** ÐÞ¸ÄÈË:
+  77          ** ÈÕ¡¡ÆÚ:
+  78          **-------------------------------------------------------------------------------------------------------
+  79          ********************************************************************************************************/
+  80                  void OSCPUInit(void)  small
+  81          {
+  82   1          uint8 i;
+  83   1      
+  84   1          for (i = 0; i < OS_MAX_TASKS + 1; i++)
+  85   1          {
+  86   2              OSTsakStackBotton[i] = STACK;
+  87   2          }
+  88   1          OSTsakStackBotton[OS_MAX_TASKS + 1] = (uint8 idata *)(IDATA_RAM_SIZE % 256);
+  89   1          
+  90   1      }
+  91          
+  92          /*********************************************************************************************************
+  93          ** º¯ÊýÃû³Æ: OSTaskStkInit
+  94          ** ¹¦ÄÜÃèÊö: ÈÎÎñ¶ÑÕ»³õÊ¼»¯
+  95          ** Êä¡¡Èë: ÎÞ
+  96          ** Êä¡¡³ö : ÎÞ
+  97          ** È«¾Ö±äÁ¿: OSTaskID,OSTsakStackBotton,SP
+  98          ** µ÷ÓÃÄ£¿é: LoadCtx
+  99          ** 
+ 100          ** ×÷¡¡Õß: ³ÂÃ÷¼Æ
+ 101          ** ÈÕ¡¡ÆÚ: 2002Äê2ÔÂ22ÈÕ
+ 102          **-------------------------------------------------------------------------------------------------------
+ 103          ** ÐÞ¸ÄÈË:
+ 104          ** ÈÕ¡¡ÆÚ:
+ 105          **-------------------------------------------------------------------------------------------------------
+ 106          ********************************************************************************************************/
+ 107          /*
+ 108          #if EN_REENTRANT > 0
+ 109          #define SP_ADD_BYTE  5
+ 110          #else
+ 111          #define SP_ADD_BYTE  3
+ 112          #endif
+ 113          
+ 114          
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 42  
+
+ 115                  void OSTaskStkInit(void (code * task)(void), void xdata *ptos, uint8 TaskID) small
+ 116          {
+ 117              uint8 i;
+ 118              uint8 idata * cp;
+ 119              uint8 idata * cp1;
+ 120              
+ 121          #if OS_MAX_TASKS < 9
+ 122                  OSFastSwap[1] |= OSMapTbl[TaskID];
+ 123          #else
+ 124                  if (TaskID < 8)
+ 125                  {
+ 126                      OSFastSwap[1] |= OSMapTbl[TaskID];
+ 127                  }
+ 128                  else
+ 129                  {
+ 130                      OSFastSwap[0] |= OSMapTbl[TaskID & 0x07];
+ 131                  }
+ 132          #endif
+ 133              
+ 134              if (TaskID < OSRunningTaskID())
+ 135              {
+ 136                  i =  OSRunningTaskID() - TaskID;
+ 137                  cp = (uint8 idata *)(&(OSTsakStackBotton[TaskID + 1]));
+ 138                  
+ 139                  do
+ 140                  {
+ 141                      *cp += SP_ADD_BYTE;
+ 142                      cp++;
+ 143                  } while (--i != 0);
+ 144                  
+ 145                  cp1 = (uint8 idata *)SP;
+ 146                  SP = SP + SP_ADD_BYTE;
+ 147                  i = SP - (uint8)(OSTsakStackBotton[TaskID + 1]);
+ 148                  cp = (uint8 idata *)SP;
+ 149                  do
+ 150                  {
+ 151                      *cp-- = *cp1--;
+ 152                  } while (--i != 0);
+ 153              }
+ 154              else
+ 155              {
+ 156                  cp1 = (uint8 idata *)(&(OSTsakStackBotton[OSRunningTaskID() + 1]));
+ 157                  
+ 158                  i = TaskID - OSRunningTaskID();
+ 159                  
+ 160                  do
+ 161                  {
+ 162                      *cp1 -= SP_ADD_BYTE;
+ 163                      cp1++;
+ 164                  } while (--i != 0);
+ 165                  
+ 166                  cp = OSTsakStackBotton[OSRunningTaskID() + 1];
+ 167                  i = OSTsakStackBotton[TaskID] - cp - SP_ADD_BYTE;
+ 168                  cp1 = cp - SP_ADD_BYTE;
+ 169                  do
+ 170                  {
+ 171                      *cp1++ = *cp++;
+ 172                  } while (--i != 0);
+ 173              }
+ 174              cp = OSTsakStackBotton[TaskID];
+ 175              *cp++ = (uint16)task % 256;
+ 176              *cp++ = (uint16)task / 256;
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 43  
+
+ 177          #if EN_REENTRANT > 0
+ 178              *cp++ = (uint16)ptos / 256;
+ 179              *cp++ = (uint16)ptos % 256;
+ 180          #endif
+ 181              *cp = 0;
+ 182          }
+ 183              */
+ 184          
+ 185          
+ 186          /*********************************************************************************************************
+ 187          ** º¯ÊýÃû³Æ: OSTaskStkDel
+ 188          ** ¹¦ÄÜÃèÊö: ÈÎÎñ¶ÑÕ»É¾³ý
+ 189          ** Êä¡¡Èë: ÎÞ
+ 190          ** Êä¡¡³ö : ÎÞ
+ 191          ** È«¾Ö±äÁ¿: OSTaskID,OSTsakStackBotton,SP
+ 192          ** µ÷ÓÃÄ£¿é: LoadCtx
+ 193          ** 
+ 194          ** ×÷¡¡Õß: ³ÂÃ÷¼Æ
+ 195          ** ÈÕ¡¡ÆÚ: 2002Äê2ÔÂ22ÈÕ
+ 196          **-------------------------------------------------------------------------------------------------------
+ 197          ** ÐÞ¸ÄÈË:
+ 198          ** ÈÕ¡¡ÆÚ:
+ 199          **-------------------------------------------------------------------------------------------------------
+ 200          ********************************************************************************************************/
+ 201          
+ 202                  void StkDelA(uint8 TaskID)
+ 203          {
+ 204   1          uint8 idata *cp;
+ 205   1          uint8 idata *cp1;
+ 206   1          uint8 temp, i;
+ 207   1          
+ 208   1          cp = OSTsakStackBotton[TaskID];
+ 209   1          cp1 = OSTsakStackBotton[TaskID + 1];
+ 210   1          temp = cp1 - cp;
+ 211   1          for (i = TaskID + 1; i <= OSRunningTaskID(); i++)
+ 212   1          {
+ 213   2              OSTsakStackBotton[i] -= temp;
+ 214   2          }
+ 215   1          i = SP - (uint8)(cp1) + 1;
+ 216   1          do
+ 217   1          {
+ 218   2              *cp++ = *cp1++;
+ 219   2          } while (--i != 0);
+ 220   1          SP = SP - temp;
+ 221   1      }
+ 222          
+ 223          
+ 224                  void StkDelB(uint8 TaskID)
+ 225          {
+ 226   1          uint8 idata *cp;
+ 227   1          uint8 idata *cp1;
+ 228   1          uint8 temp, i;
+ 229   1      
+ 230   1          cp = OSTsakStackBotton[TaskID];
+ 231   1          cp1 = OSTsakStackBotton[TaskID + 1];
+ 232   1          i = OSTsakStackBotton[TaskID] - OSTsakStackBotton[OSRunningTaskID() + 1];
+ 233   1          if (i != 0)
+ 234   1          {
+ 235   2              do
+ 236   2              {
+ 237   3                  *cp1++ = *cp++;
+ 238   3              } while (--i != 0);
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 44  
+
+ 239   2          }
+ 240   1          temp = cp1 - cp;
+ 241   1          for (i = OSRunningTaskID() + 1; i <= TaskID; i++)
+ 242   1          {
+ 243   2              OSTsakStackBotton[i] += temp;
+ 244   2          }
+ 245   1      }
+ 246          
+ 247                  void StkDelC(uint8 TaskID)
+ 248          {
+ 249   1          uint8 idata *cp;
+ 250   1          extern void C_OSCtxSw(void);
+ 251   1          
+ 252   1          
+ 253   1          cp = OSTsakStackBotton[TaskID];
+ 254   1          *cp++ = (uint16)C_OSCtxSw % 256;
+ 255   1          *cp = (uint16)C_OSCtxSw / 256;
+ 256   1          SP = (uint8) cp;
+ 257   1          OSFindNextRunningTask();
+ 258   1      }
+ 259          
+ 260                  void OSTaskStkDel(uint8 TaskID)  small
+ 261          {
+ 262   1          uint8 temp;
+ 263   1      
+ 264   1          temp = 1;
+ 265   1          if(TaskID == OSRunningTaskID())
+ 266   1          {
+ 267   2              temp = 2;
+ 268   2          }
+ 269   1          else if (TaskID < OSRunningTaskID())
+ 270   1          {
+ 271   2              temp = 0;
+ 272   2          }
+ 273   1          switch (temp)
+ 274   1          {
+ 275   2              case 0:
+ 276   2                  StkDelA(TaskID);
+ 277   2                  break;
+ 278   2              case 1:
+ 279   2                  StkDelB(TaskID);
+ 280   2                  break;
+ 281   2              case 2:
+ 282   2                  StkDelC(TaskID);
+ 283   2                  break;
+ 284   2              default:
+ 285   2                  break;
+ 286   2          }
+ 287   1      }
+ 288          
+ 289          /*********************************************************************************************************
+             -/
+ 290          
+ 291          void UserTickTimer(void)   /* ÏµÍ³¶¨Ê±ÖÐ¶ÏÖÐµ÷ÓÃµÄÓÃ»§º¯ */
+ 292          { 
+ 293   1              uiIsrTimerCount+=ISR_INC_COUNT;
+ 294   1              CCAP0L = (uint8)uiIsrTimerCount;
+ 295   1              CCAP0H = (uint8)(uiIsrTimerCount>>8);
+ 296   1              CCF0=0;
+ 297   1              
+ 298   1      //      WDT_CONTR = 0x3a;       //Î¹¹·
+ 299   1      }
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 45  
+
+ 300          
+ 301          
+ 302          /*********************************************************************************************************
+ 303          ** º¯ÊýÃû³Æ: OSTickISR
+ 304          ** ¹¦ÄÜÃèÊö: ÏµÍ³Ê±ÖÓÖÐ¶Ï·þÎñº¯Êý
+ 305          ** Êä¡¡Èë: ÎÞ
+ 306          ** Êä¡¡³ö : ÎÞ
+ 307          ** È«¾Ö±äÁ¿: ÎÞ
+ 308          ** µ÷ÓÃÄ£¿é: OS_IBT_ENTER,(UserTickTimer),OSTimeTick,OSIntExit
+ 309          ** 
+ 310          ** ×÷¡¡Õß: ³ÂÃ÷¼Æ
+ 311          ** ÈÕ¡¡ÆÚ: 2002Äê2ÔÂ22ÈÕ
+ 312          **-------------------------------------------------------------------------------------------------------
+ 313          ** ÐÞ¸ÄÈË: ³ÂÃ÷¼Æ
+ 314          ** ÈÕ¡¡ÆÚ: 2002Äê10ÔÂ23ÈÕ
+ 315          **-------------------------------------------------------------------------------------------------------
+ 316          ** ÐÞ¸ÄÈË:
+ 317          ** ÈÕ¡¡ÆÚ:
+ 318          **-------------------------------------------------------------------------------------------------------
+ 319          ********************************************************************************************************/
+ 320          #pragma disable                                         /* ³ý·Ç×î¸ßÓÅÏÈ¼¶ÖÐ¶Ï£¬·ñÔò£¬±ØÐë¼ÓÉÏÕâÒ»¾ä       
+             -          */
+ 321          
+ 322                 void OSTickISR(void) interrupt OS_TIME_ISR
+ 323                 //void OSTickISR(void) interrupt 7
+ 324          
+ 325          {       
+ 326   1      #if TICK_TIMER_SHARING >1 
+                  static uint8 TickSum = 0;
+              #endif
+ 329   1      
+ 330   1      #if EN_USER_TICK_TIMER > 0 
+ 331   1         UserTickTimer();                                    /* ÓÃ»§º¯Êý                                        
+             -         */
+ 332   1      #endif
+ 333   1      
+ 334   1      #if TICK_TIMER_SHARING >1 
+                  TickSum = (TickSum + 1) % TICK_TIMER_SHARING;
+                  if (TickSum != 0)
+                  {
+                      return;
+                  }
+              #endif          
+ 341   1          OS_INT_ENTER();                                     /* ÖÐ¶Ï¿ªÊ¼´¦Àí                                   
+             - */
+ 342   1      
+ 343   1      #if EN_TIMER_SHARING > 0
+ 344   1          OSTimeTick();                                       /* µ÷ÓÃÏµÍ³Ê±ÖÓ´¦Àíº¯Êý                           
+             - */
+ 345   1      #else
+                  OSIntSendSignal(TIME_ISR_TASK_ID);                  /* »½ÐÑIDÎªTIME_ISR_TASK_IDµÄÈÎÎñ                 
+             -*/
+              #endif
+ 348   1          
+ 349   1          OSIntExit();                                        /* ÖÐ¶Ï½áÊø´¦Àí                                   
+             - */
+ 350   1      }
+ 351          
+ 352          /*********************************************************************************************************
+ 353          **                            End Of File
+ 354          ********************************************************************************************************/
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 46  
+
+ASSEMBLY LISTING OF GENERATED OBJECT CODE
+
+
+             ; FUNCTION OSCPUInit (BEGIN)
+                                           ; SOURCE LINE # 80
+                                           ; SOURCE LINE # 84
+;---- Variable 'i' assigned to Register 'R7' ----
+0000 E4                CLR     A
+0001 FF                MOV     R7,A
+0002         ?C0001:
+                                           ; SOURCE LINE # 85
+                                           ; SOURCE LINE # 86
+0002 7400        R     MOV     A,#LOW OSTsakStackBotton
+0004 2F                ADD     A,R7
+0005 F8                MOV     R0,A
+0006 7600        E     MOV     @R0,#LOW STACK
+                                           ; SOURCE LINE # 87
+0008 0F                INC     R7
+0009 BF05F6            CJNE    R7,#05H,?C0001
+000C         ?C0002:
+                                           ; SOURCE LINE # 88
+000C E4                CLR     A
+000D F500        R     MOV     OSTsakStackBotton+05H,A
+                                           ; SOURCE LINE # 90
+000F 22                RET     
+             ; FUNCTION OSCPUInit (END)
+
+             ; FUNCTION _StkDelA (BEGIN)
+                                           ; SOURCE LINE # 202
+;---- Variable 'TaskID' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 203
+                                           ; SOURCE LINE # 208
+0000 7400        R     MOV     A,#LOW OSTsakStackBotton
+0002 2F                ADD     A,R7
+0003 F8                MOV     R0,A
+0004 E6                MOV     A,@R0
+0005 FE                MOV     R6,A
+;---- Variable 'cp' assigned to Register 'R6' ----
+                                           ; SOURCE LINE # 209
+0006 7400        R     MOV     A,#LOW OSTsakStackBotton+01H
+0008 2F                ADD     A,R7
+0009 F8                MOV     R0,A
+000A E6                MOV     A,@R0
+000B FD                MOV     R5,A
+;---- Variable 'cp1' assigned to Register 'R5' ----
+                                           ; SOURCE LINE # 210
+000C AC06              MOV     R4,AR6
+000E C3                CLR     C
+000F 9C                SUBB    A,R4
+0010 FC                MOV     R4,A
+;---- Variable 'temp' assigned to Register 'R4' ----
+                                           ; SOURCE LINE # 211
+0011 EF                MOV     A,R7
+0012 04                INC     A
+0013 FF                MOV     R7,A
+;---- Variable 'i' assigned to Register 'R7' ----
+0014         ?C0005:
+0014 EF                MOV     A,R7
+0015 D3                SETB    C
+0016 9500        E     SUBB    A,OSTaskID
+0018 500E              JNC     ?C0006
+                                           ; SOURCE LINE # 212
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 47  
+
+                                           ; SOURCE LINE # 213
+001A EC                MOV     A,R4
+001B F4                CPL     A
+001C 04                INC     A
+001D FB                MOV     R3,A
+001E 7400        R     MOV     A,#LOW OSTsakStackBotton
+0020 2F                ADD     A,R7
+0021 F8                MOV     R0,A
+0022 EB                MOV     A,R3
+0023 26                ADD     A,@R0
+0024 F6                MOV     @R0,A
+                                           ; SOURCE LINE # 214
+0025 0F                INC     R7
+0026 80EC              SJMP    ?C0005
+0028         ?C0006:
+                                           ; SOURCE LINE # 215
+0028 C3                CLR     C
+0029 E581              MOV     A,SP
+002B 9D                SUBB    A,R5
+002C 04                INC     A
+002D FF                MOV     R7,A
+002E         ?C0010:
+                                           ; SOURCE LINE # 217
+                                           ; SOURCE LINE # 218
+002E AB05              MOV     R3,AR5
+0030 0D                INC     R5
+0031 A803              MOV     R0,AR3
+0033 E6                MOV     A,@R0
+0034 AA06              MOV     R2,AR6
+0036 0E                INC     R6
+0037 A802              MOV     R0,AR2
+0039 F6                MOV     @R0,A
+                                           ; SOURCE LINE # 219
+003A DFF2              DJNZ    R7,?C0010
+                                           ; SOURCE LINE # 220
+003C C3                CLR     C
+003D E581              MOV     A,SP
+003F 9C                SUBB    A,R4
+0040 F581              MOV     SP,A
+                                           ; SOURCE LINE # 221
+0042 22                RET     
+             ; FUNCTION _StkDelA (END)
+
+             ; FUNCTION _StkDelB (BEGIN)
+                                           ; SOURCE LINE # 224
+;---- Variable 'TaskID' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 225
+                                           ; SOURCE LINE # 230
+0000 7400        R     MOV     A,#LOW OSTsakStackBotton
+0002 2F                ADD     A,R7
+0003 F8                MOV     R0,A
+0004 E6                MOV     A,@R0
+0005 FE                MOV     R6,A
+;---- Variable 'cp' assigned to Register 'R5' ----
+0006 FD                MOV     R5,A
+                                           ; SOURCE LINE # 231
+0007 7400        R     MOV     A,#LOW OSTsakStackBotton+01H
+0009 2F                ADD     A,R7
+000A F8                MOV     R0,A
+000B E6                MOV     A,@R0
+000C FC                MOV     R4,A
+;---- Variable 'cp1' assigned to Register 'R4' ----
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 48  
+
+                                           ; SOURCE LINE # 232
+000D 7400        R     MOV     A,#LOW OSTsakStackBotton+01H
+000F 2500        E     ADD     A,OSTaskID
+0011 F8                MOV     R0,A
+0012 E6                MOV     A,@R0
+0013 FB                MOV     R3,A
+0014 C3                CLR     C
+0015 EE                MOV     A,R6
+0016 9B                SUBB    A,R3
+0017 FE                MOV     R6,A
+;---- Variable 'i' assigned to Register 'R6' ----
+                                           ; SOURCE LINE # 233
+0018 600E              JZ      ?C0012
+                                           ; SOURCE LINE # 234
+001A         ?C0015:
+                                           ; SOURCE LINE # 236
+                                           ; SOURCE LINE # 237
+001A AB05              MOV     R3,AR5
+001C 0D                INC     R5
+001D A803              MOV     R0,AR3
+001F E6                MOV     A,@R0
+0020 AA04              MOV     R2,AR4
+0022 0C                INC     R4
+0023 A802              MOV     R0,AR2
+0025 F6                MOV     @R0,A
+                                           ; SOURCE LINE # 238
+0026 DEF2              DJNZ    R6,?C0015
+                                           ; SOURCE LINE # 239
+0028         ?C0012:
+                                           ; SOURCE LINE # 240
+0028 AE05              MOV     R6,AR5
+002A C3                CLR     C
+002B EC                MOV     A,R4
+002C 9E                SUBB    A,R6
+;---- Variable 'temp' assigned to Register 'R5' ----
+002D FD                MOV     R5,A
+                                           ; SOURCE LINE # 241
+002E E500        E     MOV     A,OSTaskID
+0030 04                INC     A
+0031 FE                MOV     R6,A
+0032         ?C0016:
+0032 EE                MOV     A,R6
+0033 D3                SETB    C
+0034 9F                SUBB    A,R7
+0035 500A              JNC     ?C0019
+                                           ; SOURCE LINE # 242
+                                           ; SOURCE LINE # 243
+0037 7400        R     MOV     A,#LOW OSTsakStackBotton
+0039 2E                ADD     A,R6
+003A F8                MOV     R0,A
+003B ED                MOV     A,R5
+003C 26                ADD     A,@R0
+003D F6                MOV     @R0,A
+                                           ; SOURCE LINE # 244
+003E 0E                INC     R6
+003F 80F1              SJMP    ?C0016
+                                           ; SOURCE LINE # 245
+0041         ?C0019:
+0041 22                RET     
+             ; FUNCTION _StkDelB (END)
+
+             ; FUNCTION _StkDelC (BEGIN)
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 49  
+
+                                           ; SOURCE LINE # 247
+;---- Variable 'TaskID' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 248
+                                           ; SOURCE LINE # 253
+0000 7400        R     MOV     A,#LOW OSTsakStackBotton
+0002 2F                ADD     A,R7
+0003 F8                MOV     R0,A
+0004 E6                MOV     A,@R0
+;---- Variable 'cp' assigned to Register 'R5' ----
+0005 FD                MOV     R5,A
+                                           ; SOURCE LINE # 254
+0006 7F00        E     MOV     R7,#LOW C_OSCtxSw
+0008 0D                INC     R5
+0009 F8                MOV     R0,A
+000A A607              MOV     @R0,AR7
+                                           ; SOURCE LINE # 255
+000C 7400        E     MOV     A,#HIGH C_OSCtxSw
+000E A805              MOV     R0,AR5
+0010 F6                MOV     @R0,A
+                                           ; SOURCE LINE # 256
+0011 AF05              MOV     R7,AR5
+0013 8F81              MOV     SP,R7
+                                           ; SOURCE LINE # 257
+0015 020000      E     LJMP    OSFindNextRunningTask
+             ; FUNCTION _StkDelC (END)
+
+             ; FUNCTION _OSTaskStkDel (BEGIN)
+                                           ; SOURCE LINE # 260
+;---- Variable 'TaskID' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 264
+;---- Variable 'temp' assigned to Register 'R6' ----
+0000 7E01              MOV     R6,#01H
+                                           ; SOURCE LINE # 265
+0002 EF                MOV     A,R7
+0003 B50003      E     CJNE    A,OSTaskID,?C0021
+                                           ; SOURCE LINE # 266
+                                           ; SOURCE LINE # 267
+0006 0E                INC     R6
+                                           ; SOURCE LINE # 268
+0007 8008              SJMP    ?C0022
+0009         ?C0021:
+                                           ; SOURCE LINE # 269
+0009 EF                MOV     A,R7
+000A C3                CLR     C
+000B 9500        E     SUBB    A,OSTaskID
+000D 5002              JNC     ?C0022
+                                           ; SOURCE LINE # 270
+                                           ; SOURCE LINE # 271
+000F E4                CLR     A
+0010 FE                MOV     R6,A
+                                           ; SOURCE LINE # 272
+0011         ?C0022:
+                                           ; SOURCE LINE # 273
+0011 EE                MOV     A,R6
+0012 14                DEC     A
+0013 600A              JZ      ?C0026
+0015 14                DEC     A
+0016 600A              JZ      ?C0027
+0018 2402              ADD     A,#02H
+001A 7009              JNZ     ?C0029
+                                           ; SOURCE LINE # 274
+                                           ; SOURCE LINE # 275
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 50  
+
+001C         ?C0025:
+                                           ; SOURCE LINE # 276
+001C 020000      R     LJMP    _StkDelA
+                                           ; SOURCE LINE # 277
+                                           ; SOURCE LINE # 278
+001F         ?C0026:
+                                           ; SOURCE LINE # 279
+001F 020000      R     LJMP    _StkDelB
+                                           ; SOURCE LINE # 280
+                                           ; SOURCE LINE # 281
+0022         ?C0027:
+                                           ; SOURCE LINE # 282
+0022 120000      R     LCALL   _StkDelC
+                                           ; SOURCE LINE # 283
+                                           ; SOURCE LINE # 284
+                                           ; SOURCE LINE # 285
+                                           ; SOURCE LINE # 286
+                                           ; SOURCE LINE # 287
+0025         ?C0029:
+0025 22                RET     
+             ; FUNCTION _OSTaskStkDel (END)
+
+             ; FUNCTION UserTickTimer (BEGIN)
+                                           ; SOURCE LINE # 291
+                                           ; SOURCE LINE # 292
+                                           ; SOURCE LINE # 293
+0000 900000      E     MOV     DPTR,#uiIsrTimerCount+01H
+0003 E0                MOVX    A,@DPTR
+0004 2400              ADD     A,#00H
+0006 F0                MOVX    @DPTR,A
+0007 900000      E     MOV     DPTR,#uiIsrTimerCount
+000A E0                MOVX    A,@DPTR
+000B 34B4              ADDC    A,#0B4H
+000D F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 294
+000E E0                MOVX    A,@DPTR
+000F FE                MOV     R6,A
+0010 A3                INC     DPTR
+0011 E0                MOVX    A,@DPTR
+0012 F5EA              MOV     CCAP0L,A
+                                           ; SOURCE LINE # 295
+0014 EE                MOV     A,R6
+0015 F5FA              MOV     CCAP0H,A
+                                           ; SOURCE LINE # 296
+0017 C2D8              CLR     CCF0
+                                           ; SOURCE LINE # 299
+0019 22                RET     
+             ; FUNCTION UserTickTimer (END)
+
+             ; FUNCTION OSTickISR (BEGIN)
+0000 C2AF              CLR     EA
+0002 C0E0              PUSH    ACC
+0004 C0F0              PUSH    B
+0006 C083              PUSH    DPH
+0008 C082              PUSH    DPL
+000A C0D0              PUSH    PSW
+000C 75D000            MOV     PSW,#00H
+000F C000              PUSH    AR0
+0011 C001              PUSH    AR1
+0013 C002              PUSH    AR2
+0015 C003              PUSH    AR3
+0017 C004              PUSH    AR4
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 51  
+
+0019 C005              PUSH    AR5
+001B C006              PUSH    AR6
+001D C007              PUSH    AR7
+                                           ; SOURCE LINE # 322
+                                           ; SOURCE LINE # 331
+001F 120000      R     LCALL   UserTickTimer
+                                           ; SOURCE LINE # 341
+0022 0500        E     INC     OSIntNesting
+0024 D2AF              SETB    EA
+                                           ; SOURCE LINE # 344
+0026 120000      E     LCALL   OSTimeTick
+                                           ; SOURCE LINE # 349
+0029 120000      E     LCALL   OSIntExit
+                                           ; SOURCE LINE # 350
+002C D007              POP     AR7
+002E D006              POP     AR6
+0030 D005              POP     AR5
+0032 D004              POP     AR4
+0034 D003              POP     AR3
+0036 D002              POP     AR2
+0038 D001              POP     AR1
+003A D000              POP     AR0
+003C D0D0              POP     PSW
+003E D082              POP     DPL
+0040 D083              POP     DPH
+0042 D0F0              POP     B
+0044 D0E0              POP     ACC
+0046 D2AF              SETB    EA
+0048 32                RETI    
+             ; FUNCTION OSTickISR (END)
+
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 52  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+P0 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0080H  1
+P1 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0090H  1
+P2 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A0H  1
+P3 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00B0H  1
+_OSTaskStkDel. . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  TaskID . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  temp . . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0006H  1
+int8 . . . . . . . . . . . . . . . . .  TYPEDEF  -----  CHAR     -----  1
+EA . . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00AFH  1
+_StkDelA . . . . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  TaskID . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  cp . . . . . . . . . . . . . . . . .  * REG *  DATA   PTR      0006H  1
+  cp1. . . . . . . . . . . . . . . . .  * REG *  DATA   PTR      0005H  1
+  temp . . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0004H  1
+  i. . . . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+_StkDelB . . . . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  TaskID . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  cp . . . . . . . . . . . . . . . . .  * REG *  DATA   PTR      0005H  1
+  cp1. . . . . . . . . . . . . . . . .  * REG *  DATA   PTR      0004H  1
+  temp . . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0005H  1
+  i. . . . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0006H  1
+_StkDelC . . . . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  TaskID . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  cp . . . . . . . . . . . . . . . . .  * REG *  DATA   PTR      0005H  1
+IE . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A8H  1
+CCAP0H . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00FAH  1
+size_t . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_INT    -----  2
+pSTEepromCfgData . . . . . . . . . . .  TYPEDEF  -----  PTR      -----  3
+CCAP0L . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00EAH  1
+IP . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00B8H  1
+OSTickISR. . . . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+uiIsrTimerCount. . . . . . . . . . . .  EXTERN   XDATA  U_INT    -----  2
+STEepromCfgData. . . . . . . . . . . .  TYPEDEF  -----  STRUCT   -----  1
+  byInitFlag . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0000H  1
+OSCPUInit. . . . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  i. . . . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+SP . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0081H  1
+CCON . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D8H  1
+uint32 . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_LONG   -----  4
+uint16 . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_INT    -----  2
+OSTsakStackBotton. . . . . . . . . . .  PUBLIC   DATA   ARRAY    0000H  6
+OSIntNesting . . . . . . . . . . . . .  EXTERN   DATA   U_CHAR   -----  1
+int32. . . . . . . . . . . . . . . . .  TYPEDEF  -----  LONG     -----  4
+UserTickTimer. . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+int16. . . . . . . . . . . . . . . . .  TYPEDEF  -----  INT      -----  2
+SCON . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0098H  1
+TCON . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0088H  1
+C_OSCtxSw. . . . . . . . . . . . . . .  EXTERN   CODE   PROC     -----  -----
+OSTimeTick . . . . . . . . . . . . . .  EXTERN   CODE   PROC     -----  -----
+OSFindNextRunningTask. . . . . . . . .  EXTERN   CODE   PROC     -----  -----
+OSTaskID . . . . . . . . . . . . . . .  EXTERN   DATA   U_CHAR   -----  1
+ACC. . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00E0H  1
+OSFastSwap . . . . . . . . . . . . . .  PUBLIC   DATA   ARRAY    0006H  1
+pSTBusFreq . . . . . . . . . . . . . .  TYPEDEF  -----  PTR      -----  3
+pSTTimerOut. . . . . . . . . . . . . .  TYPEDEF  -----  PTR      -----  3
+STBusFreq. . . . . . . . . . . . . . .  TYPEDEF  -----  STRUCT   -----  7
+  bySndSecAddr . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0000H  1
+C51 COMPILER V8.08   OS_CPU_C                                                              04/19/2012 15:50:51 PAGE 53  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+  bySndRoomAddr. . . . . . . . . . . .  MEMBER   -----  U_CHAR   0001H  1
+  bySndBedAddr . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0002H  1
+  byCmd. . . . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0003H  1
+  byRecSecAddr . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0004H  1
+  byRecRoomAddr. . . . . . . . . . . .  MEMBER   -----  U_CHAR   0005H  1
+  byRecBedAddr . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0006H  1
+STTimerOut . . . . . . . . . . . . . .  TYPEDEF  -----  STRUCT   -----  3
+  byTimerOutSet. . . . . . . . . . . .  MEMBER   -----  U_CHAR   0000H  1
+  byTimerOut . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0001H  1
+  byTimerOutCount. . . . . . . . . . .  MEMBER   -----  U_CHAR   0002H  1
+OSIntExit. . . . . . . . . . . . . . .  EXTERN   CODE   PROC     -----  -----
+timer_i. . . . . . . . . . . . . . . .  PUBLIC   XDATA  U_CHAR   0000H  1
+pSTLocalControl. . . . . . . . . . . .  TYPEDEF  -----  PTR      -----  3
+STACK. . . . . . . . . . . . . . . . .  EXTERN   IDATA  ARRAY    -----  1
+uint8. . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+PSW. . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D0H  1
+STLocalControl . . . . . . . . . . . .  TYPEDEF  -----  STRUCT   -----  16
+  byChar1. . . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0000H  1
+  uiShortType. . . . . . . . . . . . .  MEMBER   -----  U_INT    0001H  2
+  pbyData. . . . . . . . . . . . . . .  MEMBER   -----  PTR      0003H  2
+  stBusDealFreq. . . . . . . . . . . .  MEMBER   -----  STRUCT   0005H  7
+  stCH0TimerOut. . . . . . . . . . . .  MEMBER   -----  STRUCT   000CH  3
+  stEepromCfgData. . . . . . . . . . .  MEMBER   -----  STRUCT   000FH  1
+CCF0 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00D8H  1
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    310    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      1    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      7    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

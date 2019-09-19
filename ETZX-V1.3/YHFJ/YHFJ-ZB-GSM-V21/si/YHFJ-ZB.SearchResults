@@ -1,0 +1,6 @@
+---- uart_send Matches (5 in 3 files) ----
+CONFIG.H (Usr):extern void uart_send(unsigned char *SDATA,unsigned char length);
+main.c (Usr):void uart_send(unsigned char *SDATA,unsigned char length)
+SingleBus.c (Usr)://	uart_send((uint8 *)&(stLocalControl.stBusDealFreq),7);
+SingleBus.c (Usr)://	uart_send((uint8 *)&(stLocalControl.stBusDealFreq),7);
+SingleBus.c (Usr)://	uart_send((uint8 *)&(stLocalControl.stBusDealFreq),7);

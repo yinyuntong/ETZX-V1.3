@@ -1,0 +1,11 @@
+---- ProtectPin Matches (10 in 2 files) ----
+SingleBus.c (USER_CODE):	LPC_GPIO2->DIR |= ProtectPin;
+SingleBus.c (USER_CODE):				LPC_GPIO2->DIR |= ProtectPin;
+SingleBus.c (USER_CODE):						LPC_GPIO2->DIR |= ProtectPin;
+SingleBus.c (USER_CODE):					LPC_GPIO2->DIR |= ProtectPin;
+SingleBus.c (USER_CODE):					LPC_GPIO2->DIR |= ProtectPin;
+SingleBus.c (USER_CODE):						LPC_GPIO2->DIR |= ProtectPin;
+SingleBus.c (USER_CODE):					LPC_GPIO2->DIR |= ProtectPin;
+SingleBus.h (USER_CODE):#define ProtectPin (1<<8)  //P2.8
+SingleBus.h (USER_CODE):#define SetProtectPin() (LPC_GPIO2->DATA|=ProtectPin)		//继电器动作，使屏与SD总线脱离
+SingleBus.h (USER_CODE):#define ClrProtectPin() (LPC_GPIO2->DATA&=~ProtectPin)		//继电器不动作，屏连上总线

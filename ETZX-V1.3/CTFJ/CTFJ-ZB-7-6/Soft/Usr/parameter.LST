@@ -1,0 +1,72 @@
+C51 COMPILER V9.00   PARAMETER                                                             02/14/2019 09:57:09 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE PARAMETER
+OBJECT MODULE PLACED IN parameter.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE parameter.c LARGE BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          unsigned char code ParameterData[39]={0x5a, //初始化标志
+   2                            0x01, //1-SelfSecAddr
+   3                            0x02, //2-SelfRoomAddr
+   4                            0x03, //3-SelfBedAddr:
+   5                            0xf7, //4-cEnable1    //bEnSoundNote=0;   移叫转移不语音提示
+   6                            0xff, //5-cEnable2
+   7                            0x60, //6-cPrio
+   8                            0x0e, //7-cRingTime
+   9                            0x40, //8-cTalkTime
+  10                            0x80, //9-cBroadTime
+  11                            0x03, //10-cListenDelay
+  12                            0x04, //11-cVolumStep
+  13                            0xd0, //12-cRingVol
+  14                            0xd0, //13-cCH0TalkedVol
+  15                            0xd0, //14-cCH1TalkedVol
+  16                            0xd0, //15-cBroadVol
+  17                            0xd0, //16-cNoteVol
+  18                            0xd0, //17-cMusicVol
+  19                            0xd0, //18-cCH0TalkVol
+  20                            0xd0, //19-cCH1TalkVol
+  21                            0xd0, //20-cSelfRingVol
+  22                            0xf9, //21-cMaxVol
+  23                            0x0a, //22-cMinVol
+  24                            0xff, //23-cReserve1
+  25                            0xff, //24-cReserve2
+  26                            0xff, //25-cReserve3
+  27                            0xff, //26-cSerialNum1
+  28                            0xff, //27-cSerialNum2
+  29                            0xff, //28-cSerialNum3
+  30                            0x10, //29-cVersionHi
+  31                            0x0a, //30-cVersionLo
+  32                            0x00, //31-输液报警器
+  33                            0x00, //32-输液报警器
+  34                            0x00, //33-输液报警器
+  35                            0x00, //34-输液报警器
+  36                            0x00, //35-输液报警器
+  37                            0x00, //36-输液报警器
+  38                            0x02, //37-床头分机相关标志 
+  39                                //bit0:  代表病人出院标志  0:该床位有病人  1:病人已出院
+  40                                //bit1:  代表背光显示状态标志  0:背光关       1:背关开
+  41                                //bit2:  代表是否处于供氧计时状态  0：未供氧计时  1：处于供氧计时状态
+  42                                //bit3:代表床头分机是否语音报号0:不语音报号　　1:语语报号(默认不报号)
+  43                                //bit4:床头分机显示模式  0:供氧信息显示模式，1，色块模式
+  44                                //bit5:接收床头卡、清除床头卡是否需要判断区号房号0:不需要判断，1:需要判断
+  45                            0x00  //CRC 
+  46                            };
+  47          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =     39    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+C51 COMPILER V9.00   PARAMETER                                                             02/14/2019 09:57:09 PAGE 2   
+
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

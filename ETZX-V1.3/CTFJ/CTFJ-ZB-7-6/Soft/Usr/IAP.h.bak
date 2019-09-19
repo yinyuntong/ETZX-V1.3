@@ -1,0 +1,35 @@
+/*
+**********************************Copyright (c) ****************************
+*	  						         cwg
+*			                 All Rights Reserved
+*			     		         QQ:7084394
+*
+*---------------------------------File Info---------------------------------
+*File Name     		:IAP.h
+*Descriptor    		:程序下载头文件
+*Create By     		:ChenWeiGuo
+*Create Date   		:2008-12-1
+*Version       		:V1.0
+*Note	     		:
+*
+*---------------------------------------------------------------------------
+*Modified By  		:
+*Modified Date  	:
+*Version        	:
+*Note	     		:
+*
+****************************************************************************
+*/
+#define		IAP_READ			0x01
+#define		IAP_WRITE			0x02
+#define		IAP_ERASE			0x03
+#define		IAP_WAIT_TIME		0x02
+
+#ifndef _IN_IAP_
+#define _IN_IAP_
+void EnableIAP(uint8 byCmd);
+void DisableIAP(void);
+uint8 IapReadByte(uint16 uiAddr);
+void IapWriteByte(uint16 uiAddr, uint8 byData);
+void IapErase(uint16 uiAddr);
+#endif

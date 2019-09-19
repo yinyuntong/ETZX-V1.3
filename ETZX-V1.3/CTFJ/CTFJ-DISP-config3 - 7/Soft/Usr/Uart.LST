@@ -1,0 +1,1149 @@
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE UART
+OBJECT MODULE PLACED IN Uart.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Uart.c LARGE BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *            ºþÄÏÒ»ÌØµç×Ó¹É·ÝÓÐÏÞ¹«Ë¾
+   4          *             All Rights Reserved
+   5          *              
+   6          *
+   7          *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8          *ÎÄ¼þÃû³Æ         :Uart.c
+   9          *ÎÄ¼þÃèÊö       :´®¿ÚÇý¶¯³ÌÐò
+  10          *´´½¨ÈË         :ÒüÔËÍ¬
+  11          *´´½¨ÈÕÆÚ       :2009-4-6
+  12          *°æ±¾ºÅ           :V1.0
+  13          *×¢ÊÍ         :         
+  14          *----------------------------------------------------------
+  15          *ÐÞ¸ÄÈË       :
+  16          *ÐÞ¸ÄÈÕÆÚ       :
+  17          *°æ±¾ºÅ           :
+  18          *×¢ÊÍ         :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_USART_
+  22          #include "config.h"
+  23          
+  24          //´®¿Ú±äÁ¿¶¨Òå
+  25          STUsartCfg  xdata stUsartCfg;
+  26          uint8 xdata byUsart0RecBuf[UART0_RX_BUF_SIZE];
+  27          uint8   xdata byUsart0SndBuf[UART0_TX_BUF_SIZE];
+  28          
+  29          
+  30          bit bUsart0RecFinish= 0;
+  31          bit bRS485DataError = 0;
+  32          
+  33          bit bUsartRecedDietData = 0;
+  34          bit bUsartRecedPrescriptionData = 0;
+  35          bit bUsartRecedPromptData =0;
+  36          
+  37          
+  38          
+  39          
+  40          extern STLocalControl xdata stLocalControl;
+  41          extern uint8  OS_Q_MEM_SEL  byMainCmdQ[];
+  42          
+  43          
+  44          uint8 xdata Frame_No=0;   //Ö¡ºÅ
+  45          uint8 xdata Frame_Type=0xff;  //Ö¡Êý¾ÝµÄÀàÐÍ
+  46          
+  47          uint16 xdata uiBedFaceFormLen=0;
+  48          uint16 xdata uiBedFaceDataLen=0;
+  49          
+  50          bit bDispBedFace=0;
+  51          bit bDispBedForm=0;
+  52          bit bBus0AckOk=0;
+  53          bit bBus0AckFail=0;
+  54          
+  55          uint8 CheckSum=0; //Õû¸ö´²Í·¿¨ÐÅÏ¢µÄÐ£ÑéºÍ
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 2   
+
+  56          uint8 checkFormData(int16 datalen)
+  57          {
+  58   1        uint32 dataaddr = BED_FACE_FORM_START_ADDR_2;
+  59   1        STItemForm stItemForm;
+  60   1        if(datalen%sizeof(STItemForm) ==0)
+  61   1        {//¸öÊý·ûºÏÒªÇó
+  62   2          if(datalen/sizeof(STItemForm)<MAX_ITEM_CODE)
+  63   2          {
+  64   3            for(;datalen>0;)
+  65   3            {
+  66   4              Read_Cont((uint8 *)&stItemForm,dataaddr,sizeof(STItemForm));
+  67   4              if( stItemForm.ItemCode>=MAX_ITEM_CODE || stItemForm.StartPoint.x>=stItemForm.EndPoint.x ||stItemForm.
+             -StartPoint.y >=stItemForm.EndPoint.y || \
+  68   4                stItemForm.EndPoint.x>=LCD_PIX_X || stItemForm.EndPoint.y >= LCD_PIX_Y || stItemForm.bcolor > COLOR_M
+             -AX_VAL || stItemForm.fcolor >COLOR_MAX_VAL)
+  69   4                  break;
+  70   4              else
+  71   4              {
+  72   5                dataaddr+= sizeof(STItemForm);
+  73   5                datalen -= sizeof(STItemForm);
+  74   5              }
+  75   4            }
+  76   3            if(datalen ==0)
+  77   3            {//Êý¾ÝÐ£ÑéÈ«²¿ÕýÈ·
+  78   4              return 1;
+  79   4            }
+  80   3            else return 0;
+  81   3          }
+  82   2          else return 0;
+  83   2        }
+  84   1      
+  85   1        else return 0;
+  86   1      
+  87   1      }
+  88          
+  89          
+  90          uint8 checkFaceData(int16 datalen)
+  91          {
+  92   1        uint32 dataaddr = BED_FACE_DATA_START_ADDR_2;
+  93   1        uint8 ItemData[2];   //ItemData[0]:ÏîÄ¿´úÂë   //ItemData[1]:ÏîÄ¿Êý¾Ý³¤¶È
+  94   1        if(datalen<2) return 0;
+  95   1        
+  96   1        for(;datalen>0;)
+  97   1        {
+  98   2          Read_Cont(ItemData,dataaddr,2);
+  99   2          if(ItemData[0]>=MAX_ITEM_CODE ) return 0;     //ÏîÄ¿´úÂë³¬¹ý×î´ó¼«ÏÞ
+ 100   2      
+ 101   2          dataaddr += (2+ ItemData[1]);
+ 102   2          
+ 103   2          if(datalen < (2+ItemData[1]))   return 0;     //ÏîÄ¿³¤¶È³¬¹ý×Ü³¤¶È
+ 104   2      
+ 105   2          datalen -= (2+ ItemData[1]);
+ 106   2      
+ 107   2          if(datalen ==0) return 1;     //×Ü³¤¶ÈÊÇ¸÷Ïî³¤¶ÈÖ®ºÍ
+ 108   2      
+ 109   2          else if(datalen<2 ) return 0;
+ 110   2          
+ 111   2        }
+ 112   1      }
+ 113          
+ 114          
+ 115          
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 3   
+
+ 116          uint8 crcCheckData(uint32 addr,uint16 length,uint8 crc)
+ 117          {
+ 118   1        uint8 i;
+ 119   1        uint8 crcSum=0;
+ 120   1      
+ 121   1        OS_ENTER_CRITICAL();
+ 122   1        do
+ 123   1        {
+ 124   2          if(length<=128)
+ 125   2          {
+ 126   3            Read_Cont(GT23_Rec_Data,addr,length);
+ 127   3            for(i=0;i<length;i++)
+ 128   3            {
+ 129   4              crcSum += GT23_Rec_Data[i];
+ 130   4            }
+ 131   3            if(crc == crcSum) i=1;
+ 132   3            else        i=0;
+ 133   3            break;
+ 134   3          }
+ 135   2          else
+ 136   2          {
+ 137   3            
+ 138   3            Read_Cont(GT23_Rec_Data,addr,128);
+ 139   3            for(i=0;i<128;i++)
+ 140   3            {
+ 141   4              crcSum += GT23_Rec_Data[i];
+ 142   4            }
+ 143   3            addr+=128;
+ 144   3            length -= 128;
+ 145   3            
+ 146   3            //¸´Î»¿´ÃÅ¹·
+ 147   3            WDT_CONTR = 0x3e;       
+ 148   3          }   
+ 149   2        }while(length>0);
+ 150   1        WDT_CONTR = 0x3e; //Î¹¹·
+ 151   1          OS_EXIT_CRITICAL();
+ 152   1        return i;
+ 153   1      }
+ 154          
+ 155          
+ 156          void SectorDataCopy(unsigned long dst,unsigned long src,uint16 length)
+ 157          {
+ 158   1        OS_ENTER_CRITICAL();
+ 159   1        do
+ 160   1        {
+ 161   2          if(length<=128)
+ 162   2          {
+ 163   3            Read_Cont(GT23_Rec_Data,src,length);
+ 164   3            Write_Cont(dst,GT23_Rec_Data,length);
+ 165   3            break;
+ 166   3          }
+ 167   2      
+ 168   2          else
+ 169   2          {
+ 170   3            
+ 171   3            Read_Cont(GT23_Rec_Data,src,128);
+ 172   3            Write_Cont(dst,GT23_Rec_Data,128);
+ 173   3            src+=128;
+ 174   3            dst+=128;
+ 175   3            length -= 128;
+ 176   3            WDT_CONTR = 0x3e; //Î¹¹·
+ 177   3            
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 4   
+
+ 178   3          }
+ 179   2        }while(length>0);
+ 180   1        WDT_CONTR = 0x3e; //Î¹¹·
+ 181   1          OS_EXIT_CRITICAL();
+ 182   1      
+ 183   1      }
+ 184          
+ 185          
+ 186          uint8 StoreDataCheck(unsigned long dst,uint16 length)
+ 187          {
+ 188   1        uint8 i;
+ 189   1        uint8 crc=0;
+ 190   1        OS_ENTER_CRITICAL();
+ 191   1        while(1)
+ 192   1        {
+ 193   2          if(length<=128)
+ 194   2          {
+ 195   3            Read_Cont(GT23_Rec_Data,dst,length);
+ 196   3            for(i=0;i<length;i++) crc += GT23_Rec_Data[i];
+ 197   3          
+ 198   3            dst += length;
+ 199   3            if(Read(dst)== crc) i=1;  //×îºóÐ£ÑéºÍÏàµÈ
+ 200   3            else i=0;
+ 201   3            OS_EXIT_CRITICAL();
+ 202   3            return i;
+ 203   3          }
+ 204   2          else
+ 205   2          {
+ 206   3            Read_Cont(GT23_Rec_Data,dst,128);
+ 207   3            for(i=0;i<128;i++) crc += GT23_Rec_Data[i];
+ 208   3            dst+=128;
+ 209   3            length -= 128;
+ 210   3            WDT_CONTR = 0x3e; //Î¹¹·
+ 211   3          }
+ 212   2        }
+ 213   1      }
+ 214          
+ 215          uint8 IsSingleItem(uint8 *startaddr,uint8 length)
+ 216          {
+ 217   1        if( *(startaddr+2)==1 && *(startaddr+4)==1 )
+ 218   1        {//Ò»´®Êý¾ÝÖ»ÓÐÒ»Ö¡Êý¾Ý
+ 219   2          startaddr +=5;
+ 220   2          length -=5;
+ 221   2      
+ 222   2          if( (length-2)== *(startaddr+1) ) return 1;   // Ö»ÓÐÒ»Ïî
+ 223   2          else return 0;
+ 224   2        }
+ 225   1        else return 0;
+ 226   1      }
+ 227          
+ 228          
+ 229          /**********************************************************
+ 230          *º¯ÊýÃû³Æ     :UsartInit  
+ 231          *º¯ÊýÃèÊö         :´®¿Ú³õÊ¼»¯º¯Êý
+ 232          *ÊäÈë²ÎÊý       :
+ 233          *·µ»ØÖµ       :
+ 234          *È«¾Ö±äÁ¿     :
+ 235          *µ÷ÓÃÄ£¿é       :
+ 236          ***********************************************************
+ 237          *´´½¨ÈË           :ÒüÔËÍ¬
+ 238          *´´½¨ÈÕÆÚ     :2009-4-6
+ 239          ***********************************************************
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 5   
+
+ 240          *ÐÞ¸ÄÈË         :
+ 241          *ÐÞ¸ÄÈÕÆÚ       :
+ 242          *×¢ÊÍ           :
+ 243          **********************************************************/
+ 244          void UsartInit(void)
+ 245          {
+ 246   1        AUXR  &=  ~BRTR;    //Í£Ö¹¶ÀÁ¢²¨ÌØÂÊ·¢ÉúÆ÷ 
+ 247   1      
+ 248   1        //P3.1 TXD ¿ªÂ©Êä³ö£ºÒòÁ¬×Å´²Í··Ö»úµÄMK£¬¾­¹ý10kµç×èÖÁ5V
+ 249   1        P3M0 |= 0x02;
+ 250   1        P3M1 |= 0x02;
+ 251   1        TXD =1;
+ 252   1      
+ 253   1        //´®¿Ú0³õÊ¼»¯
+ 254   1        stUsartCfg.pbyRecBuf = byUsart0RecBuf;
+ 255   1        stUsartCfg.pbySndBuf = byUsart0SndBuf;  
+ 256   1        stUsartCfg.byRecState=0;
+ 257   1        stUsartCfg.uiRecPosition=0;
+ 258   1        stUsartCfg.uiRecLen=0;
+ 259   1        stUsartCfg.byRecCount=0;
+ 260   1        stUsartCfg.uiSndLen  = stUsartCfg.uiSndPos  = 0;
+ 261   1        
+ 262   1        SCON=0X50;    //¹¤×÷·½Ê½1
+ 263   1          PCON&=  ~SMOD;   //  ;²¨ÌØÂÊ±¶ÔöÑ¡Ôñ    smod=0
+ 264   1          AUXR  |=  S1BRS;  //ÌØÓÃ²¨ÌØÂÊ·¢ÉúÆ÷
+ 265   1      
+ 266   1      
+ 267   1        if(stLocalControl.stEepromCfgData.uiRs485Brt>=2400)
+ 268   1        {
+ 269   2          AUXR  |=  BRTx12;   //BRTX12=1; 1TÄ£Ê½,×îºó²¨ÌØÂÊÎª:4800*12=57.6K
+ 270   2          BRT= 256-(Fosc/32/stLocalControl.stEepromCfgData.uiRs485Brt );
+ 271   2          
+ 272   2        }
+ 273   1        
+ 274   1        else
+ 275   1        {
+ 276   2          AUXR  &=  ~BRTx12;  //BRTX12=0; 12TÄ£Ê½
+ 277   2          BRT= 256-(Fosc/32/12/stLocalControl.stEepromCfgData.uiRs485Brt  );    
+ 278   2        }
+ 279   1      
+ 280   1      
+ 281   1        
+ 282   1        AUXR  |=  BRTR;   //Æô¶¯¶ÀÁ¢²¨ÌØÂÊ·¢ÉúÆ÷   
+ 283   1        
+ 284   1        RI=0;
+ 285   1        TI=0;
+ 286   1        REN=1;
+ 287   1        ES=1;
+ 288   1      
+ 289   1      }
+ 290          
+ 291          
+ 292          
+ 293          void UsartInitConfig(uint16 boudRate)
+ 294          {
+ 295   1        AUXR  &=  ~BRTR;    //Í£Ö¹¶ÀÁ¢²¨ÌØÂÊ·¢ÉúÆ÷ 
+ 296   1      
+ 297   1        //P3.1 TXD ¿ªÂ©Êä³ö£ºÒòÁ¬×Å´²Í··Ö»úµÄMK£¬¾­¹ý10kµç×èÖÁ5V
+ 298   1        P3M0 |= 0x02;
+ 299   1        P3M1 |= 0x02;
+ 300   1        TXD =1;
+ 301   1      
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 6   
+
+ 302   1        //´®¿Ú0³õÊ¼»¯
+ 303   1        stUsartCfg.pbyRecBuf = byUsart0RecBuf;
+ 304   1        stUsartCfg.pbySndBuf = byUsart0SndBuf;  
+ 305   1        stUsartCfg.byRecState=0;
+ 306   1        stUsartCfg.uiRecPosition=0;
+ 307   1        stUsartCfg.uiRecLen=0;
+ 308   1        stUsartCfg.byRecCount=0;
+ 309   1        stUsartCfg.uiSndLen  = stUsartCfg.uiSndPos  = 0;
+ 310   1        
+ 311   1        SCON=0X50;    //¹¤×÷·½Ê½1
+ 312   1          PCON&=  ~SMOD;   //  ;²¨ÌØÂÊ±¶ÔöÑ¡Ôñ    smod=0
+ 313   1          AUXR  |=  S1BRS;  //ÌØÓÃ²¨ÌØÂÊ·¢ÉúÆ÷
+ 314   1      
+ 315   1        if(boudRate>=2400)
+ 316   1        {
+ 317   2          AUXR  |=  BRTx12;   //BRTX12=1; 1TÄ£Ê½,×îºó²¨ÌØÂÊÎª:4800*12=57.6K
+ 318   2          BRT= 256-(Fosc/32/boudRate);
+ 319   2          
+ 320   2        
+ 321   2        }
+ 322   1        else
+ 323   1        {
+ 324   2          AUXR  &=  ~BRTx12;  //BRTX12=0; 12TÄ£Ê½
+ 325   2          BRT= 256-(Fosc/32/12/boudRate);   
+ 326   2        }
+ 327   1        
+ 328   1        AUXR  |=  BRTR;   //Æô¶¯¶ÀÁ¢²¨ÌØÂÊ·¢ÉúÆ÷   
+ 329   1        RI=0;
+ 330   1        TI=0;
+ 331   1        REN=1;
+ 332   1        ES=1;
+ 333   1      }
+ 334          
+ 335          
+ 336          
+ 337          /**********************************************************
+ 338          *º¯ÊýÃû³Æ     :UART0(void)  
+ 339          *º¯ÊýÃèÊö         :´®¿Ú0ÖÐ¶Ïº¯Êý
+ 340          *ÊäÈë²ÎÊý       :
+ 341          *·µ»ØÖµ       :
+ 342          *È«¾Ö±äÁ¿     :stUsartCfg
+ 343          *µ÷ÓÃÄ£¿é       :
+ 344          ***********************************************************
+ 345          *´´½¨ÈË           :ÒüÔËÍ¬
+ 346          *´´½¨ÈÕÆÚ     :2009-4-6
+ 347          ***********************************************************
+ 348          *ÐÞ¸ÄÈË         :
+ 349          *ÐÞ¸ÄÈÕÆÚ       :
+ 350          *×¢ÊÍ           :
+ 351          **********************************************************/
+ 352          #pragma disable
+ 353          void UART0(void) interrupt UART_INTNO
+ 354          {
+ 355   1        uint8 xdata byTemp;
+ 356   1        STUartFreq *xdata pstDataFreq;
+ 357   1        
+ 358   1        if(RI==1)
+ 359   1        {  
+ 360   2          RI=0;
+ 361   2          byTemp=SBUF;
+ 362   2          if(stUsartCfg.uiRecPosition!=0) //²»ÊÇÆðÊ¼×Ö½Ú
+ 363   2          {
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 7   
+
+ 364   3            if(stUsartCfg.byRecTimeout==0)
+ 365   3            {//³¬Ê±µ½ÁË
+ 366   4              stUsartCfg.byRecState=0;
+ 367   4              stUsartCfg.uiRecPosition=0;
+ 368   4              return;
+ 369   4            }
+ 370   3          }
+ 371   2          stUsartCfg.byRecTimeout=5;  //ÓÖ¿ªÊ¼¶¨Ê±
+ 372   2          byUsart0RecBuf[stUsartCfg.uiRecPosition++] = byTemp;    
+ 373   2          switch(stUsartCfg.byRecState)
+ 374   2          {
+ 375   3            case 0:               
+ 376   3              if(byTemp == START_BYTE1)
+ 377   3              {
+ 378   4                stUsartCfg.byRecState = 1;
+ 379   4      //          byCount = 7;
+ 380   4                stUsartCfg.byRecCount = 6;
+ 381   4              }
+ 382   3              else
+ 383   3              {
+ 384   4                stUsartCfg.uiRecPosition = 0;
+ 385   4              }
+ 386   3              break;
+ 387   3            case 1:               
+ 388   3              if(--stUsartCfg.byRecCount == 0)
+ 389   3              { //ÊÕÍêµØÖ·Êý¾Ý
+ 390   4                
+ 391   4                pstDataFreq =(STUartFreq *)byUsart0RecBuf;
+ 392   4                if((pstDataFreq->byRecSecAddr != 0xff) && (pstDataFreq->byRecSecAddr != stLocalControl.stEepromCfgDat
+             -a.bySelfSecAddr))
+ 393   4                {//ÇøºÅ²»Ïà·û 
+ 394   5                  stUsartCfg.byRecState=0;
+ 395   5                  stUsartCfg.uiRecPosition=0;
+ 396   5                  return;
+ 397   5      
+ 398   5                } 
+ 399   4      
+ 400   4                if(stLocalControl.stEepromCfgData.byRs485SecRoom)//ÐèÒªÅÐ¶Ï·¿ºÅ
+ 401   4                {
+ 402   5                  if((pstDataFreq->byRecRoomAddr != 0xff) && (pstDataFreq->byRecRoomAddr != stLocalControl.stEepromCfg
+             -Data.bySelfRoomAddr))
+ 403   5                  {//·¿ºÅ²»Ïà·û 
+ 404   6                    stUsartCfg.byRecState=0;
+ 405   6                    stUsartCfg.uiRecPosition=0;
+ 406   6                    return;
+ 407   6                  }
+ 408   5                }//²»ÐèÒªÅÐ¶Ï·¿ºÅ¾Í²»¹Ü
+ 409   4                
+ 410   4                if((pstDataFreq->byRecBedAddr != 0xff) && (pstDataFreq->byRecBedAddr != stLocalControl.stEepromCfgDat
+             -a.bySelfBedAddr))
+ 411   4                {//´²ºÅ²»Ïà·û 
+ 412   5                  stUsartCfg.byRecState=0;
+ 413   5                  stUsartCfg.uiRecPosition=0;
+ 414   5                  return;
+ 415   5                }       
+ 416   4      
+ 417   4                stUsartCfg.byRecState = 2;
+ 418   4                stUsartCfg.byRecCount = 3;  
+ 419   4              }
+ 420   3              break;        
+ 421   3            case 2:       
+ 422   3              stUsartCfg.byRecCount--;
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 8   
+
+ 423   3              if(stUsartCfg.byRecCount == 1)
+ 424   3              { 
+ 425   4                stUsartCfg.uiRecLen = byTemp<<8; 
+ 426   4              }
+ 427   3              else if(stUsartCfg.byRecCount == 0)
+ 428   3              { //½ÓÊÕÍêÊý¾Ý³¤¶È
+ 429   4                //stUsartCfg[0].uiRecLen += (byTemp << 8);      //»ñÈ¡Êý¾ÝÓò³¤¶ÈÖµ
+ 430   4                stUsartCfg.uiRecLen += byTemp;
+ 431   4                if(stUsartCfg.uiRecLen <= MAX_UART0_DATA_LEN)         
+ 432   4                { //Êý¾Ý³¤¶È·ûºÏÒªÇó
+ 433   5                  stUsartCfg.byRecState = 3;
+ 434   5                  stUsartCfg.uiRecLen += 2; 
+ 435   5                }
+ 436   4                else
+ 437   4                {
+ 438   5                  stUsartCfg.byRecState = 0;
+ 439   5                  stUsartCfg.uiRecPosition = 0;
+ 440   5                }                   
+ 441   4              }
+ 442   3              break;      
+ 443   3            case 3:       
+ 444   3              if(--stUsartCfg.uiRecLen == 0)
+ 445   3              { //½ÓÊÕÍêËùÓÐÊý¾Ý
+ 446   4                if(END_BYTE == byTemp)
+ 447   4                { //½áÊøÎ»ÕýÈ·
+ 448   5                  bUsart0RecFinish=1; 
+ 449   5                }
+ 450   4                stUsartCfg.byRecState = 0;
+ 451   4                stUsartCfg.uiRecPosition = 0;       
+ 452   4              }
+ 453   3              break;      
+ 454   3            default:
+ 455   3              stUsartCfg.byRecState = 0;
+ 456   3              stUsartCfg.uiRecPosition = 0;
+ 457   3              break;    
+ 458   3          }
+ 459   2        }
+ 460   1        if(TI==1)
+ 461   1        {
+ 462   2          TI=0;
+ 463   2      
+ 464   2          pstDataFreq = (STUartFreq *)byUsart0SndBuf;
+ 465   2          stUsartCfg.uiSndLen--;
+ 466   2          stUsartCfg.uiSndPos++;    
+ 467   2          if(stUsartCfg.uiSndLen!=0)
+ 468   2          {    
+ 469   3      
+ 470   3            SBUF = stUsartCfg.pbySndBuf[stUsartCfg.uiSndPos];     
+ 471   3          }
+ 472   2          else
+ 473   2          {//Ò»Ö¡Êý¾Ý·¢ËÍÍê³É     
+ 474   3            switch(pstDataFreq->byData[1])  //ÐÅÏ¢ÀàÐÍ
+ 475   3            {
+ 476   4            case DIET_TYPE:
+ 477   4              stLocalControl.byUsart1SdDelayTime =150;
+ 478   4              break;
+ 479   4              
+ 480   4            case PRESCRIPTION_TYPE: 
+ 481   4              stLocalControl.byUsart1SdDelayTime =150;
+ 482   4              break;
+ 483   4            case PROMPT_INFO_TYPE:
+ 484   4              stLocalControl.byUsart1SdDelayTime =150;
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 9   
+
+ 485   4              break;
+ 486   4            }   
+ 487   3          }
+ 488   2        }
+ 489   1      } 
+ 490          
+ 491          /**********************************************************
+ 492          *º¯ÊýÃû³Æ     :GetPskCrc  
+ 493          *º¯ÊýÃèÊö         :¼ÆËãÊý¾ÝèåÀÛ¼ÓÐ£ÑéºÍ
+ 494          *ÊäÈë²ÎÊý       :pstDataFreq:´ý¼ÆËãµÄÊý¾ÝèåÖ¸Õë
+ 495          *·µ»ØÖµ       :ÀÛ¼ÓÐ£ÑéºÍ
+ 496          *È«¾Ö±äÁ¿     :stUsartCfg
+ 497          *µ÷ÓÃÄ£¿é       :
+ 498          ***********************************************************
+ 499          *´´½¨ÈË           :ÒüÔËÍ¬
+ 500          *´´½¨ÈÕÆÚ     :2009-4-6
+ 501          ***********************************************************
+ 502          *ÐÞ¸ÄÈË         :
+ 503          *ÐÞ¸ÄÈÕÆÚ       :
+ 504          *×¢ÊÍ           :
+ 505          **********************************************************/
+ 506          uint8 GetPskCrc(STUartFreq *pstDataFreq)
+ 507          {
+ 508   1        uint8   *xdata pbyData;
+ 509   1        uint16 xdata uiLen;
+ 510   1        uint8  xdata byCrc = 0;
+ 511   1        
+ 512   1      //  pbyData = &(pstDataFreq->byRecSecAddr);
+ 513   1        pbyData = &(pstDataFreq->bySndSecAddr);
+ 514   1        uiLen = pstDataFreq->uiLen + HEAD_SIZE;
+ 515   1        while(uiLen--)
+ 516   1        {
+ 517   2          byCrc += *pbyData++;
+ 518   2        } 
+ 519   1        return(byCrc);
+ 520   1      }
+ 521          /**********************************************************
+ 522          *º¯ÊýÃû³Æ     :CheckPsk 
+ 523          *º¯ÊýÃèÊö         :¼ìÑéÊý¾Ý°üµÄÕýÈ·ÐÍ
+ 524          *ÊäÈë²ÎÊý       :pstDataFreq:´ýÐ£ÑéµÄÊý¾ÝèåÖ¸Õë
+ 525          *·µ»ØÖµ       :true:Êý¾Ý°üÕýÈ·,false:Êý¾Ý°üÓÐÎó
+ 526          *È«¾Ö±äÁ¿     :
+ 527          *µ÷ÓÃÄ£¿é       :
+ 528          ***********************************************************
+ 529          *´´½¨ÈË           :ÒüÔËÍ¬
+ 530          *´´½¨ÈÕÆÚ     :2009-4-6
+ 531          ***********************************************************
+ 532          *ÐÞ¸ÄÈË         :
+ 533          *ÐÞ¸ÄÈÕÆÚ       :
+ 534          *×¢ÊÍ           :
+ 535          **********************************************************/
+ 536          uint8 CheckPsk(pSTUartFreq pstDataFreq)
+ 537          {
+ 538   1        uint8 *xdata pbyData;
+ 539   1        uint16 xdata uiLen;
+ 540   1        uint8  xdata byCrc = 0;
+ 541   1        
+ 542   1      //  pbyData = &(pstDataFreq->byRecSecAddr);
+ 543   1        pbyData = &(pstDataFreq->bySndSecAddr);
+ 544   1        uiLen = pstDataFreq->uiLen + HEAD_SIZE;
+ 545   1        while(uiLen--)
+ 546   1        {
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 10  
+
+ 547   2          byCrc += *pbyData++;
+ 548   2        }
+ 549   1        if(byCrc != *pbyData)
+ 550   1        {
+ 551   2          return(false);
+ 552   2        }
+ 553   1        return(true); 
+ 554   1      }
+ 555          
+ 556          /**********************************************************
+ 557          *º¯ÊýÃû³Æ     :Usart0Manager  
+ 558          *º¯ÊýÃèÊö         :´®¿Ú0¹ÜÀíº¯Êý
+ 559          *ÊäÈë²ÎÊý       :
+ 560          *·µ»ØÖµ       :
+ 561          *È«¾Ö±äÁ¿     :stUsartCfg,stLocalControl
+ 562          *µ÷ÓÃÄ£¿é       :
+ 563          ***********************************************************
+ 564          *´´½¨ÈË           :ÒüÔËÍ¬
+ 565          *´´½¨ÈÕÆÚ     :2009-4-6
+ 566          ***********************************************************
+ 567          *ÐÞ¸ÄÈË         :
+ 568          *ÐÞ¸ÄÈÕÆÚ       :
+ 569          *×¢ÊÍ           :
+ 570          **********************************************************/
+ 571          void Usart0RecDeal(void)
+ 572          { 
+ 573   1        STUartFreq *xdata pstDataFreq;
+ 574   1        uint8 xdata temp;    //bit4=1:´ú±í¹ã²¥
+ 575   1        uint16 xdata uiDataLen;
+ 576   1      
+ 577   1      
+ 578   1        SCON  &= 0XEF;      //¹Ø±ÕREN
+ 579   1        uiDataLen = byUsart0RecBuf[LEN_HIGH_POSITION]*256+byUsart0RecBuf[LEN_LOW_POSITION];
+ 580   1        bUsart0RecFinish=0;
+ 581   1      
+ 582   1        pstDataFreq = (pSTUartFreq)byUsart0RecBuf;
+ 583   1        
+ 584   1      
+ 585   1        
+ 586   1        if(stLocalControl.stEepromCfgData.byRs485SecRoom==0x00)//²»ÐèÒªÅÐ¶Ï·¿ºÅ
+ 587   1        {
+ 588   2          if(pstDataFreq->byRecBedAddr  == stLocalControl.stEepromCfgData.bySelfBedAddr)  //µØÖ·Ïà·û
+ 589   2            temp =0x01; //Ö±½ÓµØÖ·
+ 590   2          else
+ 591   2          {
+ 592   3            if(pstDataFreq->byRecBedAddr==0xff)
+ 593   3            {//´²ºÅÊÇ¹ã²¥µØÖ·
+ 594   4              if(pstDataFreq->byRecRoomAddr==0xff)
+ 595   4              {//·¿ºÅÊÇ¹ã²¥µØÖ· 
+ 596   5                temp =0x11;   //¹ã²¥µØÖ·
+ 597   5              }
+ 598   4              else if(pstDataFreq->byRecRoomAddr<240)
+ 599   4              {//·¿ºÅÔÝÊ±¹æ¶¨Ö»µ½240
+ 600   5                temp =0x11;    //¹ã²¥µØÖ·
+ 601   5              }
+ 602   4              else   temp=0x00;
+ 603   4            }
+ 604   3            else temp =0x00;
+ 605   3          }
+ 606   2        }
+ 607   1        else  //ÐèÒªÅÐ¶Ï
+ 608   1        {
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 11  
+
+ 609   2      
+ 610   2          stLocalControl.stBusDealFreq.byRecSecAddr = pstDataFreq->byRecSecAddr;
+ 611   2          stLocalControl.stBusDealFreq.byRecRoomAddr = pstDataFreq->byRecRoomAddr;
+ 612   2          stLocalControl.stBusDealFreq.byRecBedAddr = pstDataFreq->byRecBedAddr;  
+ 613   2          if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+ 614   2          {
+ 615   3            if((stLocalControl.stBusDealFreq.byRecSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr)&&
+ 616   3               (stLocalControl.stBusDealFreq.byRecRoomAddr == stLocalControl.stEepromCfgData.bySelfRoomAddr)&&
+ 617   3               (stLocalControl.stBusDealFreq.byRecBedAddr == stLocalControl.stEepromCfgData.bySelfBedAddr))
+ 618   3                temp =0x01;   //Ö±½ÓµØÖ·
+ 619   3            else temp =0x11;    //¹ã²¥µØÖ·
+ 620   3          }
+ 621   2          else temp=0;
+ 622   2        }
+ 623   1      
+ 624   1      
+ 625   1        if(temp&0x01)
+ 626   1        {//ÊÇ±¾»úÊý¾Ý
+ 627   2        
+ 628   2          stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 629   2          stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 630   2          stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr; 
+ 631   2      
+ 632   2          
+ 633   2          if(uiDataLen>5)
+ 634   2          {//Êý¾ÝÓòÖÐµÄÊý¾Ý³¤¶È·ûºÏÒªÇó   
+ 635   3            if(!CheckPsk(pstDataFreq))  
+ 636   3            {//Êý¾ÝÖ¡³ö´í 
+ 637   4              if(byUsart0RecBuf[DATA_POSITION4]==0)
+ 638   4              {//²»ÊÇ½áÊøÖ¡Êý¾Ý
+ 639   5                bRS485DataError =1;
+ 640   5                //Send_Data_Byte(0x01);
+ 641   5              }
+ 642   4              else
+ 643   4              {//ÊÇ×îºóÒ»Ö¡
+ 644   5                //Send_Data_Byte(0x02);
+ 645   5                if( temp!=0x11)
+ 646   5                {//²»ÊÇ¹ã²¥µØÖ·
+ 647   6                  stLocalControl.stBusDealFreq.byCmd = CMD_DATA_ERROR;
+ 648   6                  Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 649   6                  
+ 650   6                }
+ 651   5                bRS485DataError =0;   //±êÖ¾»Ö¸´
+ 652   5                Frame_No =0;
+ 653   5                Frame_Type = 0xff;          
+ 654   5              }
+ 655   4            }
+ 656   3      
+ 657   3            
+ 658   3            else
+ 659   3            {//Ð£ÑéºÍÕýÈ·
+ 660   4              //BL_SW=1;  //´ò¿ªÏÔÊ¾ÆÁ±³¹â
+ 661   4              BL_ON();
+ 662   4              stLocalControl.uiLcdDisplayTime= 500; //ÁÁ10ÃëÖÓ
+ 663   4      
+ 664   4      
+ 665   4              if(byUsart0RecBuf[DATA_POSITION2] == 0x01)
+ 666   4              {//µÚÒ»Ö¡Êý¾Ý
+ 667   5                bRS485DataError = 0;
+ 668   5                Frame_No =0;
+ 669   5                Frame_Type =byUsart0RecBuf[DATA_POSITION1];
+ 670   5              }
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 12  
+
+ 671   4                      
+ 672   4              if(bRS485DataError==0)   
+ 673   4              {//Î´Ôø³ö´í
+ 674   5      
+ 675   5                if( pstDataFreq->byCmd == CMD_DISPLAY_DATA ) 
+ 676   5                { //±¾»ú´²Í·Òº¾§ÏÔÊ¾Êý¾Ý      
+ 677   6      
+ 678   6                  if(byUsart0RecBuf[DATA_POSITION1]==BED_CARD_TYPE) //BED_CARD_TYPE ÔÚÕâÀï´ú±í³¤Ãû×ÖµÄ´²Í·¿¨ÐÅÏ¢
+ 679   6                  {
+ 680   7                  
+ 681   7                    if(byUsart0RecBuf[DATA_POSITION2] == 0x01)  
+ 682   7                    {//µÚÒ»Ö¡Êý¾Ý
+ 683   8      
+ 684   8                      //¼ÆÊý³öÊý¾ÝÓòÓÐÐ§Êý¾ÝµÄÐ£ÑéºÍ
+ 685   8                      CheckSum = *(pstDataFreq->byData + pstDataFreq->uiLen);
+ 686   8                      for(temp =0;temp<14;temp++)   //µØÖ·6×Ö½Ú+ÃüÁî1×Ö½Ú+³¤¶È2×Ö½Ú+¸½ÊôÊý¾Ý5×Ö½Ú(¹²14×Ö½Ú)
+ 687   8                      {
+ 688   9                        CheckSum -= byUsart0RecBuf[temp+1];   //´Ósndsec¿ªÊ¼
+ 689   9                      } 
+ 690   8                      
+ 691   8                      Frame_No =1;
+ 692   8                      Frame_Type = byUsart0RecBuf[DATA_POSITION1];                
+ 693   8                      Write_Cont(BED_FACE_DATA_START_ADDR_2,&(byUsart0RecBuf[DATA_POSITION5]),uiDataLen-5);
+ 694   8                      uiBedFaceDataLen = uiDataLen-5;
+ 695   8      
+ 696   8                    }
+ 697   7                    
+ 698   7                    else 
+ 699   7                    {               
+ 700   8                    /*  if(Frame_No >= byUsart0RecBuf[DATA_POSITION2]) 
+ 701   8                      {//ºóÐøÖ¡ºÅ±ÈÇ°Ö¡ºÅÐ¡,²»Ó°ÏìÔ­Êý¾ÝµÄ½ÓÊÕ
+ 702   8                        goto Usart0RecDealRet;
+ 703   8                      }*/
+ 704   8                          
+ 705   8                      if((Frame_No+1) == byUsart0RecBuf[DATA_POSITION2])
+ 706   8                      {//Ã»ÓÐ¶ªÖ¡£¬ÊÇ°´Ë³ÐòÀ´µÄ
+ 707   9                        if(Frame_Type == byUsart0RecBuf[DATA_POSITION1])
+ 708   9                        {//ÐÅÏ¢ÀàÐÍÒ»ÖÂ
+ 709  10                          Frame_No ++;
+ 710  10                            //²»½øÐÐ²Á³ýÐ´
+ 711  10                          if(uiBedFaceDataLen < LENGTH_4K)
+ 712  10                          {
+ 713  11                            //¼ÆÊý³öÊý¾ÝÓòÓÐÐ§Êý¾ÝµÄÐ£ÑéºÍ
+ 714  11                            CheckSum += *(pstDataFreq->byData + pstDataFreq->uiLen);
+ 715  11                            for(temp =0;temp<14;temp++)   //µØÖ·6×Ö½Ú+ÃüÁî1×Ö½Ú+³¤¶È2×Ö½Ú+¸½ÊôÊý¾Ý5×Ö½Ú(¹²14×Ö½Ú)
+ 716  11                            {
+ 717  12                              CheckSum -= byUsart0RecBuf[temp+1];   //´Ósndsec¿ªÊ¼
+ 718  12                            } 
+ 719  11                            
+ 720  11                            Write_Cont(BED_FACE_DATA_START_ADDR_2+uiBedFaceDataLen,&(byUsart0RecBuf[DATA_POSITION5]),uiData
+             -Len-5);
+ 721  11                            uiBedFaceDataLen += (uiDataLen-5);
+ 722  11                          }
+ 723  10                          else  bRS485DataError=1;   //´²Í·¿¨×Ü³¤¶È³¬ÏÞ 
+ 724  10      
+ 725  10                        }
+ 726   9                        else  bRS485DataError=1;    //ÐÅÏ¢ÀàÐÍ²»Ò»ÖÂ                      
+ 727   9                      }
+ 728   8                      
+ 729   8                      else   bRS485DataError=1;    //ÖÐ¼äÓÐ¶ªÖ¡
+ 730   8      
+ 731   8                    }
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 13  
+
+ 732   7                    
+ 733   7                    if(byUsart0RecBuf[DATA_POSITION4])  
+ 734   7                    {//Ò»ÆÁÊý¾Ý½áÊø,Á¢¼´ÏÔÊ¾
+ 735   8                      if(bRS485DataError ==0)
+ 736   8                      {//Î´Ôø³ö´í
+ 737   9                        if(checkFaceData(uiBedFaceDataLen))
+ 738   9                        {
+ 739  10                          if(crcCheckData(BED_FACE_DATA_START_ADDR_2,uiBedFaceDataLen,CheckSum)==1)
+ 740  10                          {//Ô¤´æÇøÓòÊý¾ÝÐ£ÑéºÍÕýÈ·
+ 741  11      
+ 742  11                            Write_Cont(BED_FACE_DATA_LENGTH_ADDR,&uiBedFaceDataLen,2);    //Ð´³¤¶È
+*** WARNING C182 IN LINE 742 OF UART.C: pointer to different objects
+ 743  11                            SectorDataCopy(BED_FACE_DATA_START_ADDR,BED_FACE_DATA_START_ADDR_2,uiBedFaceDataLen);   //Ð´Êý¾Ý
+ 744  11                            CheckSum += uiBedFaceDataLen>>8;
+ 745  11                            CheckSum += (uiBedFaceDataLen&0x00ff);
+ 746  11                            Write_Cont(BED_FACE_DATA_START_ADDR+uiBedFaceDataLen,&CheckSum,1);  //Ð´Ð£ÑéºÍ
+ 747  11                            //ÔÙ½øÐÐÐ£Ñé
+ 748  11                            if(StoreDataCheck(BED_FACE_DATA_LENGTH_ADDR,uiBedFaceDataLen+2))  //½«Êý¾Ý³¤¶ÈÒ²°üº¬½øÈ¥  
+ 749  11                            {
+ 750  12                              stLocalControl.uiBedFaceDataLen = uiBedFaceDataLen;                   
+ 751  12        usart0RecDisp:  
+ 752  12                              bDispBedFace=1;
+ 753  12                              bBus0AckOk =1;
+ 754  12                              stLocalControl.bySlaveState &= ~PATIENT_DISCHARGE; //²¡ÈËÈëÔº
+ 755  12                            }
+ 756  11                            else bBus0AckFail=1;
+ 757  11                          }
+ 758  10                          else bBus0AckFail =1;
+ 759  10                        }
+ 760   9                        else bBus0AckFail =1;
+ 761   9                      }
+ 762   8                      else 
+ 763   8                      {
+ 764   9                        bBus0AckFail=1; 
+ 765   9                        goto usart0RecFailRet;  //Ôø¾­³ö¹ý´íÇ¿ÖÆÍË³ö
+ 766   9                      }
+ 767   8                    } 
+ 768   7                  }
+ 769   6                }
+ 770   5      
+ 771   5                else if(pstDataFreq->byCmd ==  CMD_SB_LCD_DISPLAY_DATA)
+ 772   5                {//ÊÇÊÖ±úÊý¾Ý     
+ 773   6                  switch(byUsart0RecBuf[DATA_POSITION1])  //ÐÅÏ¢ÀàÐÍ
+ 774   6                  {
+ 775   7                    case DIET_TYPE:
+ 776   7                      if(byUsart0RecBuf[DATA_POSITION2] == 0x01)  
+ 777   7                      {//µÚÒ»Ö¡Êý¾Ý
+ 778   8                        Frame_No =1;
+ 779   8                        Frame_Type = byUsart0RecBuf[DATA_POSITION1];
+ 780   8                      /*  WREN();
+ 781   8                        Block_Erase_32K(DIET_DATA_START_ADDR);
+ 782   8                        Wait_Busy();*/
+ 783   8                        Write_Cont(DIET_DATA_START_ADDR,&(byUsart0RecBuf[DATA_POSITION5]),uiDataLen-5);
+ 784   8                                    
+ 785   8                        stLocalControl.uiDietDataLen = (uiDataLen-5);
+ 786   8      
+ 787   8                      }
+ 788   7                      else 
+ 789   7                      {                   
+ 790   8                        if((Frame_No+1) == byUsart0RecBuf[DATA_POSITION2])
+ 791   8                        {//Ã»ÓÐ¶ªÖ¡£¬ÊÇ°´Ë³ÐòÀ´µÄ
+ 792   9                          if(Frame_Type == byUsart0RecBuf[DATA_POSITION1])
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 14  
+
+ 793   9                          {//ÐÅÏ¢ÀàÐÍÒ»ÖÂ
+ 794  10                            Frame_No ++;
+ 795  10                            if(stLocalControl.uiDietDataLen <LENGTH_32K)
+ 796  10                            {
+ 797  11                              Write_Cont(DIET_DATA_START_ADDR+stLocalControl.uiDietDataLen,&(byUsart0RecBuf[DATA_POSITION5])
+             -,uiDataLen-5);
+ 798  11                              stLocalControl.uiDietDataLen  += (uiDataLen-5);   //¼ÓÊý¾Ý³¤¶È
+ 799  11                            }
+ 800  10                            else  bRS485DataError=1; //×Ü³¤¶È³¬ÏÞ
+ 801  10                          }
+ 802   9                          else  bRS485DataError=1; //ÐÅÏ¢ÀàÐÍ²»Ò»ÖÂ                     
+ 803   9                        }
+ 804   8                        else  bRS485DataError=1; //ÖÐ¼äÓÐ¶ªÖ¡                           
+ 805   8                      }
+ 806   7      
+ 807   7                      if(byUsart0RecBuf[DATA_POSITION4] == 0x01)
+ 808   7                      {//½áÊø±êÖ¾
+ 809   8                        if(bRS485DataError ==0)
+ 810   8                        {//Î´Ôø³ö´í               
+ 811   9                          Write_Cont(DIET_LENGTH_ADDR,(uint8 *)(&(stLocalControl.uiDietDataLen)),2);  //±£´æÊý¾Ý³¤¶È              
+             -        
+ 812   9                          bUsartRecedDietData =1;
+ 813   9                          bBus0AckOk =1;
+ 814   9                        }
+ 815   8                        else 
+ 816   8                        {
+ 817   9                          bBus0AckFail=1; 
+ 818   9                          goto usart0RecFailRet;  //Ôø¾­³ö¹ý´íÇ¿ÖÆÍË³ö
+ 819   9                        }                 
+ 820   8                      }
+ 821   7                      break;
+ 822   7      
+ 823   7                    case PRESCRIPTION_TYPE:
+ 824   7                      if(byUsart0RecBuf[DATA_POSITION2] == 0x01)  
+ 825   7                      {//µÚÒ»Ö¡Êý¾Ý
+ 826   8                        Frame_No =1;
+ 827   8                        Frame_Type = byUsart0RecBuf[DATA_POSITION1];
+ 828   8                        /*WREN();
+ 829   8                        Block_Erase_32K(PRESCRIPTION_DATA_START_ADDR);
+ 830   8                        Wait_Busy();*/
+ 831   8                        Write_Cont(PRESCRIPTION_DATA_START_ADDR,&(byUsart0RecBuf[DATA_POSITION5]),uiDataLen-5); //Ã¿ÀàÐÍÊ
+             -ý¾Ý¿É´ï32K
+ 832   8                        stLocalControl.uiPrescriptionDataLen = uiDataLen-5;
+ 833   8                      }
+ 834   7                      else 
+ 835   7                      { 
+ 836   8                        if((Frame_No+1) == byUsart0RecBuf[DATA_POSITION2])
+ 837   8                        {
+ 838   9                          if(Frame_Type == byUsart0RecBuf[DATA_POSITION1])
+ 839   9                          {//ÐÅÏ¢ÀàÐÍÒ»ÖÂ 
+ 840  10                            Frame_No++;
+ 841  10                            //²»½øÐÐ²Á³ýÐ´
+ 842  10                            if(stLocalControl.uiPrescriptionDataLen< LENGTH_32K)
+ 843  10                            {
+ 844  11                              Write_Cont(PRESCRIPTION_DATA_START_ADDR+stLocalControl.uiPrescriptionDataLen,&(byUsart0RecBuf[
+             -DATA_POSITION5]),uiDataLen-5);
+ 845  11                              stLocalControl.uiPrescriptionDataLen  += (uiDataLen-5);   //¼ÓÊý¾Ý³¤¶È
+ 846  11                            }
+ 847  10                            else bRS485DataError=1; //×Ü³¤¶È³¬ÏÞ
+ 848  10                          }
+ 849   9                          else   bRS485DataError=1; //ÐÅÏ¢ÀàÐÍ²»Ò»ÖÂ                  
+ 850   9                        }
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 15  
+
+ 851   8                        else bRS485DataError=1; //ÖÐ¼äÓÐ¶ªÖ¡
+ 852   8                      }
+ 853   7      
+ 854   7                      if(byUsart0RecBuf[DATA_POSITION4] == 0x01)
+ 855   7                      {//½áÊø±êÖ¾
+ 856   8                        if(bRS485DataError ==0)
+ 857   8                        {//Î´Ôø³ö´í               
+ 858   9                          Write_Cont(PRESCRIPTION_LENGTH_ADDR,(uint8 *)(&(stLocalControl.uiPrescriptionDataLen)),2);  //±£´
+             -æÊý¾Ý³¤¶È                  
+ 859   9                          bUsartRecedPrescriptionData =1; 
+ 860   9                          bBus0AckOk =1;
+ 861   9                        }
+ 862   8                        else 
+ 863   8                        {
+ 864   9                          bBus0AckFail=1; 
+ 865   9                          goto usart0RecFailRet;  //Ôø¾­³ö¹ý´íÇ¿ÖÆÍË³ö
+ 866   9                        }                 
+ 867   8                      }
+ 868   7                      break;
+ 869   7                    case PROMPT_INFO_TYPE:
+ 870   7                      if(byUsart0RecBuf[DATA_POSITION2] == 0x01)  
+ 871   7                      {//µÚÒ»Ö¡Êý¾Ý
+ 872   8                        Frame_No =1;
+ 873   8                        Frame_Type = byUsart0RecBuf[DATA_POSITION1];
+ 874   8                      /*  WREN();
+ 875   8                        Block_Erase_32K(PROMPT_DATA_START_ADDR);
+ 876   8                        Wait_Busy();*/
+ 877   8                        Write_Cont(PROMPT_DATA_START_ADDR,&(byUsart0RecBuf[DATA_POSITION5]),uiDataLen-5);       //Ã¿ÀàÐÍÊ
+             -ý¾Ý¿É´ï32K                                            
+ 878   8                        stLocalControl.uiPromptDataLen = uiDataLen-5;
+ 879   8                      }
+ 880   7                      else 
+ 881   7                      { 
+ 882   8                        if((Frame_No+1) == byUsart0RecBuf[DATA_POSITION2])
+ 883   8                        { 
+ 884   9                          if(Frame_Type == byUsart0RecBuf[DATA_POSITION1])
+ 885   9                          {//ÐÅÏ¢ÀàÐÍÒ»ÖÂ 
+ 886  10                            Frame_No++;
+ 887  10                            //²»½øÐÐ²Á³ýÐ´
+ 888  10                            if(stLocalControl.uiPromptDataLen < LENGTH_32K)
+ 889  10                            {
+ 890  11                              Write_Cont(PROMPT_DATA_START_ADDR+stLocalControl.uiPromptDataLen,&(byUsart0RecBuf[DATA_POSITIO
+             -N5]),uiDataLen-5);
+ 891  11                              stLocalControl.uiPromptDataLen  += (uiDataLen-5);   //¼ÓÊý¾Ý³¤¶È
+ 892  11                            }
+ 893  10                            else bRS485DataError=1; //×Ü³¤¶È³¬ÏÞ
+ 894  10                          }
+ 895   9                          else  bRS485DataError=1; //ÐÅÏ¢ÀàÐÍ²»Ò»ÖÂ                   
+ 896   9                        }
+ 897   8                        else    bRS485DataError=1; //ÖÐ¼äÓÐ¶ªÖ¡
+ 898   8                      }
+ 899   7                      
+ 900   7                      if(byUsart0RecBuf[DATA_POSITION4] == 0x01)
+ 901   7                      {//½áÊø±êÖ¾
+ 902   8                        if(bRS485DataError ==0)
+ 903   8                        {//Î´Ôø³ö´í               
+ 904   9                          Write_Cont(PROMPT_LENGTH_ADDR,(uint8 *)(&(stLocalControl.uiPromptDataLen)),2);  //±£´æÊý¾Ý³¤¶È   
+             -  
+ 905   9                          bUsartRecedPromptData =1;
+ 906   9                          bBus0AckOk =1;
+ 907   9                        }
+ 908   8                        else 
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 16  
+
+ 909   8                        {
+ 910   9                          bBus0AckFail=1; 
+ 911   9                          goto usart0RecFailRet;  //Ôø¾­³ö¹ý´íÇ¿ÖÆÍË³ö
+ 912   9                        }                 
+ 913   8                      }
+ 914   7                      break;
+ 915   7                      
+ 916   7                  } 
+ 917   6                }
+ 918   5                else if(pstDataFreq->byCmd == CMD_DISPLAY_FORM)
+ 919   5                {
+ 920   6                  if(byUsart0RecBuf[DATA_POSITION1]==BED_CARD_TYPE) //BED_CARD_TYPE ÔÚÕâÀï´ú±í³¤Ãû×ÖµÄ´²Í·¿¨ÐÅÏ¢
+ 921   6                  {
+ 922   7                    if(byUsart0RecBuf[DATA_POSITION2] == 0x01)  
+ 923   7                    {//µÚÒ»Ö¡Êý¾Ý
+ 924   8                      //¼ÆÊý³öÊý¾ÝÓòÓÐÐ§Êý¾ÝµÄÐ£ÑéºÍ
+ 925   8                      CheckSum = *(pstDataFreq->byData + pstDataFreq->uiLen);
+ 926   8                      for(temp =0;temp<14;temp++)   //µØÖ·6×Ö½Ú+ÃüÁî1×Ö½Ú+³¤¶È2×Ö½Ú+¸½ÊôÊý¾Ý5×Ö½Ú(¹²14×Ö½Ú)
+ 927   8                      {
+ 928   9                        CheckSum -= byUsart0RecBuf[temp+1];   //´Ósndsec¿ªÊ¼
+ 929   9                      }
+ 930   8                      
+ 931   8                      Frame_No =1;
+ 932   8                      Frame_Type = byUsart0RecBuf[DATA_POSITION1];              
+ 933   8                      Write_Cont(BED_FACE_FORM_START_ADDR_2,&(byUsart0RecBuf[DATA_POSITION5]),uiDataLen-5);
+ 934   8                      uiBedFaceFormLen = uiDataLen-5;
+ 935   8                    }
+ 936   7                    
+ 937   7                    else 
+ 938   7                    {                 
+ 939   8                      if((Frame_No+1) == byUsart0RecBuf[DATA_POSITION2])
+ 940   8                      { 
+ 941   9                        if(Frame_Type == byUsart0RecBuf[DATA_POSITION1])
+ 942   9                        {//ÐÅÏ¢ÀàÐÍÒ»ÖÂ 
+ 943  10                          Frame_No++;
+ 944  10                          //²»½øÐÐ²Á³ýÐ´  
+ 945  10                          if(uiBedFaceFormLen <LENGTH_4K)
+ 946  10                          {
+ 947  11                            //¼ÆÊý³öÊý¾ÝÓòÓÐÐ§Êý¾ÝµÄÐ£ÑéºÍ
+ 948  11                            CheckSum += *(pstDataFreq->byData + pstDataFreq->uiLen);
+ 949  11                            for(temp =0;temp<14;temp++)   //µØÖ·6×Ö½Ú+ÃüÁî1×Ö½Ú+³¤¶È2×Ö½Ú+¸½ÊôÊý¾Ý5×Ö½Ú(¹²14×Ö½Ú)
+ 950  11                            {
+ 951  12                              CheckSum -= byUsart0RecBuf[temp+1];   //´Ósndsec¿ªÊ¼
+ 952  12                            }
+ 953  11                            
+ 954  11                            Write_Cont(BED_FACE_FORM_START_ADDR_2+uiBedFaceFormLen,&(byUsart0RecBuf[DATA_POSITION5]),uiData
+             -Len-5);
+ 955  11                            uiBedFaceFormLen += (uiDataLen-5);
+ 956  11                          }
+ 957  10                          else bRS485DataError=1; //×Ü³¤¶È³¬ÏÞ
+ 958  10                        }
+ 959   9                        else  bRS485DataError=1; //ÐÅÏ¢ÀàÐÍ²»Ò»ÖÂ                 
+ 960   9                      }
+ 961   8                      else  bRS485DataError=1; //ÖÐ¼äÓÐ¶ªÖ¡
+ 962   8                    }
+ 963   7                    
+ 964   7                    if(byUsart0RecBuf[DATA_POSITION4])  
+ 965   7                    {//Ò»ÆÁ¸ñÊ½Êý¾Ý½áÊø,±£´æÊý¾Ý³¤¶È
+ 966   8                      if(bRS485DataError ==0)
+ 967   8                      {//Î´Ôø³ö´í
+ 968   9                        if(checkFormData(uiBedFaceFormLen))
+ 969   9                        {
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 17  
+
+ 970  10                          if(crcCheckData(BED_FACE_FORM_START_ADDR_2,uiBedFaceFormLen,CheckSum)==1)
+ 971  10                          {//Ô¤´æÇøÓòÊý¾ÝÐ£ÑéºÍÕýÈ·
+ 972  11        
+ 973  11                            Write_Cont(BED_FACE_FORM_LENGTH_ADDR,&uiBedFaceFormLen,2);    //Ð´³¤¶È
+*** WARNING C182 IN LINE 973 OF UART.C: pointer to different objects
+ 974  11                            SectorDataCopy(BED_FACE_FORM_START_ADDR,BED_FACE_FORM_START_ADDR_2,uiBedFaceFormLen); //Ð´Êý¾Ý
+ 975  11                            CheckSum += uiBedFaceFormLen>>8;
+ 976  11                            CheckSum += (uiBedFaceFormLen&0x00ff);
+ 977  11                            Write_Cont(BED_FACE_FORM_START_ADDR+uiBedFaceFormLen,&CheckSum,1);  //Ð´Ð£ÑéºÍ
+ 978  11                            //ÔÙ½øÐÐÐ£Ñé
+ 979  11                            if(StoreDataCheck(BED_FACE_FORM_LENGTH_ADDR,uiBedFaceFormLen+2))  //½«Êý¾Ý³¤¶ÈÒ²°üº¬½øÈ¥  
+ 980  11                            {
+ 981  12                              stLocalControl.uiBedFaceFormLen = uiBedFaceFormLen;                   
+ 982  12                              bDispBedForm=1;
+ 983  12                            }
+ 984  11                          }
+ 985  10                        }
+ 986   9                      
+ 987   9                      }
+ 988   8                    }
+ 989   7                  }
+ 990   6                }
+ 991   5              }
+ 992   4              else
+ 993   4              {//Ôø¾­³ö¹ý´í
+ 994   5                if(byUsart0RecBuf[DATA_POSITION4]==1)
+ 995   5                {//×îºóÒ»Ö¡Êý¾Ý
+ 996   6                  if(temp != 0x11)
+ 997   6                  {//²»ÊÇ¹ã²¥µØÖ·
+ 998   7                    bBus0AckFail=1;
+ 999   7                    goto usart0RecFailRet;
+1000   7                  }
+1001   6                }
+1002   5              }
+1003   4      usart0RecFailRet:
+1004   4              if(byUsart0RecBuf[DATA_POSITION4]==1)
+1005   4              {//×îºóÒ»Ö¡Êý¾Ý
+1006   5                bRS485DataError=0;  //Çå±êÖ¾
+1007   5                Frame_No =0;
+1008   5                Frame_Type= 0xff;
+1009   5              }
+1010   4      
+1011   4              
+1012   4              if(bBus0AckOk==1)
+1013   4              {
+1014   5                bBus0AckOk=0;
+1015   5                stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+1016   5                stLocalControl.stBusDealFreq.byRecSecAddr = pstDataFreq->byCmd;
+1017   5                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));         
+1018   5              }
+1019   4      
+1020   4              if(bBus0AckFail==1)
+1021   4              {
+1022   5                bBus0AckFail=0;
+1023   5                stLocalControl.stBusDealFreq.byCmd = CMD_DATA_ERROR;
+1024   5                Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));       
+1025   5              }
+1026   4            }
+1027   3          }
+1028   2          else
+1029   2          {//Êý¾Ý³¤¶È²»·û
+1030   3            if(temp !=0x11)
+C51 COMPILER V9.00   UART                                                                  03/11/2019 16:49:24 PAGE 18  
+
+1031   3            {//²»ÊÇ¹ã²¥µØÖ·
+1032   4              stLocalControl.stBusDealFreq.byCmd = CMD_DATA_ERROR;
+1033   4              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1034   4              //bRS485DataError =0;   //±êÖ¾»Ö¸´
+1035   4            }
+1036   3          }   
+1037   2        }
+1038   1      Usart0RecDealRet: 
+1039   1        SCON  |= 0X10;    //´ò¿ªREN
+1040   1      }
+*** WARNING C280 IN LINE 751 OF UART.C: 'usart0RecDisp': unreferenced label
+*** WARNING C280 IN LINE 1038 OF UART.C: 'Usart0RecDealRet': unreferenced label
+1041          
+1042          
+1043          /**********************************************************
+1044          *º¯ÊýÃû³Æ     :UsartManager
+1045          *º¯ÊýÃèÊö         :µ¥×ÜÏß0¹ÜÀíÏß³Ì
+1046          *ÊäÈë²ÎÊý       :
+1047          *·µ»ØÖµ       :
+1048          *È«¾Ö±äÁ¿     :stLocalControl
+1049          *µ÷ÓÃÄ£¿é       :
+1050          ***********************************************************
+1051          *´´½¨ÈË           :ÒüÔËÍ¬
+1052          *´´½¨ÈÕÆÚ     :2009-4-7
+1053          ***********************************************************
+1054          *ÐÞ¸ÄÈË         :
+1055          *ÐÞ¸ÄÈÕÆÚ       :
+1056          *×¢ÊÍ           :
+1057          **********************************************************/
+1058          void UsartManager(void)  
+1059          { 
+1060   1        while(true)
+1061   1        {
+1062   2          if(bUsart0RecFinish)                  //´®¿Ú0ÊÕµ½Ò»Ö¡Êý¾Ý
+1063   2          {   
+1064   3      
+1065   3      //      OSQPost(byMainCmdQ,UART0_CMD);  
+1066   3          }
+1067   2       
+1068   2          OSWait(K_TMO, 1);
+1069   2          WDT_CONTR = 0x3e; //Î¹¹·      
+1070   2        }
+1071   1      
+1072   1      }
+*** WARNING C291 IN LINE 112 OF UART.C: not every exit path returns a value
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   5256    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    310      81
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      9    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  5 WARNING(S),  0 ERROR(S)

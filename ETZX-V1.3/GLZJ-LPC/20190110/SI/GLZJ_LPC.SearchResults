@@ -1,0 +1,8 @@
+---- bySlaTalkVol Matches (7 in 4 files) ----
+custom.h (source):	uint8_t  bySlaTalkVol;									//分机通话音量
+SingleBus.c (source):		stEepromCfgData.bySlaTalkVol = 20;
+SingleBus.c (source):	stEepromCfgData.bySlaTalkVol = 20;
+SingleBus.c (source):					set_talk_voice_volue(TALK_SLAVE_CH,stEepromCfgData.bySlaTalkVol);
+SingleBus.c (source):			set_talk_voice_volue(TALK_SLAVE_CH,stEepromCfgData.bySlaTalkVol);
+uart.c (source):					stEepromCfgData.bySlaTalkVol = scon2_Rcvbuf[DATA1_POSITION];
+wpa_cli.c (source):					stEepromCfgData.bySlaTalkVol = wifi_deal_buff[DATA1_POSITION];

@@ -1,0 +1,715 @@
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE DISPLAY
+OBJECT MODULE PLACED IN display.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE display.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          
+   2          #define _IN_DISPLAY_
+   3          #include <config.h>
+   4          
+   5          
+   6          
+   7          uchar xdata Display_data[64];
+   8          
+   9          
+  10          
+  11          
+  12          void OpenLCDBLK(void)
+  13          {
+  14   1         LCD_BLK=0;
+  15   1      }
+  16          
+  17          
+  18          void CloseLCDBLK(void)
+  19          {
+  20   1         LCD_BLK=1;
+  21   1      }
+  22          
+  23          void LCD_WRITE_DATA(uchar write_data,uchar R_W)
+  24          {    
+  25   1         if(R_W==0)    //写命令
+  26   1          {
+  27   2            LCD_A0=0;
+  28   2              }
+  29   1          else                //写数据
+  30   1              {
+  31   2                LCD_A0=1;
+  32   2              }
+  33   1          LCD_DATA = write_data;
+  34   1              /*LCD_WR  = 0;
+  35   1              Delay_1us(1);
+  36   1              LCD_RD  = 1;
+  37   1              Delay_1us(1);
+  38   1              LCD_RD  = 0;
+  39   1          Delay_1us(1);*/
+  40   1              LCD_RD  = 1;
+  41   1              Delay_1us(1);
+  42   1              LCD_WR  = 0;
+  43   1              Delay_1us(1);
+  44   1              LCD_WR  = 1;
+  45   1          Delay_1us(1);
+  46   1      }
+  47          void LCD_page(uchar page)
+  48          {
+  49   1          LCD_WRITE_DATA((page+0xB0),0);
+  50   1      }
+  51          
+  52          
+  53          void InitLCD(void)
+  54          {
+  55   1         LCD_A0  = 0;
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 2   
+
+  56   1         LCD_RD  = 1;
+  57   1         LCD_WR  = 1;
+  58   1         LCD_RST = 0;
+  59   1         LCD_BLK = 0;
+  60   1         Delay_1ms(1);
+  61   1         LCD_RST = 1;
+  62   1         LCD_WRITE_DATA(0xE2,0);
+  63   1         LCD_WRITE_DATA(0xAE,0);
+  64   1         LCD_WRITE_DATA(0xA3,0);
+  65   1         LCD_WRITE_DATA(0xC8,0);
+  66   1         LCD_WRITE_DATA(0xA0,0);
+  67   1         LCD_WRITE_DATA(0xA6,0); 
+  68   1         LCD_WRITE_DATA(0x2C,0);
+  69   1         LCD_WRITE_DATA(0x2F,0);
+  70   1         LCD_WRITE_DATA(0x81,0);
+  71   1         LCD_WRITE_DATA(0x18,0);
+  72   1         LCD_WRITE_DATA(0x00,0);
+  73   1         LCD_WRITE_DATA(0x20,0);
+  74   1         LCD_WRITE_DATA(0xAF,0);
+  75   1         DisplayWelcome();
+  76   1      } 
+  77          void  read_code_number(uchar code_data,uchar positive)
+  78          {
+  79   1          uchar  i,*n_buf;
+  80   1          switch(code_data)
+  81   1           {
+  82   2            case 0:   n_buf=number_0;  break;
+  83   2                case 1:   n_buf=number_1;  break;
+  84   2                case 2:   n_buf=number_2;  break;
+  85   2                case 3:   n_buf=number_3;  break;
+  86   2                case 4:   n_buf=number_4;  break;
+  87   2                case 5:   n_buf=number_5;  break;
+  88   2                case 6:   n_buf=number_6;  break;
+  89   2                case 7:   n_buf=number_7;  break;
+  90   2                case 8:   n_buf=number_8;  break;
+  91   2                case 9:   n_buf=number_9;  break;
+  92   2                case 10:  n_buf=number_10; break;
+  93   2                case 11:  n_buf=number_11; break;
+  94   2                case 12:  n_buf=number_12; break;
+  95   2                case 13:  n_buf=number_13; break;
+  96   2           }  
+  97   1          if(positive==0)
+  98   1                 {for(i=0;i<16;i++){Display_data[i]=*n_buf;n_buf++;};}
+  99   1              else{for(i=0;i<16;i++){Display_data[i]=~*n_buf;n_buf++;};}
+ 100   1      }
+ 101          void read_code_chinese(uchar code_data,uchar positive)
+ 102          {
+ 103   1          uchar  i,*c_buf,j;
+ 104   1          switch(code_data)
+ 105   1              { 
+ 106   2                case 1:   c_buf=chiness_1;  break;
+ 107   2                case 2:   c_buf=chiness_2;  break;
+ 108   2                case 3:   c_buf=chiness_3;  break;
+ 109   2                case 4:   c_buf=chiness_4;  break;
+ 110   2                case 5:   c_buf=chiness_5;  break;
+ 111   2                case 6:   c_buf=chiness_6;  break;
+ 112   2                case 7:   c_buf=chiness_7;  break;
+ 113   2                case 8:   c_buf=chiness_8;  break;
+ 114   2                case 9:   c_buf=chiness_9;  break;
+ 115   2                case 10:  c_buf=chiness_10; break;
+ 116   2                case 11:  c_buf=chiness_11; break;
+ 117   2                case 12:  c_buf=chiness_12; break;
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 3   
+
+ 118   2                case 13:  c_buf=chiness_13; break;
+ 119   2                case 14:  c_buf=chiness_14; break;
+ 120   2                case 15:  c_buf=chiness_15; break;
+ 121   2                case 16:  c_buf=chiness_16; break;
+ 122   2                case 17:  c_buf=chiness_17; break;
+ 123   2                case 18:  c_buf=chiness_18; break;
+ 124   2                case 19:  c_buf=chiness_19; break;
+ 125   2                case 20:  c_buf=chiness_20; break;
+ 126   2                case 21:  c_buf=chiness_21; break;
+ 127   2                case 22:  c_buf=chiness_22; break;
+ 128   2                case 23:  c_buf=chiness_23; break;
+ 129   2                case 24:  c_buf=chiness_24; break;
+ 130   2                case 25:  c_buf=chiness_25; break;
+ 131   2                case 26:  c_buf=chiness_26; break;
+ 132   2                case 27:  c_buf=chiness_27; break;
+ 133   2                case 28:  c_buf=chiness_28; break;
+ 134   2                case 29:  c_buf=chiness_29; break;
+ 135   2                case 30:  c_buf=chiness_30; break;
+ 136   2                case 31:  c_buf=chiness_31; break;
+ 137   2                case 32:  c_buf=chiness_32; break;
+ 138   2                case 33:  c_buf=chiness_33; break;
+ 139   2                case 34:  c_buf=chiness_34; break;
+ 140   2                case 35:  c_buf=chiness_35; break;
+ 141   2                case 36:  c_buf=chiness_36; break;
+ 142   2                case 37:  c_buf=chiness_37; break;
+ 143   2                case 38:  c_buf=chiness_38; break;
+ 144   2                case 39:  c_buf=chiness_39; break;
+ 145   2                case 40:  c_buf=chiness_40; break;
+ 146   2            case 41:  c_buf=chiness_41; break;
+ 147   2                case 42:  c_buf=chiness_42; break;
+ 148   2                case 43:  c_buf=chiness_43; break;
+ 149   2                case 44:  c_buf=chiness_44; break;
+ 150   2                case 45:  c_buf=chiness_45; break;
+ 151   2            case 46:  c_buf=chiness_46; break;
+ 152   2                case 47:  c_buf=chiness_47; break;
+ 153   2                case 48:  c_buf=chiness_48; break;
+ 154   2                case 49:  c_buf=chiness_49; break;
+ 155   2                case 50:  c_buf=chiness_50; break;
+ 156   2                case 51:  c_buf=chiness_51; break;
+ 157   2                case 52:  c_buf=chiness_52; break;
+ 158   2                case 53:  c_buf=chiness_53; break;
+ 159   2                case 54:  c_buf=chiness_54; break;
+ 160   2                case 55:  c_buf=chiness_55; break;
+ 161   2                case 56:  c_buf=chiness_56; break;
+ 162   2                case 57:  c_buf=chiness_57; break;
+ 163   2                case 58:  c_buf=chiness_58; break;
+ 164   2                case 59:  c_buf=chiness_59; break;
+ 165   2                case 60:  c_buf=chiness_60; break;
+ 166   2                case 61:  c_buf=chiness_61; break;
+ 167   2                case 62:  c_buf=chiness_62; break;
+ 168   2                case 63:  c_buf=chiness_63; break;
+ 169   2            case 64:  c_buf=chiness_64; break;
+ 170   2                case 65:  c_buf=chiness_65; break;
+ 171   2                case 66:  c_buf=chiness_66; break;
+ 172   2                case 67:  c_buf=chiness_67; break;
+ 173   2                case 68:  c_buf=chiness_68; break;
+ 174   2                case 69:      c_buf=chiness_69; break;
+ 175   2                case 70:      c_buf=chiness_70; break;
+ 176   2                case 71:      c_buf=chiness_71; break;
+ 177   2                case 72:      c_buf=chiness_72; break;          
+ 178   2               }
+ 179   1         if(positive==0)
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 4   
+
+ 180   1            {for(i=0;i<32;i++){ j=*c_buf,Display_data[i]=j ;c_buf++;};}
+ 181   1         else{for(i=0;i<32;i++){j=*c_buf;Display_data[i]=~j;c_buf++;};}  
+ 182   1      }
+ 183          ////////////////////////////////////////////////////////////////////////////////////////////////
+ 184          //程序名：  show_number（）
+ 185          //用途：    在指定的位置显示一个字符
+ 186          //入口参数：page = 开始页，y = 开始列，number = 要显示的字符，positive = 1反显，positive=0正显
+ 187          //返回参数：无
+ 188          ////////////////////////////////////////////////////////////////////////////////////////////////
+ 189          void show_number(uchar page,uchar y,uchar number,uchar positive)
+ 190          {
+ 191   1         uchar i,buf;
+ 192   1         buf = number;
+ 193   1         if(buf<0x30)
+ 194   1           { read_code_number(number,positive);}
+ 195   1         if(buf==0x30)
+ 196   1           { for(i=0;i<16;i++){Display_data[i]=0;};}
+ 197   1         if(buf==0x31)
+ 198   1           { for(i=0;i<16;i++){Display_data[i]=0xff;};}
+ 199   1         LCD_WRITE_DATA(0x40,0);
+ 200   1         LCD_page(page);
+ 201   1         buf= y;
+ 202   1         y= y>>4;
+ 203   1         y= y&0x0F;
+ 204   1         y= y+0x10;
+ 205   1         LCD_WRITE_DATA(y,0);
+ 206   1         y= buf;
+ 207   1         y= y&0x0F;
+ 208   1         LCD_WRITE_DATA(y,0);
+ 209   1         for(i=0;i<8;i++)
+ 210   1            {LCD_WRITE_DATA(Display_data[i],1);}
+ 211   1         LCD_WRITE_DATA(0x40,0);
+ 212   1         LCD_page(page+1);
+ 213   1         y= buf;
+ 214   1         y= y>>4;
+ 215   1         y= y&0x0F;
+ 216   1         y= y+0x10;
+ 217   1         LCD_WRITE_DATA(y,0);
+ 218   1         y= buf;
+ 219   1         y= y&0x0F;
+ 220   1         LCD_WRITE_DATA(y,0);
+ 221   1         for(i=8;i<16;i++)
+ 222   1            {LCD_WRITE_DATA(Display_data[i],1);}      
+ 223   1      }
+ 224          void show_chinese(uchar page,uchar y,uchar number,uchar positive)
+ 225          {  
+ 226   1         uchar i,buf;
+ 227   1         buf = number;
+ 228   1         if((number!=0x00)&&(number!=0xff))
+ 229   1           { read_code_chinese(buf,positive);}
+ 230   1         if(number==0x00)
+ 231   1           { for(i=0;i<32;i++){Display_data[i]=0;};}
+ 232   1         if(number==0xff)
+ 233   1           { for(i=0;i<32;i++){Display_data[i]=0xff;};}
+ 234   1         LCD_WRITE_DATA(0x40,0);
+ 235   1         LCD_page(page);
+ 236   1         buf= y;
+ 237   1         y= y>>4;
+ 238   1         y= y&0x0F;
+ 239   1         y= y+0x10;
+ 240   1         LCD_WRITE_DATA(y,0);
+ 241   1         y= buf;
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 5   
+
+ 242   1         y= y&0x0F;
+ 243   1         LCD_WRITE_DATA(y,0);
+ 244   1         for(i=0;i<16;i++)
+ 245   1            {LCD_WRITE_DATA(Display_data[i],1);}
+ 246   1         LCD_WRITE_DATA(0x40,0);
+ 247   1         LCD_page(page+1);
+ 248   1         y= buf;
+ 249   1         y= y>>4;
+ 250   1         y= y&0x0F;
+ 251   1         y= y+0x10;
+ 252   1         LCD_WRITE_DATA(y,0);
+ 253   1         y= buf;
+ 254   1         y= y&0x0F;
+ 255   1         LCD_WRITE_DATA(y,0);
+ 256   1         for(i=16;i<32;i++)
+ 257   1            {LCD_WRITE_DATA(Display_data[i],1);}      
+ 258   1      }
+ 259          void clear_screen(void)
+ 260          {
+ 261   1        uchar i;
+ 262   1        for(i=0;i<8;i++)show_chinese(0,(i*16),0x00,0);
+ 263   1        for(i=0;i<8;i++)show_chinese(2,(i*16),0x00,0);
+ 264   1      }
+ 265          void clear_screen_line(uchar page,uchar positive)
+ 266          {
+ 267   1        uchar i,j;
+ 268   1        if(positive==0)j=0x00;
+ 269   1        else j=0xFF;
+ 270   1        for(i=0;i<8;i++)show_chinese(page,(i*16),j,positive);
+ 271   1      }
+ 272          void DisplayWelcome(void)        //欢迎使用！
+ 273          {
+ 274   1         clear_screen();
+ 275   1         show_chinese(1,24,9,0);
+ 276   1         show_chinese(1,40,10,0);
+ 277   1         show_chinese(1,56,11,0);
+ 278   1         show_chinese(1,72,12,0);
+ 279   1         show_chinese(1,88,13,0);
+ 280   1      }
+ 281          void DisplayMainMenu1(void)      //1:录入指纹
+ 282          {
+ 283   1         clear_screen();
+ 284   1         show_number(1,24,1,1);
+ 285   1         show_number(1,32,10,1);
+ 286   1         show_chinese(1,40,17,1);
+ 287   1         show_chinese(1,56,18,1);
+ 288   1         show_chinese(1,72,6,1);
+ 289   1         show_chinese(1,88,7,1);
+ 290   1      }
+ 291          void DisplayMainMenu2(void) //2：密码修改
+ 292          {
+ 293   1         clear_screen();
+ 294   1         show_number(1,24,2,1);
+ 295   1         show_number(1,32,10,1);
+ 296   1         show_chinese(1,40,15,1);
+ 297   1         show_chinese(1,56,16,1);
+ 298   1         show_chinese(1,72,23,1);
+ 299   1         show_chinese(1,88,24,1);
+ 300   1      }
+ 301          void DisplayMainMenu3(void)//3:密码验证
+ 302          {
+ 303   1         clear_screen();
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 6   
+
+ 304   1         show_number(1,24,3,1);
+ 305   1         show_number(1,32,10,1);
+ 306   1         show_chinese(1,40,15,1);
+ 307   1         show_chinese(1,56,16,1);
+ 308   1         show_chinese(1,72,19,1);
+ 309   1         show_chinese(1,88,20,1);
+ 310   1      }
+ 311          void DisplayMainMenu4(void)//4:取消密码验证
+ 312          {
+ 313   1         clear_screen();
+ 314   1         show_number(1,8,4,1);
+ 315   1         show_number(1,16,10,1);
+ 316   1         show_chinese(1,24,35,1);
+ 317   1         show_chinese(1,40,36,1);
+ 318   1         show_chinese(1,56,15,1);
+ 319   1         show_chinese(1,72,16,1);
+ 320   1         show_chinese(1,88,19,1);
+ 321   1         show_chinese(1,104,20,1);
+ 322   1      }
+ 323          void DisplayMainMenu5(void)//5：指纹恢复密码
+ 324          {
+ 325   1         clear_screen();
+ 326   1         show_number(1,8,5,1);
+ 327   1         show_number(1,16,10,1);
+ 328   1         show_chinese(1,24,6,1);
+ 329   1         show_chinese(1,40,7,1);
+ 330   1         show_chinese(1,56,31,1);
+ 331   1         show_chinese(1,72,32,1);
+ 332   1         show_chinese(1,88,15,1);
+ 333   1         show_chinese(1,104,16,1);
+ 334   1      }
+ 335          void DisplayMainMenu6(void)//6：密码清除指纹库
+ 336          {
+ 337   1         clear_screen();
+ 338   1         show_number(1,0,6,1);
+ 339   1         show_number(1,8,10,1);
+ 340   1         show_chinese(1,16,15,1);
+ 341   1         show_chinese(1,32,16,1);
+ 342   1         show_chinese(1,48,29,1);
+ 343   1         show_chinese(1,64,40,1);
+ 344   1         show_chinese(1,80,6,1);
+ 345   1         show_chinese(1,96,7,1);
+ 346   1         show_chinese(1,112,27,1);
+ 347   1      }
+ 348          void DisplayMainMenu7(void)//7：设置报警手机号
+ 349          {
+ 350   1         clear_screen();
+ 351   1         show_number(1,0,7,1);
+ 352   1         show_number(1,8,10,1);
+ 353   1         show_chinese(1,16,52,1);
+ 354   1         show_chinese(1,32,53,1);
+ 355   1         show_chinese(1,48,54,1);
+ 356   1         show_chinese(1,64,55,1);
+ 357   1         show_chinese(1,80,56,1);
+ 358   1         show_chinese(1,96,57,1);
+ 359   1         show_chinese(1,112,58,1);
+ 360   1      }
+ 361          void DisplayCallNumberMenu(uchar a,uchar b)//1:设置手机号一  2:设置手机号二
+ 362          {
+ 363   1         clear_screen();
+ 364   1         show_number(0,8,1,a);
+ 365   1         show_number(0,16,10,a);
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 7   
+
+ 366   1         show_chinese(0,24,52,a);
+ 367   1         show_chinese(0,40,53,a);
+ 368   1         show_chinese(0,56,56,a);
+ 369   1         show_chinese(0,72,57,a);
+ 370   1         show_chinese(0,88,58,a);
+ 371   1         show_chinese(0,104,66,a);
+ 372   1         show_number(2,8,2,b);
+ 373   1         show_number(2,16,10,b);
+ 374   1         show_chinese(2,24,52,b);
+ 375   1         show_chinese(2,40,53,b);
+ 376   1         show_chinese(2,56,56,b);
+ 377   1         show_chinese(2,72,57,b);
+ 378   1         show_chinese(2,88,58,b);
+ 379   1         show_chinese(2,104,67,b);
+ 380   1      }
+ 381          void DisplayFinger_HaveEmpty(void)//指纹库已清空!
+ 382          {
+ 383   1         clear_screen();
+ 384   1         show_chinese(1,8,6,0);
+ 385   1         show_chinese(1,24,7,0);
+ 386   1         show_chinese(1,40,27,0);
+ 387   1         show_chinese(1,56,28,0);
+ 388   1         show_chinese(1,72,29,0);
+ 389   1         show_chinese(1,88,30,0);
+ 390   1         show_chinese(1,104,13,0);
+ 391   1      }
+ 392          void DisplayEnter_OldPassword(void)//请输入原密码：
+ 393          {
+ 394   1         clear_screen();
+ 395   1         show_chinese(0,12,1,0);
+ 396   1         show_chinese(0,28,4,0);
+ 397   1         show_chinese(0,44,5,0);
+ 398   1         show_chinese(0,60,68,0);
+ 399   1         show_chinese(0,76,15,0);
+ 400   1         show_chinese(0,92,16,0);
+ 401   1         show_number(0,108,12,0);
+ 402   1      }
+ 403          void DisplayEnter_NewPassword(void)//请输入新密码：
+ 404          {
+ 405   1         clear_screen();
+ 406   1         show_chinese(0,12,1,0);
+ 407   1         show_chinese(0,28,4,0);
+ 408   1         show_chinese(0,44,5,0);
+ 409   1         show_chinese(0,60,14,0);
+ 410   1         show_chinese(0,76,15,0);
+ 411   1         show_chinese(0,92,16,0);
+ 412   1         show_number(0,108,12,0);
+ 413   1      }
+ 414          void DisplayEnter_Password(void)//请输入密码：
+ 415          {
+ 416   1         clear_screen();
+ 417   1         show_chinese(0,20,1,0);
+ 418   1         show_chinese(0,36,4,0);
+ 419   1         show_chinese(0,52,5,0);
+ 420   1         show_chinese(0,68,15,0);
+ 421   1         show_chinese(0,84,16,0);
+ 422   1         show_number(0,100,12,0);
+ 423   1      }
+ 424          void DisplayCheckPasswordError(void)//密码验证失败!
+ 425          {
+ 426   1         clear_screen();
+ 427   1         show_chinese(1,8,15,0);
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 8   
+
+ 428   1         show_chinese(1,24,16,0);
+ 429   1         show_chinese(1,40,19,0);
+ 430   1         show_chinese(1,56,20,0);
+ 431   1         show_chinese(1,72,21,0);
+ 432   1         show_chinese(1,88,22,0);
+ 433   1         show_chinese(1,104,13,0);
+ 434   1      }
+ 435          void DisplayCheckPasswordOK(void)//密码验证成功!
+ 436          {
+ 437   1         clear_screen();
+ 438   1         show_chinese(1,8,15,0);
+ 439   1         show_chinese(1,24,16,0);
+ 440   1         show_chinese(1,40,19,0);
+ 441   1         show_chinese(1,56,20,0);
+ 442   1         show_chinese(1,72,25,0);
+ 443   1         show_chinese(1,88,26,0);
+ 444   1         show_chinese(1,104,13,0);
+ 445   1      }
+ 446          void DisplayModifyPasswordOK(void)//密码修改成功！
+ 447          {
+ 448   1         clear_screen();
+ 449   1         show_chinese(1,8,15,0);
+ 450   1         show_chinese(1,24,16,0);
+ 451   1         show_chinese(1,40,23,0);
+ 452   1         show_chinese(1,56,24,0);
+ 453   1         show_chinese(1,72,25,0);
+ 454   1         show_chinese(1,88,26,0);
+ 455   1         show_chinese(1,104,13,0);
+ 456   1      }
+ 457          void DisplayEnterPhoneNumber(void)//请输入手机号：
+ 458          {
+ 459   1         clear_screen();
+ 460   1         show_chinese(0,12,1,0);
+ 461   1         show_chinese(0,28,4,0);
+ 462   1         show_chinese(0,44,5,0);
+ 463   1         show_chinese(0,60,56,0);
+ 464   1         show_chinese(0,76,57,0);
+ 465   1         show_chinese(0,92,58,0);
+ 466   1         show_number(0,108,12,0);
+ 467   1      }
+ 468          void DisplayManagerFineger(void) //请输入车主指纹:
+ 469          {
+ 470   1          clear_screen();
+ 471   1              show_chinese(1,4,1,0);
+ 472   1              show_chinese(1,20,4,0);
+ 473   1              show_chinese(1,36,5,0);
+ 474   1              show_chinese(1,52,42,0);
+ 475   1              show_chinese(1,68,43,0);
+ 476   1              show_chinese(1,84,6,0);
+ 477   1              show_chinese(1,100,7,0);
+ 478   1              show_number(1,116,12,0);
+ 479   1      
+ 480   1      }
+ 481          void DisplayFirstEnterFinger(void)       //请输入指纹：
+ 482          {
+ 483   1              clear_screen();
+ 484   1              show_chinese(1,20,1,0);
+ 485   1              show_chinese(1,36,4,0);
+ 486   1              show_chinese(1,52,5,0);
+ 487   1              show_chinese(1,68,6,0);
+ 488   1              show_chinese(1,84,7,0);
+ 489   1              show_number(1,100,12,0);
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 9   
+
+ 490   1      }
+ 491          void DisplaySecondEnterFinger(void) //请再次输入指纹：
+ 492          {
+ 493   1              clear_screen();
+ 494   1              show_chinese(1,4,1,0);
+ 495   1              show_chinese(1,20,2,0);
+ 496   1              show_chinese(1,36,3,0);
+ 497   1              show_chinese(1,52,4,0);
+ 498   1              show_chinese(1,68,5,0);
+ 499   1              show_chinese(1,84,6,0);
+ 500   1              show_chinese(1,100,7,0);
+ 501   1              show_number(1,116,12,0);
+ 502   1      }       
+ 503          void DisplayEnterFingerOK(void)//指纹录入成功！
+ 504          {
+ 505   1         clear_screen();
+ 506   1         show_chinese(1,8,6,0);
+ 507   1         show_chinese(1,24,7,0);
+ 508   1         show_chinese(1,40,17,0);
+ 509   1         show_chinese(1,56,18,0);
+ 510   1         show_chinese(1,72,25,0);
+ 511   1         show_chinese(1,88,26,0);
+ 512   1         show_chinese(1,104,13,0);
+ 513   1      
+ 514   1      } 
+ 515          void DisplayEnterFingerError(void)//指纹录入失败！
+ 516          {
+ 517   1         clear_screen();
+ 518   1         show_chinese(1,8,6,0);
+ 519   1         show_chinese(1,24,7,0);
+ 520   1         show_chinese(1,40,17,0);
+ 521   1         show_chinese(1,56,18,0);
+ 522   1         show_chinese(1,72,21,0);
+ 523   1         show_chinese(1,88,22,0);
+ 524   1         show_chinese(1,104,13,0);
+ 525   1      }
+ 526          void DisplayCheckFingerOK(void) //指纹验证成功！
+ 527          {
+ 528   1         clear_screen();
+ 529   1         show_chinese(1,8,6,0);
+ 530   1         show_chinese(1,24,7,0);
+ 531   1         show_chinese(1,40,19,0);
+ 532   1         show_chinese(1,56,20,0);
+ 533   1         show_chinese(1,72,25,0);
+ 534   1         show_chinese(1,88,26,0);
+ 535   1         show_chinese(1,104,13,0);
+ 536   1      }
+ 537          void DisplayCheckFingerError(void)      //指纹验证失败！
+ 538          {
+ 539   1         clear_screen();
+ 540   1         show_chinese(1,8,6,0);
+ 541   1         show_chinese(1,24,7,0);
+ 542   1         show_chinese(1,40,19,0);
+ 543   1         show_chinese(1,56,20,0);
+ 544   1         show_chinese(1,72,21,0);
+ 545   1         show_chinese(1,88,22,0);
+ 546   1         show_chinese(1,104,13,0);
+ 547   1      }
+ 548          void DisplayRenewPassword(void) //密码已恢复！
+ 549          {
+ 550   1         clear_screen();
+ 551   1         show_chinese(1,0,37,0);
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 10  
+
+ 552   1         show_chinese(1,16,38,0);
+ 553   1         show_chinese(1,32,15,0);
+ 554   1         show_chinese(1,48,16,0);
+ 555   1         show_chinese(1,64,28,0);
+ 556   1         show_chinese(1,80,31,0);
+ 557   1         show_chinese(1,96,32,0);
+ 558   1         show_chinese(1,112,13,0);
+ 559   1      }
+ 560          void DisplayRenewFunction(void) //系统功能已恢复！
+ 561          {
+ 562   1         clear_screen();
+ 563   1         show_chinese(1,0,37,0);
+ 564   1         show_chinese(1,16,38,0);
+ 565   1         show_chinese(1,32,33,0);
+ 566   1         show_chinese(1,48,34,0);
+ 567   1         show_chinese(1,64,28,0);
+ 568   1         show_chinese(1,80,31,0);
+ 569   1         show_chinese(1,96,32,0);
+ 570   1         show_chinese(1,112,13,0);
+ 571   1      
+ 572   1      }
+ 573          void DisplayCancelFunction(void) //系统功能已取消！
+ 574          {
+ 575   1         clear_screen();
+ 576   1         show_chinese(1,0,37,0);
+ 577   1         show_chinese(1,16,38,0);
+ 578   1         show_chinese(1,32,33,0);
+ 579   1         show_chinese(1,48,34,0);
+ 580   1         show_chinese(1,64,28,0);
+ 581   1         show_chinese(1,80,35,0);
+ 582   1         show_chinese(1,96,36,0);
+ 583   1         show_chinese(1,112,13,0);
+ 584   1      }
+ 585          void DisplayEnterPhoneNumberOK(void) //手机号设置成功！
+ 586          {
+ 587   1         clear_screen();
+ 588   1         show_chinese(1,0,56,0);
+ 589   1         show_chinese(1,16,57,0);
+ 590   1         show_chinese(1,32,58,0);
+ 591   1         show_chinese(1,48,52,0);
+ 592   1         show_chinese(1,64,53,0);
+ 593   1         show_chinese(1,80,25,0);
+ 594   1         show_chinese(1,96,26,0);
+ 595   1         show_chinese(1,112,13,0);
+ 596   1      }
+ 597          void DisplayNetOK(void) //网络检测成功！
+ 598          {
+ 599   1         clear_screen();
+ 600   1         show_chinese(1,8,60,0);
+ 601   1         show_chinese(1,24,61,0);
+ 602   1         show_chinese(1,40,62,0);
+ 603   1         show_chinese(1,56,63,0);
+ 604   1         show_chinese(1,72,25,0);
+ 605   1         show_chinese(1,88,26,0);
+ 606   1         show_chinese(1,104,13,0);
+ 607   1      }
+ 608          void DisplayNetError(void)      //无网络信号！
+ 609          {
+ 610   1         clear_screen();
+ 611   1         show_chinese(1,16,59,0);
+ 612   1         show_chinese(1,32,60,0);
+ 613   1         show_chinese(1,48,61,0);
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 11  
+
+ 614   1         show_chinese(1,64,64,0);
+ 615   1         show_chinese(1,80,65,0);
+ 616   1         show_chinese(1,96,13,0);
+ 617   1      }
+ 618          
+ 619          void DisplayInputSec(void)      //请输入区号:
+ 620          {
+ 621   1         clear_screen();
+ 622   1         show_chinese(0, 0,1,0);
+ 623   1         show_chinese(0,16,4,0);
+ 624   1         show_chinese(0,32,5,0);
+ 625   1         show_chinese(0,48,69,0);
+ 626   1         show_chinese(0,64,72,0);
+ 627   1         show_chinese(0,80,8,0);      
+ 628   1      }
+ 629          
+ 630          
+ 631          void DisplayInputRoom(void)     //请输入房号:
+ 632          {
+ 633   1         clear_screen();
+ 634   1         show_chinese(0, 0,1,0);
+ 635   1         show_chinese(0,16,4,0);
+ 636   1         show_chinese(0,32,5,0);
+ 637   1         show_chinese(0,48,70,0);
+ 638   1         show_chinese(0,64,72,0);
+ 639   1         show_chinese(0,80,8,0);      
+ 640   1      }
+ 641          
+ 642          
+ 643          void DisplayInputBed(void)      //请输入床号:
+ 644          {
+ 645   1         clear_screen();
+ 646   1         show_chinese(0, 0,1,0);
+ 647   1         show_chinese(0,16,4,0);
+ 648   1         show_chinese(0,32,5,0);
+ 649   1         show_chinese(0,48,71,0);
+ 650   1         show_chinese(0,64,72,0);
+ 651   1         show_chinese(0,80,8,0);      
+ 652   1      }
+ 653          
+ 654          
+ 655          void DisplayInputNumber(void)   //输入具体数字
+ 656          {
+ 657   1      
+ 658   1              show_number(2,96,BCD[0],0);
+ 659   1              show_number(2,104,BCD[1],0);
+ 660   1              show_number(2,112,BCD[2],0);
+ 661   1              
+ 662   1      }
+ 663          
+ 664          
+ 665          void ClearInputSec(void)
+ 666          {
+ 667   1              show_number(2,96,13,0);
+ 668   1              show_number(2,104,13,0);
+ 669   1              show_number(2,112,13,0);
+ 670   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   5150    ----
+   CONSTANT SIZE    =   ----    ----
+C51 COMPILER V8.08   DISPLAY                                                               12/19/2011 11:22:23 PAGE 12  
+
+   XDATA SIZE       =     64    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      30
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

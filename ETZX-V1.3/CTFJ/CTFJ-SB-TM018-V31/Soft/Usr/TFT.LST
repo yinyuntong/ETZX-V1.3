@@ -1,0 +1,12 @@
+C51 COMPILER V8.08   TFT                                                                   01/12/2011 10:02:07 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE TFT
+OBJECT MODULE PLACED IN TFT.OBJ
+COMPILER INVOKED BY: D:\Program Files\Keil\C51\BIN\C51.EXE TFT.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+*** ERROR C318 OF TFT.c: can't open file 'TFT.c'
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  1 ERROR(S)

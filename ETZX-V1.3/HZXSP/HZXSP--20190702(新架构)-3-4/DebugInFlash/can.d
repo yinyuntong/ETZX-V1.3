@@ -1,0 +1,9 @@
+.\DebugInFlash\can.o: USER_CODE\can.c
+.\DebugInFlash\can.o: .\LPC11xx\LPC11xx.h
+.\DebugInFlash\can.o: .\CM0\core_cm0.h
+.\DebugInFlash\can.o: C:\Keil\ARM\RV31\INC\stdint.h
+.\DebugInFlash\can.o: .\LPC11xx\system_LPC11xx.h
+.\DebugInFlash\can.o: USER_CODE\type.h
+.\DebugInFlash\can.o: USER_CODE\dataType.h
+.\DebugInFlash\can.o: USER_CODE\can_reg_cfg.h
+.\DebugInFlash\can.o: USER_CODE\can.h

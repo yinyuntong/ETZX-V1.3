@@ -1,0 +1,16 @@
+---- byEnable1 Matches (18 in 3 files) ----
+CONFIG.H (Usr):	uint8  	byEnable1;										//允许标志1
+SingleBus.c (Usr):	byEnable1 = stLocalControl.stEepromCfgData.byEnable1;
+SingleBus.c (Usr):	byEnable1 = stLocalControl.stEepromCfgData.byEnable1;
+SingleBus.c (Usr):		stLocalControl.stEepromCfgData.byEnable1 = ParameterData[4];
+SingleBus.c (Usr):		byEnable1 = stLocalControl.stEepromCfgData.byEnable1;
+SingleBus.h (Usr):uint8 	bdata byEnable1;
+SingleBus.h (Usr):sbit	bEnSickRoomBroad	= 	byEnable1^0;				//许可病区广播
+SingleBus.h (Usr):sbit	bEnOfficeBroad		=	byEnable1^1;				//许可办公区广播
+SingleBus.h (Usr):sbit	bEnAllBroad			=	byEnable1^2;				//许可全区广播
+SingleBus.h (Usr):sbit	bEnSoundNote		=	byEnable1^3;				//许可语音提示
+SingleBus.h (Usr):sbit	bEnOutRing			=	byEnable1^4;				//许可外部振铃
+SingleBus.h (Usr):sbit	bEnAutoListen		=	byEnable1^5;				//许可自动接听
+SingleBus.h (Usr):sbit	bEnVoiceNote		=	byEnable1^6;				//许可声音提示
+SingleBus.h (Usr):sbit	bEnHandleDeal		=	byEnable1^7;				//许可手柄处理
+SingleBus.h (Usr):extern 	uint8 	bdata byEnable1;

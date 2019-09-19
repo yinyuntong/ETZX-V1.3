@@ -1,0 +1,1 @@
+-c --cpu Cortex-M0 -g -O0 --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I "C:\Keil\ARM\INC" -I "C:\Keil\ARM\INC\NXP\LPC11xx" -o ".\DebugInFlash\pid.o" --omf_browse ".\DebugInFlash\pid.crf" --depend ".\DebugInFlash\pid.d" "USER_CODE\pid.c"

@@ -1,0 +1,5 @@
+---- bComRecFrame Matches (4 in 1 files) ----
+Main.c (usr):bit bComRecFrame =0;
+Main.c (usr):			bComRecFrame =1;
+Main.c (usr):		if(bComRecFrame)
+Main.c (usr):			bComRecFrame = 0;

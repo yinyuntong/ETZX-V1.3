@@ -1,0 +1,39 @@
+### uVision2 Project, (C) Keil Software
+### Do not modify !
+
+Target (boot_flash), 0x0004 // Tools: '<unspecified>'
+
+Group (startup files)
+Group (source files)
+Group (documention)
+Group (aes_lib)
+
+File 1,1,<.\startup\core_cm3.c><core_cm3.c>
+File 1,2,<.\startup\startup_LPC17xx.s><startup_LPC17xx.s>
+File 1,1,<.\LPC17xx\system_LPC17xx.c><system_LPC17xx.c>
+File 2,1,<.\source\main.c><main.c>
+File 2,1,<.\source\led.c><led.c>
+File 2,1,<.\source\global.c><global.c>
+File 2,1,<.\source\uart.c><uart.c>
+File 2,1,<.\source\interrupt.c><interrupt.c>
+File 2,1,<.\source\timer.c><timer.c>
+File 2,1,<.\source\extint.c><extint.c>
+File 2,1,<.\source\rtc.c><rtc.c>
+File 2,1,<.\source\key.c><key.c>
+File 2,1,<.\source\rf1101.c><rf1101.c>
+File 2,1,<.\source\wth080.c><wth080.c>
+File 2,1,<.\source\fm62429.c><fm62429.c>
+File 2,1,<.\source\sst25vfxxx.c><sst25vfxxx.c>
+File 2,1,<.\source\mt8870.c><mt8870.c>
+File 2,1,<.\source\function.c><function.c>
+File 2,1,<.\source\wdt.c><wdt.c>
+File 2,1,<.\source\Inflash.c><Inflash.c>
+File 2,1,<.\source\view_table.c><view_table.c>
+File 2,1,<.\source\aes.c><aes.c>
+File 2,1,<.\source\GenPassword.c><GenPassword.c>
+File 3,5,<.\output\boot_ram\list\boot_ram.map><boot_ram.map>
+
+
+Options 1,0,0  // Target 'boot_flash'
+EndOpt
+

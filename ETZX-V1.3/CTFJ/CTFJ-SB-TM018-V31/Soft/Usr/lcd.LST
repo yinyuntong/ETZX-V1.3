@@ -1,0 +1,1394 @@
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE LCD
+OBJECT MODULE PLACED IN lcd.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE lcd.c LARGE BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #define _IN_LCD_
+   2          #include "config.h"
+   3          
+   4          
+   5          uchar xdata fontbuf1,fontbuf2;
+   6          uint8 xdata ASCII_BCD[3];
+   7          //uint16 xdata DispPageAddr[10];
+   8          
+   9          uint8 xdata DispDataBuff[160];
+  10          uint8 xdata CurrentPage;
+  11          
+  12          uint8 code ColonCode16x32[64]={ 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  13                                                                          0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x80,0x03,0xC0,0x03,0xC0,
+  14                                                                          0x01,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x80,
+  15                                                                          0x03,0xC0,0x03,0xC0,0x01,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  16                                                                          0x00,0x00,0x00,0x00,0x00,0x00,};/*":",0*/
+  17          
+  18          
+  19          bit bSecondDisState;    //常态界面秒灯状态
+  20          
+  21          
+  22          extern STLocalControl xdata stLocalControl;
+  23          
+  24          uint16 xdata DisplayedLen=0;
+  25          
+  26          
+  27          
+  28          void Delayms(uint ms);
+  29          void Send_ST7735_Command(uchar st7735_command);
+  30          void Send_ST7735_Data(uchar st7735_data);
+  31          void ST7735_Init(void);
+  32          void Set_Display_Area(uchar start_x,uchar end_x,uchar start_y,uchar end_y);
+  33          void Lcd_Clear(uint color);
+  34          void Display_Dot(uchar x,uchar y,uint color);  
+  35          void Display_HLine(uchar x,uchar y,uchar width,uint color);
+  36          void Display_VLine(uchar x,uchar y,uchar height,uint color);
+  37          void Display_ASCII(uint8 x,uint8 y,uint8 *p,uint16 fcolor,uint16 bcolor,uint8 size);
+  38          void Display_Chinese(uint8 x,uint8 y,uint8 *p,uint16 fcolor,uint16 bcolor,uint8 size);
+  39          void Lcd_Fill(uchar start_x,uchar start_y,uchar width,uchar height,uint color);
+  40          
+  41          
+  42          
+  43          
+  44          void Delayms(uint ms)     
+  45          {
+  46   1         uint i;
+  47   1         for(;ms!=0;ms--)
+  48   1              {
+  49   2                      for(i=900;i!=0;i--);
+  50   2                      WDT_CONTR = 0x3d;       //喂狗
+  51   2              }
+  52   1      }
+  53          
+  54          
+  55          void Send_ST7735_Command(uchar st7735_command)
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 2   
+
+  56          {
+  57   1       //  SpiLcdMode();
+  58   1         LCD_CS7=0;
+  59   1         LCD_RS=0;
+  60   1      
+  61   1         
+  62   1       /*
+  63   1         LCD_RD=1;
+  64   1         LCD_WR=0;
+  65   1         LCD_DATA=st7735_command;
+  66   1         LCD_WR=1;
+  67   1        */
+  68   1         SPI_WriteByte(st7735_command);
+  69   1       
+  70   1         LCD_CS7=1;
+  71   1         LCD_RS=1;
+  72   1      //   SpiNormalMode();
+  73   1      }
+  74          
+  75          
+  76          
+  77          void Send_ST7735_Data(uchar st7735_data)
+  78          {
+  79   1      //   SpiLcdMode();
+  80   1         LCD_CS7=0;
+  81   1         LCD_RS=1;
+  82   1      
+  83   1         
+  84   1      /* LCD_RD=1;
+  85   1         LCD_WR=0;
+  86   1         LCD_DATA=st7735_data;
+  87   1         LCD_WR=1;
+  88   1       */
+  89   1          SPI_WriteByte(st7735_data);
+  90   1      
+  91   1         LCD_CS7=1;
+  92   1         LCD_RS=0;
+  93   1      //   SpiNormalMode();   
+  94   1      }
+  95          
+  96          
+  97          
+  98          
+  99          //天马1.7寸液晶屏TM018使用ILI9163C控制芯片
+ 100          
+ 101          void ST7735_Init(void)
+ 102          {
+ 103   1        LCD_RST=1;             
+ 104   1        Delayms(1);
+ 105   1        LCD_RST=0;
+ 106   1        Delayms(1);
+ 107   1        LCD_RST=1;
+ 108   1        Delayms(2); 
+ 109   1      
+ 110   1      
+ 111   1        Send_ST7735_Command(0x11); //Exit Sleep
+ 112   1        Delayms(120);
+ 113   1        Send_ST7735_Command(0x26); //Set Default Gamma
+ 114   1        Send_ST7735_Data(0x04);
+ 115   1        Send_ST7735_Command(0xF2); //E0h & E1h Enable/Disable
+ 116   1        Send_ST7735_Data(0x00);
+ 117   1        Send_ST7735_Command(0xB1);//Set Frame Rate
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 3   
+
+ 118   1        Send_ST7735_Data(0x0C);
+ 119   1        Send_ST7735_Data(0x14);
+ 120   1        Send_ST7735_Command(0xC0); //Set VRH1[4:0] & VC[2:0] for VCI1 & GVDD
+ 121   1        Send_ST7735_Data(0x0C);
+ 122   1        Send_ST7735_Data(0x05);
+ 123   1        Send_ST7735_Command(0xC1); //Set BT[2:0] for AVDD & VCL & VGH & VGL
+ 124   1        Send_ST7735_Data(0x02);
+ 125   1        Send_ST7735_Command(0xC5); //Set VMH[6:0] & VML[6:0] for VOMH & VCOML
+ 126   1        Send_ST7735_Data(0x44);
+ 127   1        Send_ST7735_Data(0x52);
+ 128   1        Send_ST7735_Command(0xC7);
+ 129   1        Send_ST7735_Data(0xB7);
+ 130   1        //************* Scan direction **********//
+ 131   1        Send_ST7735_Command(0x2A); //Set Column Address
+ 132   1        Send_ST7735_Data(0x00);
+ 133   1        Send_ST7735_Data(0x00);
+ 134   1        Send_ST7735_Data(0x00);
+ 135   1        Send_ST7735_Data(0x7F);
+ 136   1        Send_ST7735_Command(0x2B); //Set Page Address
+ 137   1        Send_ST7735_Data(0x00);
+ 138   1        Send_ST7735_Data(0x00);
+ 139   1        Send_ST7735_Data(0x00);
+ 140   1        Send_ST7735_Data(0x9F);
+ 141   1        Send_ST7735_Command(0x36); //Set Scanning Direction & BGR
+ 142   1        Send_ST7735_Data(0xC8);
+ 143   1        Send_ST7735_Command(0x3a); //Set Pixel
+ 144   1        Send_ST7735_Data(0x55);
+ 145   1        //************* Gamma Setting **********//
+ 146   1        Send_ST7735_Command(0xf2); //Enable Gamma bit
+ 147   1        Send_ST7735_Data(0x01);
+ 148   1        Send_ST7735_Command(0xE0);
+ 149   1        Send_ST7735_Data(0x3F);//p1
+ 150   1        Send_ST7735_Data(0x1B);//p2
+ 151   1        Send_ST7735_Data(0x19);//p3
+ 152   1        Send_ST7735_Data(0x27);//p4
+ 153   1        Send_ST7735_Data(0x1F);//p5
+ 154   1        Send_ST7735_Data(0x0D);//p6
+ 155   1        Send_ST7735_Data(0x45);//p7
+ 156   1        Send_ST7735_Data(0xB8);//p8
+ 157   1        Send_ST7735_Data(0x30);//p9
+ 158   1        Send_ST7735_Data(0x17);//p10
+ 159   1        Send_ST7735_Data(0x0F);//p11
+ 160   1        
+ 161   1        Send_ST7735_Data(0x05);//p12
+ 162   1        Send_ST7735_Data(0x13);//p13
+ 163   1        Send_ST7735_Data(0x02);//p14
+ 164   1        Send_ST7735_Data(0x00);//p15
+ 165   1        Send_ST7735_Command(0xE1);
+ 166   1        Send_ST7735_Data(0x00);//p1
+ 167   1        Send_ST7735_Data(0x24);//p2
+ 168   1        Send_ST7735_Data(0x26);//p3
+ 169   1        Send_ST7735_Data(0x08);//p4
+ 170   1        Send_ST7735_Data(0x10);//p5
+ 171   1        Send_ST7735_Data(0x12);//p6
+ 172   1        Send_ST7735_Data(0x3A);//p7
+ 173   1        Send_ST7735_Data(0x74);//p8
+ 174   1        Send_ST7735_Data(0x4F);//p9
+ 175   1        Send_ST7735_Data(0x08);//p10
+ 176   1        Send_ST7735_Data(0x20);//p11
+ 177   1        Send_ST7735_Data(0x2A);//p12
+ 178   1        Send_ST7735_Data(0x3C);//p13
+ 179   1        Send_ST7735_Data(0x3D);//p14
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 4   
+
+ 180   1        Send_ST7735_Data(0x3F);//p15
+ 181   1        Send_ST7735_Command(0x29); // Display On
+ 182   1        Send_ST7735_Command(0x2C);//Memory Write
+ 183   1        Delayms(100);
+ 184   1      }
+ 185          /*--------------------------------------------------------------------------------------------
+ 186          函数原型: void Set_Display_Area(uint start_x,uint end_x,uint start_y,uint end_y) 
+ 187          参数说明: start_x:点的X起始坐标
+ 188                    end_x:点的X结束坐标
+ 189                            start_y:点的Y起始坐标
+ 190                    end_y:点的Y结束坐标
+ 191          返 回 值: 无
+ 192          函数功能: 设置屏幕区域
+ 193          ----------------------------------------------------------------------------------------------*/
+ 194          //SH-BL17
+ 195          /*void Set_Display_Area(uchar start_x,uchar end_x,uchar start_y,uchar end_y)
+ 196          {
+ 197            Send_ST7735_Command(0x2A);
+ 198            Send_ST7735_Data(0x00);
+ 199            Send_ST7735_Data(start_x+2);
+ 200            Send_ST7735_Data(0x00);
+ 201            Send_ST7735_Data(end_x+2);
+ 202            Send_ST7735_Command(0x2B);
+ 203            Send_ST7735_Data(0x00);
+ 204            Send_ST7735_Data(start_y+1);
+ 205            Send_ST7735_Data(0x00);
+ 206            Send_ST7735_Data(end_y+1);
+ 207          }*/
+ 208          
+ 209          
+ 210          //p-ts7017显示屏
+ 211          void Set_Display_Area(uchar start_x,uchar end_x,uchar start_y,uchar end_y)
+ 212          {
+ 213   1        Send_ST7735_Command(0x2A);
+ 214   1        Send_ST7735_Data(0x00);
+ 215   1        Send_ST7735_Data(start_x);
+ 216   1        Send_ST7735_Data(0x00);
+ 217   1        Send_ST7735_Data(end_x);
+ 218   1        Send_ST7735_Command(0x2B);
+ 219   1        Send_ST7735_Data(0x00);
+ 220   1        Send_ST7735_Data(start_y);
+ 221   1        Send_ST7735_Data(0x00);
+ 222   1        Send_ST7735_Data(end_y);
+ 223   1      }
+ 224          /*--------------------------------------------------------------------------------------------
+ 225          函数原型: void Lcd_Clear(uint color)
+ 226          参数说明: color:清屏的颜色
+ 227          返 回 值: 无
+ 228          函数功能: 清屏
+ 229          ----------------------------------------------------------------------------------------------*/
+ 230          void Lcd_Clear(uint color)
+ 231          {
+ 232   1        uchar xdata i,j;
+ 233   1        Set_Display_Area(0x00,0x7F,0x00,0x9F);
+ 234   1        Send_ST7735_Command(0x2C);
+ 235   1        for(i=0;i<160;i++)
+ 236   1          {
+ 237   2           for(j=0;j<128;j++)
+ 238   2           {
+ 239   3            Send_ST7735_Data(color/256);
+ 240   3                Send_ST7735_Data(color%256);
+ 241   3               }
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 5   
+
+ 242   2          }
+ 243   1      }
+ 244          /*--------------------------------------------------------------------------------------------------------
+             --------------------------------------
+ 245          函数原型: void Lcd_Fill(uchar start_x,uchar start_y,uchar width,uchar height,uint color)
+ 246          参数说明: start_x--x点的起始坐标值
+ 247                    start_y--y点的起始坐标值
+ 248                            width  --填充的宽度
+ 249                            height --填充的高度
+ 250                            color  --块填充的颜色
+ 251          返 回 值: 无
+ 252          函数功能：块填充
+ 253          ----------------------------------------------------------------------------------------------------------
+             --------------------------------------*/ 
+ 254          void Lcd_Fill(uchar start_x,uchar start_y,uchar width,uchar height,uint color)
+ 255          {
+ 256   1        uchar xdata i,j;
+ 257   1        Set_Display_Area(start_x,start_x+width-1,start_y,start_y+height-1);
+ 258   1        Send_ST7735_Command(0x2C);
+ 259   1         for(i=0;i<height;i++)
+ 260   1          {
+ 261   2           for(j=0;j<width;j++)
+ 262   2           {
+ 263   3            Send_ST7735_Data(color/256);
+ 264   3                Send_ST7735_Data(color%256);
+ 265   3               }
+ 266   2         }
+ 267   1      }
+ 268          
+ 269          void DisplayBlock(uint8 start_x,uint8 start_y,uint8 end_x,uint8 end_y, uint8 srgb)
+ 270          {
+ 271   1              uint16 xdata color;
+ 272   1              uint8 xdata width,height;
+ 273   1              uint8 i,j;
+ 274   1              switch(srgb)
+ 275   1              {
+ 276   2                      case BLACK_CODE:
+ 277   2                              color=BLACK;
+ 278   2                              break;
+ 279   2                      case BLUE_CODE:
+ 280   2                              color=BLUE;
+ 281   2                              break;  
+ 282   2                      case GREEN_CODE:
+ 283   2                              color=GREEN;
+ 284   2                              break;  
+ 285   2                      case CYAN_CODE:
+ 286   2                              color=CYAN;
+ 287   2                              break;
+ 288   2                      case RED_CODE:
+ 289   2                              color=RED;
+ 290   2                              break;
+ 291   2                      case PURPLE_CODE:
+ 292   2                              color=PURPLE;
+ 293   2                              break;
+ 294   2                      case YELLOW_CODE:
+ 295   2                              color=YELLOW;
+ 296   2                              break;
+ 297   2                      default:
+ 298   2                      case WHITE_CODE:
+ 299   2                              color=WHITE;
+ 300   2                              break;          
+ 301   2              }
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 6   
+
+ 302   1      
+ 303   1        Set_Display_Area(start_x,end_x,start_y,end_y);
+ 304   1        Send_ST7735_Command(0x2C);
+ 305   1        width=end_x-start_x+1;
+ 306   1        height=end_y-start_y+1;
+ 307   1        for(j=0;j<height;j++)
+ 308   1        {
+ 309   2              for(i=0;i<width;i++)
+ 310   2              {
+ 311   3                      Send_ST7735_Data(color/256);
+ 312   3                      Send_ST7735_Data(color%256);
+ 313   3              }
+ 314   2        } 
+ 315   1        
+ 316   1      }
+ 317          
+ 318          /*------------------------------------------------------------------------------
+ 319          函数原型: void Display_Dot(uchar x,uchar y,uint color)    
+ 320          参数说明: x:点的X坐标,y:点的Y坐标,color:点的颜色
+ 321          返 回 值: 无
+ 322          函数功能: 在屏幕上显示点
+ 323          -------------------------------------------------------------------------------*/
+ 324          void Display_Dot(uchar x,uchar y,uint color)  
+ 325          {  
+ 326   1        Set_Display_Area(x,x,y,y);
+ 327   1        Send_ST7735_Command(0x2C);
+ 328   1        Send_ST7735_Data(color/256);
+ 329   1        Send_ST7735_Data(color%256);
+ 330   1      }
+ 331          /*-------------------------------------------------------------------------------------------------
+ 332          函数原型: void Display_HLine(uchar x,uchar y,uchar width,uint color)
+ 333          参数说明: x:点的X坐标,y:点的Y坐标,width:水平直线的长度,color:点的颜色
+ 334          返 回 值: 无
+ 335          函数功能: 在屏幕上显示水平直线
+ 336          --------------------------------------------------------------------------------------------------*/
+ 337          void Display_HLine(uchar x,uchar y,uchar width,uint color)
+ 338          {
+ 339   1        Set_Display_Area(x,x+width-1,y,y);
+ 340   1        Send_ST7735_Command(0x2C);
+ 341   1        while(width--)
+ 342   1        {
+ 343   2              WDT_CONTR = 0x3d;       //喂狗
+ 344   2          Send_ST7735_Data(color/256);
+ 345   2              Send_ST7735_Data(color%256);
+ 346   2        }
+ 347   1      }
+ 348          /*--------------------------------------------------------------------------------------------------
+ 349          函数原型: void Display_VLine(uchar x,uchar y,uchar height,uint color)
+ 350          参数说明: x:点的X坐标,y:点的Y坐标,height:垂直直线的长度,color:点的颜色
+ 351          返 回 值: 无
+ 352          函数功能: 在屏幕上显示垂直直线
+ 353          ----------------------------------------------------------------------------------------------------*/
+ 354          void Display_VLine(uchar x,uchar y,uchar height,uint color)
+ 355          {
+ 356   1        Set_Display_Area(x,x,y,y+height-1);
+ 357   1        Send_ST7735_Command(0x2C);
+ 358   1        while(height--)
+ 359   1        {
+ 360   2              WDT_CONTR = 0x3d;       //喂狗
+ 361   2          Send_ST7735_Data(color/256);
+ 362   2              Send_ST7735_Data(color%256);
+ 363   2        }
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 7   
+
+ 364   1      } 
+ 365          
+ 366          /*--------------------------------------------------------------------------------------------------------
+             -------------------------------
+ 367          函数原型: void Display_ASCII(uint16 xdata x,uint16 xdata y,uint8 xdata *p,uint32 xdata fcolor,uint32 xdata
+             - bcolor)
+ 368          参数说明: x:字符的X坐标,y:字符的Y坐标,frcolor:字符的颜色，brcolor:字符的背景颜色
+ 369          返 回 值: 无
+ 370          函数功能: 在屏幕上显示字符
+ 371          ----------------------------------------------------------------------------------------------------------
+             -------------------------------*/
+ 372           void Display_ASCII(uint8 x,uint8 y,uint8 *p,uint16 fcolor,uint16 bcolor,uint8 size)
+ 373          {
+ 374   1      
+ 375   1        uint8 xdata i,j;
+ 376   1        switch(size)
+ 377   1         {
+ 378   2         case 1: //8*16
+ 379   2                 Set_Display_Area(x,x+7,y,y+15);
+ 380   2                 i=16;
+ 381   2                 break;
+ 382   2         case 2: //12*24
+ 383   2                 Set_Display_Area(x,x+15,y,y+23);
+ 384   2                 i=48;
+ 385   2                 break;
+ 386   2         case 3: //16*32
+ 387   2                 Set_Display_Area(x,x+15,y,y+31);
+ 388   2                 i=64;
+ 389   2                 break;
+ 390   2         default://默认为8*16
+ 391   2                 Set_Display_Area(x,x+7,y,y+15);
+ 392   2                 i=16;
+ 393   2                 break;          
+ 394   2         }
+ 395   1      
+ 396   1        Send_ST7735_Command(0x2C);
+ 397   1        
+ 398   1        for(;i>0;i--)
+ 399   1         {
+ 400   2                for(j=0;j<8;j++)
+ 401   2                {
+ 402   3                         if(*p&(0x80>>j))
+ 403   3                         {
+ 404   4                                 fontbuf1=fcolor/256;
+ 405   4                                 fontbuf2=fcolor%256;
+ 406   4                         }
+ 407   3                         else
+ 408   3                         {
+ 409   4                                 fontbuf1=bcolor/256;
+ 410   4                                 fontbuf2=bcolor%256;
+ 411   4                         }
+ 412   3                         Send_ST7735_Data(fontbuf1);
+ 413   3                         Send_ST7735_Data(fontbuf2);
+ 414   3                }
+ 415   2                p++;
+ 416   2        }
+ 417   1      }
+ 418          
+ 419          
+ 420          
+ 421          
+ 422          
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 8   
+
+ 423          void Display_Chinese(uint8 x,uint8 y,uint8 *p,uint16 fcolor,uint16 bcolor,uint8 size)
+ 424          {
+ 425   1        uint8 xdata i,j;
+ 426   1        switch(size)
+ 427   1         {
+ 428   2         case 1: //15*16
+ 429   2         default:
+ 430   2                 Set_Display_Area(x,x+15,y,y+15);
+ 431   2                 i=32;        //32个字节点阵数据
+ 432   2                 break;
+ 433   2      
+ 434   2         case 3: //32*32
+ 435   2                 Set_Display_Area(x,x+31,y,y+31);
+ 436   2                 i=128;
+ 437   2                 break;
+ 438   2         
+ 439   2         }
+ 440   1      
+ 441   1         Send_ST7735_Command(0x2C);
+ 442   1         for(;i>0;i--)
+ 443   1              {
+ 444   2                 for(j=0;j<8;j++)
+ 445   2                 {
+ 446   3                              if(*p&(0x80>>j))
+ 447   3                              {
+ 448   4                                      fontbuf1=fcolor/256;
+ 449   4                                      fontbuf2=fcolor%256;
+ 450   4                              }
+ 451   3                              else
+ 452   3                              {
+ 453   4                                      fontbuf1=bcolor/256;
+ 454   4                                      fontbuf2=bcolor%256;
+ 455   4      
+ 456   4                              }
+ 457   3                              Send_ST7735_Data(fontbuf1);
+ 458   3                              Send_ST7735_Data(fontbuf2);
+ 459   3                 }
+ 460   2                 p++;
+ 461   2         }
+ 462   1       }
+ 463          
+ 464          
+ 465          void ASCIIXDirectionIncrease(uint8  size,uint8 *px,uint8 *py)
+ 466          {
+ 467   1              uint8 xdata x,y;
+ 468   1              x=*px;
+ 469   1              y=*py;
+ 470   1              switch(size)
+ 471   1              {
+ 472   2              case 1://8*16
+ 473   2              default:
+ 474   2                      if(x+8<LCD_PIX_X) x+=8;
+ 475   2                      else 
+ 476   2                      {
+ 477   3                              if(y+16<LCD_PIX_Y) {y+=16;x=0;}
+ 478   3                              else {x=0;y=0;}
+ 479   3                      }
+ 480   2                      break;
+ 481   2              case 2://12*24
+ 482   2                      if(x+12<LCD_PIX_X) x+=12;
+ 483   2                      else 
+ 484   2                      {
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 9   
+
+ 485   3                              if(y+24<LCD_PIX_Y) {y+=24;x=0;}
+ 486   3                              else {x=0;y=0;}
+ 487   3                      }
+ 488   2                      break;
+ 489   2              case 3://16*32
+ 490   2                      if(x+16<LCD_PIX_X) x+=16;
+ 491   2                      else 
+ 492   2                      {
+ 493   3                              if(y+32<LCD_PIX_Y) {y+=32;x=0;}
+ 494   3                              else {x=0;y=0;}
+ 495   3                      }
+ 496   2                      break;  
+ 497   2              }
+ 498   1              *px=x;
+ 499   1              *py=y;
+ 500   1      }
+ 501          
+ 502          
+ 503          void ChineseXDirectionIncrease(uint8 size,uint8 *px,uint8 *py)
+ 504          {
+ 505   1              uint8 xdata x,y;
+ 506   1              x=*px;
+ 507   1              y=*py;
+ 508   1              switch(size)
+ 509   1              {
+ 510   2              case 1: //15*16
+ 511   2              default:
+ 512   2                      if(x+16<LCD_PIX_X) x+=16;
+ 513   2                      else 
+ 514   2                      {
+ 515   3                              if(y+16<LCD_PIX_Y) {y+=16;x=0;}
+ 516   3                              else {x=0;y=0;}
+ 517   3                      }
+ 518   2                      break;
+ 519   2      
+ 520   2              case 3://32*32
+ 521   2                      if(x+32<LCD_PIX_X) x+=32;
+ 522   2                      else 
+ 523   2                      {
+ 524   3                              if(y+32<LCD_PIX_Y) {y+=32;x=0;}
+ 525   3                              else {x=0;y=0;}
+ 526   3                      }
+ 527   2                      break;
+ 528   2      
+ 529   2              }
+ 530   1              *px=x;
+ 531   1              *py=y;
+ 532   1      }
+ 533          
+ 534          
+ 535          
+ 536          void DisplayDigitString(uint8 *px,uint8 *py,uint8 *pDigit,uint8 Length,uint16 fcolor,uint16 bcolor,uint8 s
+             -ize)
+ 537          {
+ 538   1              uint8 xdata x,y;
+ 539   1              x=*px;
+ 540   1              y=*py;
+ 541   1              for(;Length>0;Length--)
+ 542   1              {
+ 543   2                      CCAPM0=0X00;    //禁止调度      
+ 544   2                      if(*pDigit<10) Get_GT23_Data(0x00,*pDigit+48,size);
+ 545   2                      else Get_GT23_Data(0x00,*pDigit+55,size);
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 10  
+
+ 546   2                      CCAPM0=0X49;    //开放调度              
+ 547   2                      Display_ASCII(x,y,GT23_Rec_Data,fcolor,bcolor,size);
+ 548   2      
+ 549   2                      ASCIIXDirectionIncrease(size,&x,&y);
+ 550   2                      pDigit++;
+ 551   2              }
+ 552   1              *px=x;
+ 553   1              *py=y;
+ 554   1      }
+ 555          
+ 556          
+ 557          void DisplayDigit(uint8 x,uint8 y,uint8 Digit,uint16 fcolor,uint16 bcolor,uint8 size)
+ 558          {
+ 559   1              CCAPM0=0X00;    //禁止调度      
+ 560   1              if(Digit<10) Get_GT23_Data(0x00,Digit+48,size);
+ 561   1              else Get_GT23_Data(0x00,Digit+55,size);
+ 562   1              CCAPM0=0X49;    //开放调度              
+ 563   1              Display_ASCII(x,y,GT23_Rec_Data,fcolor,bcolor,size);
+ 564   1      }
+ 565          
+ 566          
+ 567          void DisplayASCIIString(uint8 *px,uint8 *py,uint8 *pASCII,uint8 Length,uint16 fcolor,uint16 bcolor,uint8 s
+             -ize)
+ 568          {
+ 569   1              uint8 xdata x,y;
+ 570   1              x=*px;
+ 571   1              y=*py;
+ 572   1              for(;Length>0;Length--)
+ 573   1              {
+ 574   2                      CCAPM0=0X00;    //禁止调度      
+ 575   2                      Get_GT23_Data(0x00,*pASCII,size);
+ 576   2                      CCAPM0=0X49;    //开放调度              
+ 577   2                      Display_ASCII(x,y,GT23_Rec_Data,fcolor,bcolor,size);
+ 578   2      
+ 579   2                      ASCIIXDirectionIncrease(size,&x,&y);
+ 580   2                      pASCII++;
+ 581   2              }
+ 582   1              *px=x;
+ 583   1              *py=y;
+ 584   1      }
+ 585          
+ 586          void DisplayASCII(uint8 x,uint8 y,uint8 ASCII,uint16 fcolor,uint16 bcolor,uint8 size)
+ 587          {
+ 588   1              CCAPM0=0X00;    //禁止调度      
+ 589   1              Get_GT23_Data(0x00,ASCII,size);
+ 590   1              CCAPM0=0X49;    //开放调度              
+ 591   1              Display_ASCII(x,y,GT23_Rec_Data,fcolor,bcolor,size);
+ 592   1      }
+ 593          
+ 594          
+ 595          void DisplayChineseString(uint8 *px,uint8 *py,uint8 *pChinese,uint8 Length,uint16 fcolor,uint16 bcolor,uin
+             -t8 size)
+ 596          {
+ 597   1              uint8 xdata x,y;
+ 598   1              x=*px;
+ 599   1              y=*py;
+ 600   1              for(;Length>0;Length--)
+ 601   1              {
+ 602   2                      CCAPM0=0X00;    //禁止调度      
+ 603   2                      Get_GT23_Data1(pChinese,size);
+ 604   2                      CCAPM0=0X49;    //开放调度              
+ 605   2                      Display_Chinese(x,y,GT23_Rec_Data,fcolor,bcolor,size);
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 11  
+
+ 606   2      
+ 607   2                      ChineseXDirectionIncrease(size,&x,&y);
+ 608   2                      pChinese=pChinese+2;    //一个汉字内码占两个字节
+ 609   2              }
+ 610   1              *px=x;
+ 611   1              *py=y;
+ 612   1      }
+ 613          
+ 614          
+ 615          void DisplayString(uint8 *px,uint8 *py,uint8 *pDispData,uint8 Length,uint16 fcolor,uint16 bcolor,uint8 siz
+             -e)
+ 616          {
+ 617   1              uint8 xdata x,y;
+ 618   1              x=*px;
+ 619   1              y=*py;
+ 620   1      
+ 621   1      
+ 622   1              for(;Length>0;)
+ 623   1              {       
+ 624   2                      if((*pDispData>=0x81)&&(*pDispData<=0xfe))      //高字节符合汉字内码条件
+ 625   2                      {
+ 626   3                              pDispData++;
+ 627   3                              if(*pDispData>=0x40)
+ 628   3                              {
+ 629   4                                      if(Length>=2)
+ 630   4                                      {//防止混乱数据串时数据长度向0  溢出
+ 631   5                                              pDispData--;
+ 632   5                                              Get_GT23_Data1(pDispData,size); 
+ 633   5      
+ 634   5                                              //先进行空间判断
+ 635   5                                              switch(size)
+ 636   5                                              {
+ 637   6                                                      case 1:
+ 638   6                                                      default:
+ 639   6                                                              if(x+16> LCD_PIX_X)
+ 640   6                                                              {                                                       
+ 641   7                                                                      x=0;
+ 642   7                                                                      if(y+16>LCD_PIX_Y) y=0;
+ 643   7                                                                      else y +=16;
+ 644   7                                                              }
+ 645   6                                                              break;
+ 646   6                                                      case 3:
+ 647   6                                                              if(x+32> LCD_PIX_X)
+ 648   6                                                              {
+ 649   7                                                                      x=0;
+ 650   7                                                                      if(y+32>LCD_PIX_Y) y=0;
+ 651   7                                                                      else y +=32;
+ 652   7                                                              }
+ 653   6                                                              break;                                                  
+ 654   6                                              }
+ 655   5                                              Display_Chinese(x,y,GT23_Rec_Data,fcolor,bcolor,size);
+ 656   5      
+ 657   5                                              ChineseXDirectionIncrease(size,&x,&y);
+ 658   5                                              pDispData=pDispData+2;  //一个汉字内码占两个字节
+ 659   5                                              Length -=2;
+ 660   5                                      }
+ 661   4                                      else
+ 662   4                                      {//长度不足2
+ 663   5                                              Length--;
+ 664   5                                      }
+ 665   4                              }
+ 666   3                              else
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 12  
+
+ 667   3                              {//低字节不符合汉字条件
+ 668   4                                      Length--;
+ 669   4                              }
+ 670   3                      }
+ 671   2                      else if((*pDispData>=0x20)&&(*pDispData<=0x7e)) //符合ASCII字符条件
+ 672   2                      {
+ 673   3                              Get_GT23_Data(0x00,*pDispData,size);
+ 674   3                              //先进行空间判断
+ 675   3                              switch(size)
+ 676   3                              {
+ 677   4                                      case 1:
+ 678   4                                      default:
+ 679   4                                              if(x+8> LCD_PIX_X)
+ 680   4                                              {
+ 681   5                                                      x=0;
+ 682   5                                                      if(y+16>LCD_PIX_Y) y=0;
+ 683   5                                                      else y +=16;
+ 684   5                                              }
+ 685   4                                              break;
+ 686   4                                      case 2:
+ 687   4                                              if(x+12> LCD_PIX_X)
+ 688   4                                              {
+ 689   5                                                      x=0;
+ 690   5                                                      if(y+24>LCD_PIX_Y) y=0;
+ 691   5                                                      else y +=24;
+ 692   5                                              }
+ 693   4                                              break;  
+ 694   4                                      case 3:
+ 695   4                                              if(x+16> LCD_PIX_X)
+ 696   4                                              {
+ 697   5                                                      x=0;
+ 698   5                                                      if(y+32>LCD_PIX_Y) y=0;
+ 699   5                                                      else y +=32;
+ 700   5                                              }
+ 701   4                                              break;                                                  
+ 702   4                              }                       
+ 703   3                              Display_ASCII(x,y,GT23_Rec_Data,fcolor,bcolor,size);
+ 704   3      
+ 705   3                              ASCIIXDirectionIncrease(size,&x,&y);
+ 706   3                              pDispData++;
+ 707   3                              Length--;
+ 708   3                      }
+ 709   2                      else    //其它不相关数据
+ 710   2                      {
+ 711   3                              pDispData++;
+ 712   3                              Length--;               
+ 713   3                      }
+ 714   2              }
+ 715   1              
+ 716   1              *px=x;
+ 717   1              *py=y;
+ 718   1      }
+ 719          
+ 720          
+ 721          
+ 722          
+ 723          uint8 DisplayOneScreen(uint8 *pDispData,uint8 Length,uint16 fcolor,uint16 bcolor,uint8 size)
+ 724          {
+ 725   1              uint8 xdata x=0;
+ 726   1              uint8 xdata y=0;
+ 727   1      
+ 728   1              uint8 xdata DispedLen=0;
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 13  
+
+ 729   1      
+ 730   1              for(;Length>0;)
+ 731   1              {       
+ 732   2                      if((*pDispData>=0x81)&&(*pDispData<=0xfe))      //高字节符合汉字内码条件
+ 733   2                      {
+ 734   3                              pDispData++;
+ 735   3                              if(*pDispData>=0x40)
+ 736   3                              {
+ 737   4                                      if(Length>=2)
+ 738   4                                      {//防止混乱数据串时数据长度向0  溢出
+ 739   5                                              pDispData--;
+ 740   5                                              Get_GT23_Data1(pDispData,size); 
+ 741   5      
+ 742   5                                              //先进行空间判断，当行有空间:x,y 坐标不变
+ 743   5                                                                                              //   当行无空间:x,y坐标改到下一行起始
+ 744   5                                                                                              //   如果超出一屏空间，退出
+ 745   5                                              switch(size)
+ 746   5                                              {
+ 747   6                                                      case 1:
+ 748   6                                                      default:
+ 749   6                                                              if(x+16> LCD_PIX_X)
+ 750   6                                                              {                                                       
+ 751   7                                                                      x=0;
+ 752   7                                                                      if(y+18>LCD_PIX_Y) return DispedLen;            //一屏空间已写满，返回
+ 753   7                                                                      else y +=18;                    //加2行行间隔
+ 754   7                                                              }
+ 755   6                                                              break;
+ 756   6                                                      case 3:
+ 757   6                                                              if(x+32> LCD_PIX_X)
+ 758   6                                                              {
+ 759   7                                                                      x=0;
+ 760   7                                                                      if(y+34>LCD_PIX_Y) return DispedLen;
+ 761   7                                                                      else y +=34;                    //加2行行间隔
+ 762   7                                                              }
+ 763   6                                                              break;                                                  
+ 764   6                                              }
+ 765   5                                              Display_Chinese(x,y,GT23_Rec_Data,fcolor,bcolor,size);
+ 766   5      
+ 767   5                                              //ChineseXDirectionIncrease(size,&x,&y);
+ 768   5                                              if(size==3) x+= 32;
+ 769   5                                              else x+= 16;
+ 770   5                                              pDispData=pDispData+2;  //一个汉字内码占两个字节
+ 771   5                                              Length -=2;
+ 772   5                                              DispedLen +=2;
+ 773   5                                              
+ 774   5                                      }
+ 775   4                                      else
+ 776   4                                      {//长度不足2
+ 777   5                                              Length--;
+ 778   5                                              return DispedLen;
+ 779   5                                      }
+ 780   4                              }
+ 781   3                              else
+ 782   3                              {//低字节不符合汉字条件
+ 783   4                                      Length--;
+ 784   4                              }
+ 785   3                      }
+ 786   2                      else if((*pDispData>=0x20)&&(*pDispData<=0x7e)) //符合ASCII字符条件
+ 787   2                      {
+ 788   3                              Get_GT23_Data(0x00,*pDispData,size);
+ 789   3                              //先进行空间判断，当行有空间:x,y 坐标不变
+ 790   3                                                                              //       当行无空间:x,y坐标改到下一行起始
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 14  
+
+ 791   3                                                                              //       如果超出一屏空间，退出
+ 792   3      
+ 793   3                              switch(size)
+ 794   3                              {
+ 795   4                                      case 1:
+ 796   4                                      default:
+ 797   4                                              if(x+8> LCD_PIX_X)
+ 798   4                                              {
+ 799   5                                                      x=0;
+ 800   5                                                      if(y+18>LCD_PIX_Y) return DispedLen;
+ 801   5                                                      else y +=18;            //加2行行间隔
+ 802   5                                              }
+ 803   4                                              break;
+ 804   4                                      case 2:
+ 805   4                                              if(x+12> LCD_PIX_X)
+ 806   4                                              {
+ 807   5                                                      x=0;
+ 808   5                                                      if(y+26>LCD_PIX_Y) return DispedLen;
+ 809   5                                                      else y +=26;            //加2行行间隔
+ 810   5                                              }
+ 811   4                                              break;  
+ 812   4                                      case 3:
+ 813   4                                              if(x+16> LCD_PIX_X)
+ 814   4                                              {
+ 815   5                                                      x=0;
+ 816   5                                                      if(y+34>LCD_PIX_Y) return DispedLen;
+ 817   5                                                      else y +=34;            //加2行行间隔
+ 818   5                                              }
+ 819   4                                              break;                                                  
+ 820   4                              }                       
+ 821   3                              Display_ASCII(x,y,GT23_Rec_Data,fcolor,bcolor,size);
+ 822   3      
+ 823   3                              //ASCIIXDirectionIncrease(size,&x,&y);
+ 824   3                              if(size ==3) x+=16;
+ 825   3                              else if(size ==2) x+=12;
+ 826   3                              else x+=8;
+ 827   3                              pDispData++;
+ 828   3                              Length--;
+ 829   3                              DispedLen++;
+ 830   3                      }
+ 831   2                      else    //其它不相关数据
+ 832   2                      {
+ 833   3                              if(*pDispData == 10)//换行符
+ 834   3                              {
+ 835   4                                      switch(size)
+ 836   4                                      {
+ 837   5                                              case 1:
+ 838   5                                              default:
+ 839   5                                                      if(y+18>LCD_PIX_Y) return DispedLen;
+ 840   5                                                      else {y +=18;x=0;}
+ 841   5                                                      break;
+ 842   5                                                      
+ 843   5                                              case 2:
+ 844   5                                                      if(y+26>LCD_PIX_Y) return DispedLen;
+ 845   5                                                      else {y +=26;x=0;}
+ 846   5                                                      break;  
+ 847   5                                                      
+ 848   5                                              case 3:
+ 849   5                                                      if(y+34>LCD_PIX_Y) return DispedLen;
+ 850   5                                                      else {y +=34;x=0;}
+ 851   5                                                      break;                                                  
+ 852   5                                      }
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 15  
+
+ 853   4                                      
+ 854   4                              }
+ 855   3                              
+ 856   3                              pDispData++;
+ 857   3                              Length--;
+ 858   3                              DispedLen ++;
+ 859   3                      }
+ 860   2              }
+ 861   1              return DispedLen;
+ 862   1      }
+ 863          
+ 864          
+ 865          
+ 866          
+ 867          //x,y:起始点的坐标
+ 868          //type_x_wide:原子体X轴的宽度, type_y_height:原子体Y轴的高度
+ 869          //mul_row:纵向放大倍数,   mul_col:横向放大一倍
+ 870          //cbc_filter:过滤参数 1:过滤背景色
+ 871          //p:要显示的图片数据指针
+ 872          
+ 873          void lcd_fangda_dis_text(uint8 x, uint8 y, uint8 type_x_wide, uint8 type_y_height, 
+ 874                                                           uint8 mul_row,uint8 mul_col,uint16 fcolor,uint16 bcolor,uint8 *p)
+ 875          {
+ 876   1      
+ 877   1              uint8 xdata i,j,k,m,n;
+ 878   1      
+ 879   1      
+ 880   1              Set_Display_Area(x,x+type_x_wide*mul_col-1,y,y+type_y_height*mul_row-1);
+ 881   1              Send_ST7735_Command(0X2C);
+ 882   1              for (i=0;i<type_y_height;i++) //原字体有多少行
+ 883   1              {
+ 884   2      
+ 885   2                      for(n=0;n<mul_row;n++)  //纵坐标的放大倍数
+ 886   2                      {
+ 887   3      
+ 888   3                              for(j=0;j<type_x_wide/8;j++)    //一横有几个字节,例16*16 行向2个字节
+ 889   3                              {
+ 890   4      
+ 891   4                                      for(k=0;k<8;k++)        //1个字节8点
+ 892   4                                      {
+ 893   5      
+ 894   5                                              for(m=0;m<mul_col;m++)  //横坐标放大倍数
+ 895   5                                              {
+ 896   6                                                      //if(((x+8*j*mul_col+k*mul_col+m)<LCD_PIX_X)&&((y+i*mul_row+n)<LCD_PIX_Y))      //在区域范围内
+ 897   6                                                      //{
+ 898   6                                                              if ((p[i*(type_x_wide/8)+j]>>(7-k))&0x1)
+ 899   6                                                              {
+ 900   7                                                                      fontbuf1=fcolor%256;
+ 901   7                                                                      fontbuf2=fcolor/256;                                            
+ 902   7                                                              }
+ 903   6      
+ 904   6                                                              else
+ 905   6                                                              {
+ 906   7                                                                      fontbuf1=bcolor%256;
+ 907   7                                                                      fontbuf2=bcolor/256;                                                            
+ 908   7                                                              }
+ 909   6      
+ 910   6                                                              Send_ST7735_Data(fontbuf1);
+ 911   6                                                              Send_ST7735_Data(fontbuf2);
+ 912   6                                                      //}
+ 913   6                                              }
+ 914   5                                      }
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 16  
+
+ 915   4                              }
+ 916   3                      }
+ 917   2              }
+ 918   1      }
+ 919          
+ 920          
+ 921          
+ 922          void ShowPowerUpFace(void)
+ 923          {
+ 924   1              uint8 xdata x,y;
+ 925   1      
+ 926   1              Lcd_Clear(BLUE);
+ 927   1              x=(128-16*5)/2;
+ 928   1              y=(160-16*2)/2;
+ 929   1              DisplayChineseString(&x,&y,"系统初始化",5,WHITE,BLUE,1);
+ 930   1      
+ 931   1      
+ 932   1      
+ 933   1              x=(128-16*5)/2;
+ 934   1              y +=20;
+ 935   1              DisplayChineseString(&x,&y,"版本",2,WHITE,BLUE,1);
+ 936   1              DisplayASCIIString(&x,&y,"V",1,WHITE,BLUE,1);
+ 937   1              ASCII_BCD[0]=VERSION_HI/100;
+ 938   1              ASCII_BCD[1]=(VERSION_HI%100)/10;
+ 939   1              ASCII_BCD[2]=(VERSION_HI%100)%10;       
+ 940   1              if(ASCII_BCD[0])
+ 941   1              {
+ 942   2                      DisplayDigitString(&x,&y,&(ASCII_BCD[0]),3,WHITE,BLUE,1);
+ 943   2              }
+ 944   1              else
+ 945   1              {       
+ 946   2                      if(ASCII_BCD[1])
+ 947   2                      {
+ 948   3                              DisplayDigitString(&x,&y,&(ASCII_BCD[1]),2,WHITE,BLUE,1);       
+ 949   3                      }
+ 950   2                      else DisplayDigitString(&x,&y,&(ASCII_BCD[2]),1,WHITE,BLUE,1);
+ 951   2              }
+ 952   1              DisplayASCIIString(&x,&y,".",1,WHITE,BLUE,1);
+ 953   1              
+ 954   1              ASCII_BCD[0]=VERSION_LO/100;
+ 955   1              ASCII_BCD[1]=(VERSION_LO%100)/10;
+ 956   1              ASCII_BCD[2]=(VERSION_LO%100)%10;       
+ 957   1              if(ASCII_BCD[0])
+ 958   1              {
+ 959   2                      DisplayDigitString(&x,&y,&(ASCII_BCD[0]),3,WHITE,BLUE,1);
+ 960   2              }
+ 961   1              else
+ 962   1              {       
+ 963   2                      if(ASCII_BCD[1])
+ 964   2                      {
+ 965   3                              DisplayDigitString(&x,&y,&(ASCII_BCD[1]),2,WHITE,BLUE,1);       
+ 966   3                      }
+ 967   2                      else DisplayDigitString(&x,&y,&(ASCII_BCD[2]),1,WHITE,BLUE,1);
+ 968   2              }               
+ 969   1      
+ 970   1      }
+ 971          
+ 972          
+ 973          /**********************************************************
+ 974          *函数名称                       :ShowLandingFace        
+ 975          *函数描述               :显示登陆界面
+ 976          *输入参数               :
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 17  
+
+ 977          *返回值                         :       
+ 978          *全局变量                       :
+ 979          *调用模块                       :
+ 980          ***********************************************************
+ 981          *创建人                 :
+ 982          *创建日期                       :2008-9-22
+ 983          ***********************************************************
+ 984          *修改人                         :
+ 985          *修改日期               :
+ 986          *注释                   :
+ 987          **********************************************************/ 
+ 988          void ShowLandingFace(void)
+ 989          {
+ 990   1              uint8 xdata temp1,temp2;
+ 991   1              uint8 xdata x,y;
+ 992   1      
+ 993   1      
+ 994   1              temp1=stLocalControl.stEepromCfgData.bySelfRoomAddr%100;
+ 995   1              temp2=temp1%10; //个位
+ 996   1              temp1=temp1/10; //十位
+ 997   1      
+ 998   1              x=0;y=0;        
+ 999   1              DisplayDigitString(&x,&y,&temp1,1,RED,BLUE,3);
+1000   1              DisplayDigitString(&x,&y,&temp2,1,RED,BLUE,3);
+1001   1              DisplayChineseString(&x,&y,"房",1,RED,BLUE,3);
+1002   1              
+1003   1              temp1=stLocalControl.stEepromCfgData.bySelfBedAddr%100;
+1004   1              temp2=temp1%10; //个位
+1005   1              temp1=temp1/10; //十位
+1006   1              DisplayDigitString(&x,&y,&temp1,1,RED,BLUE,3);
+1007   1              DisplayDigitString(&x,&y,&temp2,1,RED,BLUE,3);
+1008   1              DisplayChineseString(&x,&y,"床",1,RED,BLUE,3);  
+1009   1      
+1010   1              x=0;y=32;
+1011   1              temp1=stLocalControl.stTime.byYear;     //BCD码
+1012   1              temp2=temp1%16; //个位
+1013   1              temp1=temp1/16; //十位
+1014   1              DisplayDigitString(&x,&y,&temp1,1,BLACK,CYAN,3);
+1015   1              DisplayDigitString(&x,&y,&temp2,1,BLACK,CYAN,3);
+1016   1              DisplayASCIIString(&x,&y,"-",1,BLACK,CYAN,3);   
+1017   1      
+1018   1              temp1=stLocalControl.stTime.byMonth;    //BCD码
+1019   1              temp2=temp1%16; //个位
+1020   1              temp1=temp1/16; //十位
+1021   1              DisplayDigitString(&x,&y,&temp1,1,BLACK,CYAN,3);
+1022   1              DisplayDigitString(&x,&y,&temp2,1,BLACK,CYAN,3);
+1023   1              DisplayASCIIString(&x,&y,"-",1,BLACK,CYAN,3);
+1024   1      
+1025   1              temp1=stLocalControl.stTime.byDay;      //BCD码
+1026   1              temp2=temp1%16; //个位
+1027   1              temp1=temp1/16; //十位
+1028   1              DisplayDigitString(&x,&y,&temp1,1,BLACK,CYAN,3);
+1029   1              DisplayDigitString(&x,&y,&temp2,1,BLACK,CYAN,3);
+1030   1      
+1031   1              DisplayBlock(0,64,23,95,CYAN_CODE);
+1032   1              x=24;y=64;
+1033   1              temp1=stLocalControl.stTime.byHour; //BCD码
+1034   1              temp2=temp1%16; //个位
+1035   1              temp1=temp1/16; //十位
+1036   1              DisplayDigitString(&x,&y,&temp1,1,BLACK,CYAN,3);
+1037   1              DisplayDigitString(&x,&y,&temp2,1,BLACK,CYAN,3);
+1038   1              DisplayASCIIString(&x,&y,":",1,BLACK,CYAN,3);   
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 18  
+
+1039   1      
+1040   1              temp1=stLocalControl.stTime.byMinute; //BCD码
+1041   1              temp2=temp1%16; //个位
+1042   1              temp1=temp1/16; //十位
+1043   1              DisplayDigitString(&x,&y,&temp1,1,BLACK,CYAN,3);
+1044   1              DisplayDigitString(&x,&y,&temp2,1,BLACK,CYAN,3);
+1045   1              DisplayBlock(x,y,127,95,CYAN_CODE);
+1046   1      
+1047   1              DisplayBlock(0,96,31,127,GREEN_CODE);
+1048   1              x=32;y=96;
+1049   1              DisplayChineseString(&x,&y,"有需要",3,BLUE,GREEN,3);
+1050   1      //      DisplayBlock(x,y,127,127,PURPLE_CODE);
+1051   1              
+1052   1              
+1053   1      //      DisplayBlock(0,128,15,159,PURPLE_CODE);
+1054   1              x=0;y=128;
+1055   1              DisplayChineseString(&x,&y,"请呼叫",3,BLUE,GREEN,3);
+1056   1              DisplayASCIIString(&x,&y,"!",1,BLUE,GREEN,3);
+1057   1              DisplayBlock(x,y,127,159,GREEN_CODE);
+1058   1      
+1059   1              stLocalControl.byDisplayFace=LAND_FACE;
+1060   1              if(stLocalControl.byPatientDischarge==0)
+1061   1              {//该床位有病人在
+1062   2                      if(bBL_SW_State)        //背光开时段
+1063   2                              BL_SW = 1;      //打开显示屏背光
+1064   2                      else BL_SW = 0;
+1065   2              }
+1066   1              else 
+1067   1              {
+1068   2                      BL_SW=0;        //关闭显示屏背光
+1069   2              }       
+1070   1      }
+1071          
+1072          
+1073          
+1074          void ShowMainMenuFace(void)
+1075          {
+1076   1              uint8 x,y;
+1077   1              Lcd_Clear(BLUE);
+1078   1              x=0;y=0;        
+1079   1              if(MainMenuSelect==1)
+1080   1              {//被选择
+1081   2                      DisplayASCIIString(&x,&y,"1.",2,BLUE,WHITE,2);
+1082   2                      DisplayChineseString(&x,&y,"饮食方式",4,BLUE,WHITE,2);
+1083   2              }
+1084   1              else
+1085   1              {
+1086   2                      DisplayASCIIString(&x,&y,"1.",2,WHITE,BLUE,2);
+1087   2                      DisplayChineseString(&x,&y,"饮食方式",4,WHITE,BLUE,2);
+1088   2              }       
+1089   1      
+1090   1              
+1091   1              
+1092   1              
+1093   1              x=0;y=30;
+1094   1              if(MainMenuSelect==2)
+1095   1              {//被选择
+1096   2                      DisplayASCIIString(&x,&y,"2.",2,BLUE,WHITE,2);
+1097   2                      DisplayChineseString(&x,&y,"医嘱",2,BLUE,WHITE,2);
+1098   2              }
+1099   1              else 
+1100   1              {
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 19  
+
+1101   2                      DisplayASCIIString(&x,&y,"2.",2,WHITE,BLUE,2);
+1102   2                      DisplayChineseString(&x,&y,"医嘱",2,WHITE,BLUE,2);
+1103   2              }
+1104   1      
+1105   1              
+1106   1              x=0;y=60;
+1107   1              if(MainMenuSelect==3)
+1108   1              {//被选择
+1109   2                      DisplayASCIIString(&x,&y,"3.",2,BLUE,WHITE,2);
+1110   2                      DisplayChineseString(&x,&y,"提示消息",4,BLUE,WHITE,2);
+1111   2              }
+1112   1              else 
+1113   1              {//被选择
+1114   2                      DisplayASCIIString(&x,&y,"3.",2,WHITE,BLUE,2);
+1115   2                      DisplayChineseString(&x,&y,"提示消息",4,WHITE,BLUE,2);
+1116   2              }
+1117   1              
+1118   1              stLocalControl.byDisplayFace=MAIN_MENU_FACE;
+1119   1      
+1120   1      }
+1121          /**********************************************************
+1122          *函数名称                       :ShowTalkFace   
+1123          *函数描述               :显示通话界面
+1124          *输入参数               :byRoomAddr:房地址,byBedAddr:床地址
+1125          *返回值                         :       
+1126          *全局变量                       :
+1127          *调用模块                       :
+1128          ***********************************************************
+1129          *创建人                 :
+1130          *创建日期                       :2009-3-16
+1131          ***********************************************************
+1132          *修改人                         :
+1133          *修改日期               :
+1134          *注释                   :
+1135          **********************************************************/
+1136          void ShowTalkFace(void)
+1137          { 
+1138   1              uint8 xdata x,y;
+1139   1              Lcd_Clear(BLUE);
+1140   1              x=(128-32*3)/2;
+1141   1              y=(160-32)/2;
+1142   1      
+1143   1              DisplayChineseString(&x,&y,"通话中",3,WHITE,BLUE,3);
+1144   1              stLocalControl.byDisplayFace=TALK_FACE;
+1145   1      }
+1146          
+1147          
+1148          void ShowBroadFace(void)
+1149          { 
+1150   1              uint8 xdata x,y;
+1151   1              Lcd_Clear(BLUE);
+1152   1              x=(128-32*3)/2;
+1153   1              y=(160-32)/2;
+1154   1      
+1155   1              DisplayChineseString(&x,&y,"广播中",3,WHITE,BLUE,3);
+1156   1              stLocalControl.byDisplayFace=BROAD_FACE;
+1157   1      }
+1158          
+1159          
+1160          void ShowCallSuccess(void)
+1161          {
+1162   1              uint8 xdata x,y;
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 20  
+
+1163   1              Lcd_Clear(BLUE);
+1164   1              x=(128-32*4)/2;
+1165   1              y=(160-32*2-16)/2;
+1166   1      
+1167   1              DisplayChineseString(&x,&y,"呼叫成功",4,WHITE,BLUE,3);
+1168   1      
+1169   1              x=(128-32*3)/2;
+1170   1              y+=16;  
+1171   1              DisplayChineseString(&x,&y,"请等待",3,WHITE,BLUE,3);
+1172   1      
+1173   1              stLocalControl.byDisplayFace=CALL_SUCCESS_FACE;
+1174   1      }
+1175          
+1176          
+1177          
+1178          
+1179          
+1180          void ShowFace(uint8 DispFaceType)
+1181          {
+1182   1      
+1183   1              uint16 xdata TotalDataLen;
+1184   1              uint8  xdata DispDataLen;
+1185   1          uint8  xdata x,y;
+1186   1              uint32 xdata MRReadAddr;
+1187   1      
+1188   1      
+1189   1      //整个信息的数据长度
+1190   1              switch(DispFaceType)
+1191   1              {
+1192   2                      case DIET_FACE:
+1193   2                              TotalDataLen = stLocalControl.uiDietDataLen;
+1194   2                              break;
+1195   2                      case PRESCRIPTION_FACE:
+1196   2                              TotalDataLen = stLocalControl.uiPrescriptionDataLen;
+1197   2                              break;          
+1198   2                      case PROMPT_INFO_FACE:
+1199   2                              TotalDataLen = stLocalControl.uiPromptDataLen;
+1200   2                              break;
+1201   2                      default:
+1202   2                              TotalDataLen=0;
+1203   2                              break;
+1204   2              }
+1205   1      
+1206   1              if(TotalDataLen == 0)   //没有数据
+1207   1              {
+1208   2                      Lcd_Clear(BLUE);        //清屏
+1209   2                      x=0;y=64;
+1210   2                      DisplayChineseString(&x,&y,"没有数据",4,WHITE,BLUE,3);
+1211   2                      //return;
+1212   2                      goto SHOW_FACE_RETURN;
+1213   2              }
+1214   1      
+1215   1              if(DisplayedLen>=TotalDataLen) DisplayedLen =0;                 //整个数据显示完了，从头开始
+1216   1              if(DisplayedLen>=32768) DisplayedLen =0;
+1217   1      
+1218   1              //显示屏数据在铁电中的起始地址
+1219   1              switch(DispFaceType)
+1220   1              {
+1221   2                      case DIET_FACE:
+1222   2                              MRReadAddr = DIET_DATA_START_ADDR+DisplayedLen;  //一屏80个汉字(160个字节)
+1223   2                              break;
+1224   2                      case PRESCRIPTION_FACE:
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 21  
+
+1225   2                              MRReadAddr = PRESCRIPTION_DATA_START_ADDR+DisplayedLen;
+1226   2                              break;          
+1227   2                      case PROMPT_INFO_FACE:
+1228   2                              MRReadAddr = PROMPT_DATA_START_ADDR+DisplayedLen;
+1229   2                              break;
+1230   2                      default:
+1231   2                              MRReadAddr = 0;
+1232   2                              break;
+1233   2              }       
+1234   1              
+1235   1      
+1236   1              
+1237   1              if(DisplayedLen +160>=TotalDataLen)
+1238   1              {//总数据少于一屏显示数据
+1239   2                      DispDataLen = TotalDataLen - DisplayedLen;
+1240   2              }
+1241   1              else
+1242   1              {
+1243   2                      DispDataLen=160;
+1244   2              }
+1245   1              Read_Cont(DispDataBuff,MRReadAddr,DispDataLen);//将要显示的数据从存储器中读取到显示缓冲区中
+1246   1              Send_Data(DispDataBuff,DispDataLen);
+1247   1      
+1248   1              Lcd_Clear(BLUE);        //清屏  
+1249   1              DisplayedLen += DisplayOneScreen(DispDataBuff,DispDataLen,WHITE,BLUE,1);
+1250   1      
+1251   1      
+1252   1      SHOW_FACE_RETURN:
+1253   1              
+1254   1              switch(DispFaceType)
+1255   1              {
+1256   2                      case DIET_TYPE:
+1257   2                              stLocalControl.byDisplayFace=DIET_FACE;
+1258   2                              break;
+1259   2      
+1260   2                      case PRESCRIPTION_TYPE:
+1261   2                              stLocalControl.byDisplayFace=PRESCRIPTION_FACE;
+1262   2                              break;                  
+1263   2                      case PROMPT_INFO_TYPE:
+1264   2                              stLocalControl.byDisplayFace=PROMPT_INFO_FACE;
+1265   2                              break;  
+1266   2                      default:
+1267   2                              break;
+1268   2              }
+1269   1      
+1270   1      }
+1271          
+1272          
+1273          
+1274          void ShowDietFace()
+1275          {
+1276   1              stLocalControl.byDisplayFace=DIET_FACE;
+1277   1      
+1278   1      }       
+1279          
+1280          void ShowPrescriptionFace()
+1281          {
+1282   1              stLocalControl.byDisplayFace=PRESCRIPTION_FACE;
+1283   1      }
+1284          
+1285          
+1286          void ShowPromptFace()
+C51 COMPILER V9.00   LCD                                                                   02/18/2019 11:57:07 PAGE 22  
+
+1287          {
+1288   1              stLocalControl.byDisplayFace=PROMPT_INFO_FACE;
+1289   1      
+1290   1      }
+1291          /**********************************************************
+1292          *函数名称                       :DispManager    
+1293          *函数描述               :按键管理线程
+1294          *输入参数               :
+1295          *返回值                         :       
+1296          *全局变量                       :byMainCmdQ
+1297          *调用模块                       :OSQPost
+1298          ***********************************************************
+1299          *创建人                 :尹运同
+1300          *创建日期                       :2008-9-22
+1301          ***********************************************************
+1302          *修改人                         :
+1303          *修改日期               :
+1304          *注释                   :
+1305          **********************************************************/
+1306          void DispManager(void)
+1307          {       
+1308   1      
+1309   1      
+1310   1              //显示初始界面
+1311   1              ShowLandingFace();
+1312   1              while(TRUE)
+1313   1              {               
+1314   2                      WDT_CONTR = 0x3d;       //喂狗
+1315   2                      OSWait(K_TMO, 10);                                      
+1316   2              }       
+1317   1      
+1318   1      }
+1319          
+1320           
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   7601    ----
+   CONSTANT SIZE    =    181    ----
+   XDATA SIZE       =    168     215
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

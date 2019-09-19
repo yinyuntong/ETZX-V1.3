@@ -1,0 +1,37 @@
+2.mp3：0x000042f2
+3.mp3：0x000061f8
+4.mp3：0x00008406
+5.mp3：0x0000a486
+6.mp3：0x0000c4da
+7.mp3：0x0000e2da
+8.mp3：0x000102aa
+9.mp3：0x00011d10
+DTMF0.mp3：0x00014098
+DTMF1.mp3：0x00016ed8
+DTMF2.mp3：0x00019d10
+DTMF3.mp3：0x0001cb4a
+DTMF4.mp3：0x0001f964
+DTMF5.mp3：0x000227a0
+DTMF6.mp3：0x000255da
+DTMF7.mp3：0x00028410
+DTMF8.mp3：0x0002b25e
+DTMF9.mp3：0x0002e0ac
+DTMFPSOUND.mp3：0x00030ee4
+DTMFSTART.mp3：0x00033d24
+Tock.mp3：0x00036b62
+ua供氧.mp3：0x000372e2
+ub加.mp3：0x0003a3ca
+uc十.mp3：0x0003bbfe
+ud卫生间.mp3：0x0003e04c
+ue号.mp3：0x0004138a
+uf呼叫.mp3：0x000433fc
+ug完毕.mp3：0x000460fc
+uh床.mp3：0x000489e8
+ui开始.mp3：0x0004ae3a
+uj成功.mp3：0x0004db50
+uk房.mp3：0x0005066c
+ul百.mp3：0x00052082
+um输液.mp3：0x00053f0c
+un tel hangdown-8k.mp3：0x00056c58
+uo conect wifi.mp3：0x0005ce10
+up conect sever.mp3：0x00063c76

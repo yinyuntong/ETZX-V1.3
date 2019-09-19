@@ -1,0 +1,382 @@
+C51 COMPILER V9.00   OS_CPU_C                                                              02/18/2019 14:13:12 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE OS_CPU_C
+OBJECT MODULE PLACED IN .\OS_CPU_C.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ..\Target\OS_CPU_C.C LARGE BROWSE DEBUG OBJECTEXTEND PRINT(.\OS_CPU_C.lst) 
+                    -OBJECT(.\OS_CPU_C.obj)
+
+line level    source
+
+   1          /*********************************************************************************************************
+   2          **                                                             Small RTOS 51
+   3          **                                   The Real-Time Kernel For Keil c51
+   4          **
+   5          **                                  (c) Copyright 2002-2003, chenmingji
+   6          **                                           All Rights Reserved
+   7          **
+   8          **                                                  V1.12.0
+   9          **
+  10          **
+  11          **--------------文件信息--------------------------------------------------------------------------------
+  12          **文   件   名: OS_CPU_C.C
+  13          **创   建   人: 陈明计
+  14          **最后修改日期:  2003年8月17日
+  15          **描        述: Small RTOS 51与CPU(既8051系列)相关的C语言代码
+  16          **
+  17          **--------------历史版本信息----------------------------------------------------------------------------
+  18          ** 创建人: 陈明计
+  19          ** 版  本: V0.50~v1.00
+  20          ** 日　期: 2002年2月22日~2002年6月20日
+  21          ** 描　述: 基本完成
+  22          **
+  23          **------------------------------------------------------------------------------------------------------
+  24          ** 修改人: 陈明计
+  25          ** 版  本: V1.10~V1.12.0
+  26          ** 日　期: 2002年9月1日~002年12月30日
+  27          ** 描　述: 完善代码
+  28          **
+  29          **------------------------------------------------------------------------------------------------------
+  30          ** 修改人: 陈明计
+  31          ** 版  本: V1.20.0
+  32          ** 日　期: 2003年8月17日
+  33          ** 描　述: 根据新版本需要增减了函数
+  34          **
+  35          **--------------当前版本修订------------------------------------------------------------------------------
+  36          ** 修改人:
+  37          ** 日　期:
+  38          ** 描　述:
+  39          **
+  40          **------------------------------------------------------------------------------------------------------
+  41          ********************************************************************************************************/
+  42          
+  43          #define  IN_OS_CPU_C
+  44          #include "CONFIG.h"
+  45          extern uint16   uiIsrTimerCount;
+  46          
+  47          extern idata uint8 STACK[1];                    /* 堆栈起始位置,在OS_CPU_A定义 */
+  48          uint8 idata * data OSTsakStackBotton[OS_MAX_TASKS + 2];/* 任务堆栈底部位置            */
+  49          
+  50          #if EN_SP2 > 0
+              uint8 idata  Sp2[Sp2Space];                     /* 高级中断堆栈           */
+              #endif
+  53          
+  54          #if OS_MAX_TASKS < 9            
+C51 COMPILER V9.00   OS_CPU_C                                                              02/18/2019 14:13:12 PAGE 2   
+
+  55          uint8 data OSFastSwap[1];                        /* 任务是否可以快速切换 */
+  56          #else
+              uint8 data OSFastSwap[2];
+              #endif
+  59          
+  60          extern data uint16 C_XBP;
+  61          extern STUsartCfg  xdata stUsartCfg[2];
+  62          
+  63          unsigned char  timer_i=0;
+  64          
+  65          void TaskIdle(void)   small;
+  66          /*********************************************************************************************************
+  67          ** 函数名称: OSCPUInit
+  68          ** 功能描述: Small RTOS 与系统相关的初始化
+  69          ** 输　入: 无
+  70          ** 输　出 : 无
+  71          ** 全局变量: OSTaskID,OSTsakStackBotton,SP
+  72          ** 调用模块: LoadCtx
+  73          ** 
+  74          ** 作　者: 陈明计
+  75          ** 日　期: 2002年2月22日
+  76          **-------------------------------------------------------------------------------------------------------
+  77          ** 修改人:
+  78          ** 日　期:
+  79          **-------------------------------------------------------------------------------------------------------
+  80          ********************************************************************************************************/
+  81                  void OSCPUInit(void)  small
+  82          {
+  83   1          uint8 i;
+  84   1      
+  85   1          for (i = 0; i < OS_MAX_TASKS + 1; i++)
+  86   1          {
+  87   2              OSTsakStackBotton[i] = STACK;
+  88   2          }
+  89   1          OSTsakStackBotton[OS_MAX_TASKS + 1] = (uint8 idata *)(IDATA_RAM_SIZE % 256);
+  90   1          
+  91   1      }
+  92          
+  93          /*********************************************************************************************************
+  94          ** 函数名称: OSTaskStkInit
+  95          ** 功能描述: 任务堆栈初始化
+  96          ** 输　入: 无
+  97          ** 输　出 : 无
+  98          ** 全局变量: OSTaskID,OSTsakStackBotton,SP
+  99          ** 调用模块: LoadCtx
+ 100          ** 
+ 101          ** 作　者: 陈明计
+ 102          ** 日　期: 2002年2月22日
+ 103          **-------------------------------------------------------------------------------------------------------
+ 104          ** 修改人:
+ 105          ** 日　期:
+ 106          **-------------------------------------------------------------------------------------------------------
+ 107          ********************************************************************************************************/
+ 108          /*
+ 109          #if EN_REENTRANT > 0
+ 110          #define SP_ADD_BYTE  5
+ 111          #else
+ 112          #define SP_ADD_BYTE  3
+ 113          #endif
+ 114          
+ 115          
+ 116                  void OSTaskStkInit(void (code * task)(void), void xdata *ptos, uint8 TaskID) small
+C51 COMPILER V9.00   OS_CPU_C                                                              02/18/2019 14:13:12 PAGE 3   
+
+ 117          {
+ 118              uint8 i;
+ 119              uint8 idata * cp;
+ 120              uint8 idata * cp1;
+ 121              
+ 122          #if OS_MAX_TASKS < 9
+ 123                  OSFastSwap[1] |= OSMapTbl[TaskID];
+ 124          #else
+ 125                  if (TaskID < 8)
+ 126                  {
+ 127                      OSFastSwap[1] |= OSMapTbl[TaskID];
+ 128                  }
+ 129                  else
+ 130                  {
+ 131                      OSFastSwap[0] |= OSMapTbl[TaskID & 0x07];
+ 132                  }
+ 133          #endif
+ 134              
+ 135              if (TaskID < OSRunningTaskID())
+ 136              {
+ 137                  i =  OSRunningTaskID() - TaskID;
+ 138                  cp = (uint8 idata *)(&(OSTsakStackBotton[TaskID + 1]));
+ 139                  
+ 140                  do
+ 141                  {
+ 142                      *cp += SP_ADD_BYTE;
+ 143                      cp++;
+ 144                  } while (--i != 0);
+ 145                  
+ 146                  cp1 = (uint8 idata *)SP;
+ 147                  SP = SP + SP_ADD_BYTE;
+ 148                  i = SP - (uint8)(OSTsakStackBotton[TaskID + 1]);
+ 149                  cp = (uint8 idata *)SP;
+ 150                  do
+ 151                  {
+ 152                      *cp-- = *cp1--;
+ 153                  } while (--i != 0);
+ 154              }
+ 155              else
+ 156              {
+ 157                  cp1 = (uint8 idata *)(&(OSTsakStackBotton[OSRunningTaskID() + 1]));
+ 158                  
+ 159                  i = TaskID - OSRunningTaskID();
+ 160                  
+ 161                  do
+ 162                  {
+ 163                      *cp1 -= SP_ADD_BYTE;
+ 164                      cp1++;
+ 165                  } while (--i != 0);
+ 166                  
+ 167                  cp = OSTsakStackBotton[OSRunningTaskID() + 1];
+ 168                  i = OSTsakStackBotton[TaskID] - cp - SP_ADD_BYTE;
+ 169                  cp1 = cp - SP_ADD_BYTE;
+ 170                  do
+ 171                  {
+ 172                      *cp1++ = *cp++;
+ 173                  } while (--i != 0);
+ 174              }
+ 175              cp = OSTsakStackBotton[TaskID];
+ 176              *cp++ = (uint16)task % 256;
+ 177              *cp++ = (uint16)task / 256;
+ 178          #if EN_REENTRANT > 0
+C51 COMPILER V9.00   OS_CPU_C                                                              02/18/2019 14:13:12 PAGE 4   
+
+ 179              *cp++ = (uint16)ptos / 256;
+ 180              *cp++ = (uint16)ptos % 256;
+ 181          #endif
+ 182              *cp = 0;
+ 183          }
+ 184              */
+ 185          
+ 186          
+ 187          /*********************************************************************************************************
+ 188          ** 函数名称: OSTaskStkDel
+ 189          ** 功能描述: 任务堆栈删除
+ 190          ** 输　入: 无
+ 191          ** 输　出 : 无
+ 192          ** 全局变量: OSTaskID,OSTsakStackBotton,SP
+ 193          ** 调用模块: LoadCtx
+ 194          ** 
+ 195          ** 作　者: 陈明计
+ 196          ** 日　期: 2002年2月22日
+ 197          **-------------------------------------------------------------------------------------------------------
+ 198          ** 修改人:
+ 199          ** 日　期:
+ 200          **-------------------------------------------------------------------------------------------------------
+ 201          ********************************************************************************************************/
+ 202          
+ 203                  void StkDelA(uint8 TaskID)
+ 204          {
+ 205   1          uint8 idata *cp;
+ 206   1          uint8 idata *cp1;
+ 207   1          uint8 temp, i;
+ 208   1          
+ 209   1          cp = OSTsakStackBotton[TaskID];
+ 210   1          cp1 = OSTsakStackBotton[TaskID + 1];
+ 211   1          temp = cp1 - cp;
+ 212   1          for (i = TaskID + 1; i <= OSRunningTaskID(); i++)
+ 213   1          {
+ 214   2              OSTsakStackBotton[i] -= temp;
+ 215   2          }
+ 216   1          i = SP - (uint8)(cp1) + 1;
+ 217   1          do
+ 218   1          {
+ 219   2              *cp++ = *cp1++;
+ 220   2          } while (--i != 0);
+ 221   1          SP = SP - temp;
+ 222   1      }
+ 223          
+ 224          
+ 225                  void StkDelB(uint8 TaskID)
+ 226          {
+ 227   1          uint8 idata *cp;
+ 228   1          uint8 idata *cp1;
+ 229   1          uint8 temp, i;
+ 230   1      
+ 231   1          cp = OSTsakStackBotton[TaskID];
+ 232   1          cp1 = OSTsakStackBotton[TaskID + 1];
+ 233   1          i = OSTsakStackBotton[TaskID] - OSTsakStackBotton[OSRunningTaskID() + 1];
+ 234   1          if (i != 0)
+ 235   1          {
+ 236   2              do
+ 237   2              {
+ 238   3                  *cp1++ = *cp++;
+ 239   3              } while (--i != 0);
+ 240   2          }
+C51 COMPILER V9.00   OS_CPU_C                                                              02/18/2019 14:13:12 PAGE 5   
+
+ 241   1          temp = cp1 - cp;
+ 242   1          for (i = OSRunningTaskID() + 1; i <= TaskID; i++)
+ 243   1          {
+ 244   2              OSTsakStackBotton[i] += temp;
+ 245   2          }
+ 246   1      }
+ 247          
+ 248                  void StkDelC(uint8 TaskID)
+ 249          {
+ 250   1          uint8 idata *cp;
+ 251   1          extern void C_OSCtxSw(void);
+ 252   1          
+ 253   1          
+ 254   1          cp = OSTsakStackBotton[TaskID];
+ 255   1          *cp++ = (uint16)C_OSCtxSw % 256;
+ 256   1          *cp = (uint16)C_OSCtxSw / 256;
+ 257   1          SP = (uint8) cp;
+ 258   1          OSFindNextRunningTask();
+ 259   1      }
+ 260          
+ 261                  void OSTaskStkDel(uint8 TaskID)  small
+ 262          {
+ 263   1          uint8 temp;
+ 264   1      
+ 265   1          temp = 1;
+ 266   1          if(TaskID == OSRunningTaskID())
+ 267   1          {
+ 268   2              temp = 2;
+ 269   2          }
+ 270   1          else if (TaskID < OSRunningTaskID())
+ 271   1          {
+ 272   2              temp = 0;
+ 273   2          }
+ 274   1          switch (temp)
+ 275   1          {
+ 276   2              case 0:
+ 277   2                  StkDelA(TaskID);
+ 278   2                  break;
+ 279   2              case 1:
+ 280   2                  StkDelB(TaskID);
+ 281   2                  break;
+ 282   2              case 2:
+ 283   2                  StkDelC(TaskID);
+ 284   2                  break;
+ 285   2              default:
+ 286   2                  break;
+ 287   2          }
+ 288   1      }
+ 289          
+ 290          /*********************************************************************************************************
+ 291          ** 函数名称: OSTickISR
+ 292          ** 功能描述: 系统时钟中断服务函数
+ 293          ** 输　入: 无
+ 294          ** 输　出 : 无
+ 295          ** 全局变量: 无
+ 296          ** 调用模块: OS_IBT_ENTER,(UserTickTimer),OSTimeTick,OSIntExit
+ 297          ** 
+ 298          ** 作　者: 陈明计
+ 299          ** 日　期: 2002年2月22日
+ 300          **-------------------------------------------------------------------------------------------------------
+ 301          ** 修改人: 陈明计
+ 302          ** 日　期: 2002年10月23日
+C51 COMPILER V9.00   OS_CPU_C                                                              02/18/2019 14:13:12 PAGE 6   
+
+ 303          **-------------------------------------------------------------------------------------------------------
+ 304          ** 修改人:
+ 305          ** 日　期:
+ 306          **-------------------------------------------------------------------------------------------------------
+ 307          ********************************************************************************************************/
+ 308          #pragma disable                                         /* 除非最高优先级中断，否则，必须加上这一句       
+             -          */
+ 309          
+ 310           //       void OSTickISR(void) interrupt OS_TIME_ISR
+ 311                   void OSTickISR(void) interrupt 7
+ 312          
+ 313          {       
+ 314   1      #if TICK_TIMER_SHARING >1 
+                  static uint8 TickSum = 0;
+              #endif
+ 317   1      
+ 318   1      #if EN_USER_TICK_TIMER > 0 
+ 319   1         UserTickTimer();                                    /* 用户函数                                        
+             -         */
+ 320   1      #endif
+ 321   1      
+ 322   1      #if TICK_TIMER_SHARING >1 
+                  TickSum = (TickSum + 1) % TICK_TIMER_SHARING;
+                  if (TickSum != 0)
+                  {
+                      return;
+                  }
+              #endif          
+ 329   1          OS_INT_ENTER();                                     /* 中断开始处理                                   
+             - */
+ 330   1      
+ 331   1      #if EN_TIMER_SHARING > 0
+ 332   1          OSTimeTick();                                       /* 调用系统时钟处理函数                           
+             - */
+ 333   1      #else
+                  OSIntSendSignal(TIME_ISR_TASK_ID);                  /* 唤醒ID为TIME_ISR_TASK_ID的任务                 
+             -*/
+              #endif
+ 336   1          
+ 337   1          OSIntExit();                                        /* 中断结束处理                                   
+             - */
+ 338   1      }
+ 339          
+ 340          /*********************************************************************************************************
+ 341          **                            End Of File
+ 342          ********************************************************************************************************/
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    284    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      1    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

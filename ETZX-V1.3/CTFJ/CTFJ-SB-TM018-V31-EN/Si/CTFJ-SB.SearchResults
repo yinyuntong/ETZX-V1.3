@@ -1,0 +1,46 @@
+---- while Matches (45 in 13 files) ----
+Key.c (Usr):    while(TRUE)
+Key.c (Usr):		while(byKeyDelay--)
+Key.c (Usr):        while(byKeyValue == KeyScan())
+lcd.c (Usr):  while(width--)
+lcd.c (Usr):  while(height--)
+lcd.c (Usr):/*	while(bLanding)
+lcd.c (Usr):	while(TRUE)
+main.c (Usr):	while(TRUE)
+main.c (Usr):	while(1)
+OS_CORE.C (OS):    while (OSWaitTick[OSTaskID] != 0)           /* 判断超时时间是否到   */
+OS_CPU_A.ASM (Target):;         } while (--i != 0);
+OS_CPU_A.ASM (Target):;         } while (--i != 0);
+OS_CPU_A.ASM (Target):;         } while (--i != 0);
+OS_CPU_A.ASM (Target):;         } while (--i != 0);
+OS_CPU_A.ASM (Target):;         while(cp2 != (unsigned char idata *)temp)
+OS_CPU_A.ASM (Target):;         while(cp2 != (unsigned char idata *)temp)
+OS_CPU_C.C (Target):        } while (--i != 0);
+OS_CPU_C.C (Target):        } while (--i != 0);
+OS_CPU_C.C (Target):        } while (--i != 0);
+OS_CPU_C.C (Target):        } while (--i != 0);
+OS_CPU_C.C (Target):    } while (--i != 0);
+OS_CPU_C.C (Target):        } while (--i != 0);
+OS_MEM.C (OS):    while (1);
+OS_MEM.C (OS):    while(ThisFreeMem != NULL)
+OS_MEM.C (OS):    while (1)
+OS_Q.C (OS):    while (Buf[0] == 0)             /* 消息队列中是否有消息 */
+OS_SEM.C (OS):    while (OsSemBuf[Index * 2] == 0)
+OS_SEM.C (OS):    while (OsSemBuf[Index * 3] == 0)
+PCT25VF.C (Usr):	while (temp == 0x00)	/* waste time until not busy */
+PCT25VF.C (Usr):	while ((Read_Status_Register()&0x01) == 0x01)	/* waste time until not busy */
+PCT25VF.C (Usr):	while ((Read_Status_Register()&0x40) == 0x40)	/* waste time until not busy */
+PCT25VF.C (Usr):	while ((Read_Status_Register() & 0x02)!= 0x02)				/* verify that WEL bit is set */
+PCT25VF.C (Usr):	while((Read_Status_Register()&0x42) != 0x42)				/* verify that AAI and WEL bit is set */
+SingleBus.c (Usr):	while(byTemp--)
+SingleBus.c (Usr):		}while(--readtimes);
+SingleBus.c (Usr):	}while(--writetimes);
+SingleBus.c (Usr):	}while(--readtimes);
+SingleBus.c (Usr):		}while(--readtimes);
+SingleBus.c (Usr):	while(TRUE)
+SingleBus.c (Usr):	while(1)
+SPI.C (Usr):   	while((SPSTAT & SPIF) == 0x00);						//等待发送完成 
+Usart.c (Usr):	while(uiLen--)
+Usart.c (Usr):	while(uiLen--)
+Usart.c (Usr):       while(!TI);
+Usart.c (Usr):    while(!TI);

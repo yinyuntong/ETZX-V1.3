@@ -1,0 +1,41 @@
+C51 COMPILER V9.00   PARAMETER                                                             12/14/2017 13:59:38 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE PARAMETER
+OBJECT MODULE PLACED IN parameter.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE parameter.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          unsigned char code ParameterData[15]={0x5a,     //0-初始化标志
+   2                                                                                  0x01,   //1-SelfSecAddr
+   3                                                                                  0x08,   //2-SelfRoomAddr
+   4                                                                                  0x00,   //3-SelfBedAddr:
+   5                                                                                  0x01,   //4-cflag       
+   6                                                                                  0xc0,   //5-cPrio
+   7          
+   8                                                                                  0xff,   //6-cReserve1
+   9                                                                                  0xff,   //7-cReserve2
+  10                                                                                  0xff,   //8-cReserve3
+  11                                                                                  0xff,   //9-cSerialNum1
+  12                                                                                  0xff,   //10-cSerialNum2
+  13                                                                                  0xff,   //11-cSerialNum3
+  14                                                                                  0x03,   //12-cVersionHi
+  15                                                                                  0x04,   //13-cVersionLo
+  16                                                                                  0x00    // 14-crc
+  17                                                                                  };
+  18          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =     15    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

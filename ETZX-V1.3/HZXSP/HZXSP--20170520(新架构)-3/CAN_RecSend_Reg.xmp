@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="Windows-1252" ?>
+<TKStudioProject Name="Template" BuildTool="15" Version="3.00" Author="YinHandong[Òüº®¶¬]" ProjectGUID="{4BB45440-EA67-4ef3-AA0E-7F8E18FEE895}">
+    <Configurations>
+        <Configuration Name="ReleaseInFlash" OP="0" XROM="0,0x00000000,0x00000000,0#0,0x00000000,0x00000000,0#0,0x00000000,0x00000000,0" XRAM="0,0x00000000,0x00000000,0#0,0x00000000,0x00000000,0#0,0x00000000,0x00000000,0" OldName="ReleaseInFlash" OutBig="0" McLib="1" CLK="12.000000" Cross="0" IROM="1,0x00000000,0x00008000,1#0,0x00000000,0x00000000,0" IRAM="1,0x10000000,0x00002000,0#0,0x00000000,0x00000000,0" OldCPU="LPC1114" OPTDBG="0,-1,1,1,1,1,(C:\Program Files\Zhiyuan Electronic\TKStudio\LPC1100\UL2ARM_TKSCP_DRV_ARM_for_AGDI.dll)" DEVICE="LPC1114" VENDOR="NXP (founded by Philips)" FAMINY="3" SIMCLK="12.000000">
+            <MDK_Output OutName="1,.\ReleaseInFlash\LPC1100" OutType="1" OutBatch="0" OutHex="2" OutList="0,.\ReleaseInFlash" Debug="1" Browse="1" />
+            <MDK_User BfC="0,()#0,()" BfB="0,()#0,()" AfB="0,()#0,()" Beep="1" SDebug="0" />
+            <MDK_CParam Def="__EVAL" uDef="" Inc=".\CM0;.\LPC11xx" Misc="" Opt="0,0" Code="0,0,0,1,0,0" Language="0,0,0,0" List="0" />
+            <MDK_AsmParam Def="__EVAL EN_CRP" uDef="" Inc="" Misc="" Code="0,0,0,0,0,0" Language="0" List="1,1" />
+            <MDK_Linker Misc="" UseDef="1" Code="0,0,0,1,()" Sct=".\ReleaseInFlash\CAN_RecSend_Reg.sct" List="1,1,1,1,1,1,1,1,1" first="" />
+            <MDK_Debug DbgType="1" sfSIM="1,1,(),()" hwSIM="1,1,1,()" Drv="(AGDI 0),(C:\Program Files\Zhiyuan Electronic\TKStudio\LPC1100\UL2ARM_TKSCP_DRV_ARM_for_AGDI.dll)" SrvOpt='-OP1798 -EP3276800 -VD131248 -IC0 -LM0 -IF0 -EF0 -VL0 -UT0 -UE0 -EO000 -EO0132768 -EO020 -EO030 -EO040 -EO050 -EO060 -EO070 -EO08268435456 -EO098160 -EO1057 -EO111200000 -EO12100000 -EO1335000000 -EO141000 -EO151200000 -EO1650 -EO17500 -EO181280770 -EO1950 -EO200 -EO210 -EO223 -EO230 -FF0&quot;configuration\LPC11xx_IAP_32.flm&quot; -FF4&quot;configuration\LPC11xx.ini&quot;  -MM0V2T0S0E65535 -MM8V2T0S0E65535' />
+            <DeviceProperties Item0='BOOK0=DATASHTS\NXP\LPC1111_DS.PDF(&quot;Data Sheet&quot;)' Item1='BOOK1=DATASHTS\NXP\LPC11xx_UM.pdf(&quot;User Manual&quot;)' Item2='CPU=IRAM(0x10000000-0x10001FFF) IROM(0-0x7FFF) CLOCK(12000000) CPUTYPE(&quot;Cortex-M0&quot;)' Item3="FLDLL=UL2CM3(-O463 -S0 -C0 -FO7 -FD10000000 -FC800 -FN1 -FF0LPC_IAP_256 -FS00 -FL040000)" Item4='MON=SARMCM3.DLL(&quot;-MPU&quot;) TARMCM1.DLL(&quot;-pCortexM0&quot;)' Item5='REGFILE=LPC11xx.H(&quot;NXP&quot;)' Item6='SFILE=&quot;STARTUP\NXP\startup_LPC11xx.s&quot; (&quot;NXP LPC11xx Startup Code&quot;)' Item7='SIM=SARMCM3.DLL(&quot;-MPU&quot;)  DARMCM1.DLL(&quot;-pCortexM0&quot;)' />
+            <DeviceDescription Description=" * ARM Cortex-M0 processor, running at frequencies of up to 50 MHz.     &#x0D;&#x0A; * ARM Cortex-M0 built-in Nested Vectored Interrupt Controller (NVIC).  &#x0D;&#x0A; * 32kB(LPC1114),24kB(LPC1113),16kB(LPC1112),8kB(LPC1111) on-chip flash.&#x0D;&#x0A; * 8 kB, 4 kB, or 2 kB SRAM.                                            &#x0D;&#x0A; * In-System Programming (ISP) and In-Application Programming (IAP).    &#x0D;&#x0A; * Serial interfaces:                                                   &#x0D;&#x0A; - UART with fractional baud rate generation, internal FIFO           &#x0D;&#x0A; and RS-485 support.                                                &#x0D;&#x0A; - SSP controller with FIFO and multi-protocol capabilities.          &#x0D;&#x0A; - I2C-bus interface. " />
+        </Configuration>
+        <Configuration Name="DebugInFlash" OP="0" XROM="0,0x00000000,0x00000000,0#0,0x00000000,0x00000000,0#0,0x00000000,0x00000000,0" XRAM="0,0x00000000,0x00000000,0#0,0x00000000,0x00000000,0#0,0x00000000,0x00000000,0" OldName="DebugInFlash" OutBig="0" McLib="1" CLK="12.000000" Cross="0" IROM="1,0x00000000,0x00008000,1#0,0x00000000,0x00000000,0" IRAM="1,0x10000000,0x00008000,0#0,0x00000000,0x00000000,0" OldCPU="LPC1114" OPTDBG="0,-1,1,1,1,1,(C:\TKStudio\DRV\TKScope\UL2ARM_TKSCP_DRV_ARM_for_AGDI.dll)" DEVICE="LPC1114" VENDOR="NXP (founded by Philips)" FAMINY="3" SIMCLK="12.000000">
+            <MDK_Output OutName="0,.\DebugInFlash\LPC1100" OutType="1" OutBatch="0" OutHex="1" OutList="0,.\DebugInFlash" Debug="1" Browse="1" />
+            <MDK_User BfC="0,()#0,()" BfB="0,()#0,()" AfB="0,()#0,()" Beep="1" SDebug="0" />
+            <MDK_CParam Def="__EVAL" uDef="" Inc=".\CM0;.\LPC11xx;.\USER_CODE" Misc="" Opt="0,0" Code="0,0,0,1,0,0" Language="0,0,0,0" List="0" />
+            <MDK_AsmParam Def="__EVL" uDef="" Inc="" Misc="" Code="0,0,0,0,0,0" Language="0" List="1,1" />
+            <MDK_Linker Misc="" UseDef="1" Code="0,0,0,1,()" Sct=".\DebugInFlash\CAN_RecSend_Reg.sct" List="1,1,1,1,1,1,1,1,1" first="" />
+            <MDK_Debug DbgType="1" sfSIM="1,1,(),()" hwSIM="1,1,1,()" Drv="(AGDI 0),(C:\TKStudio\DRV\TKScope\UL2ARM_TKSCP_DRV_ARM_for_AGDI.dll)" SrvOpt='-OP774 -EP3276800 -ES0 -VD132190 -IC0 -LM0 -IF0 -EF0 -VL0 -UT0 -UE0 -OF0 -OJ99242828-EO0080 -EO01800000 -EO02100000 -EO0332768 -EO041200000 -EO0510 -EO0610 -EO070 -EO08268505088 -EO094064 -EO100 -EO1132768 -EO12100000 -EO1335500000 -EO14100000 -EO151200000 -EO1650 -EO17500 -EO18268435456 -EO192016 -EO20268435456 -EO212016 -EO22268435456 -EO232016 -EO24268435456 -EO252016 -EO2650000000 -EO270 -EO280 -EO290 -EO3024 -EO310 -EO323 -EO330 -EO340 -EO350 -EO360 -EO370 -EO380 -EO390 -OJ000 -OJ010 -OJ020 -OJ030 -OJ040 -OJ050 -OJ060 -OJ070 -FF0&quot;configuration\NXP\LPC11xx_IAP_32.flm&quot; -FF4&quot;configuration\NXP\LPC11xx.ini&quot;  -MM0V2T0S0E65535 -MM8V2T0S0E65535' SfMem="" />
+            <DeviceProperties Item0='BOOK0=DATASHTS\NXP\LPC1111_DS.PDF(&quot;Data Sheet&quot;)' Item1='BOOK1=DATASHTS\NXP\LPC11xx_UM.pdf(&quot;User Manual&quot;)' Item2='CPU=IRAM(0x10000000-0x10001FFF) IROM(0-0x7FFF) CLOCK(12000000) CPUTYPE(&quot;Cortex-M0&quot;)' Item3="FLDLL=UL2CM3(-O463 -S0 -C0 -FO7 -FD10000000 -FC800 -FN1 -FF0LPC_IAP_256 -FS00 -FL040000)" Item4='MON=SARMCM3.DLL(&quot;-MPU&quot;) TARMCM1.DLL(&quot;-pCortexM0&quot;)' Item5='REGFILE=LPC11xx.H(&quot;NXP&quot;)' Item6='SFILE=&quot;STARTUP\NXP\startup_LPC11xx.s&quot; (&quot;NXP LPC11xx Startup Code&quot;)' Item7='SIM=SARMCM3.DLL(&quot;-MPU&quot;)  DARMCM1.DLL(&quot;-pCortexM0&quot;)' />
+            <DeviceDescription Description=" * ARM Cortex-M0 processor, running at frequencies of up to 50 MHz.     &#x0D;&#x0A; * ARM Cortex-M0 built-in Nested Vectored Interrupt Controller (NVIC).  &#x0D;&#x0A; * 32kB(LPC1114),24kB(LPC1113),16kB(LPC1112),8kB(LPC1111) on-chip flash.&#x0D;&#x0A; * 8 kB, 4 kB, or 2 kB SRAM.                                            &#x0D;&#x0A; * In-System Programming (ISP) and In-Application Programming (IAP).    &#x0D;&#x0A; * Serial interfaces:                                                   &#x0D;&#x0A; - UART with fractional baud rate generation, internal FIFO           &#x0D;&#x0A; and RS-485 support.                                                &#x0D;&#x0A; - SSP controller with FIFO and multi-protocol capabilities.          &#x0D;&#x0A; - I2C-bus interface. " />
+        </Configuration>
+    </Configurations>
+    <Files>
+        <Filter Name="CMSIS Files">
+            <File RelativePath=".\LPC11xx\system_LPC11xx.c" FileType="1" Output="system_LPC11xx.o" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\LPC11xx\startup\startup_LPC11xx.s" FileType="2" Output="startup_LPC11xx.o" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\CM0\core_cm0.c" FileType="1" Output="core_cm0.o" ro="0" bss="0" rw="0" />
+        </Filter>
+        <Filter Name="User Code">
+            <File RelativePath=".\USER_CODE\can.c" FileType="1" Output="can.o" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\USER_CODE\can.h" FileType="4" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\USER_CODE\can_reg_cfg.h" FileType="4" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\USER_CODE\dataType.h" FileType="4" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\USER_CODE\zlg_can.c" FileType="1" Output="zlg_can.o" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\USER_CODE\zlg_can.h" FileType="4" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\USER_CODE\SPI.c" FileType="1" Output="SPI.o" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\USER_CODE\TM77XX.c" FileType="1" Output="TM77XX.o" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\USER_CODE\util.c" FileType="1" Output="util.o" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\USER_CODE\main.c" FileType="1" Output="main.o" ro="0" bss="0" rw="0" />
+            <File RelativePath=".\USER_CODE\E2PROM.c" FileType="1" Output="E2PROM.o" ro="0" bss="0" rw="0" />
+        </Filter>
+    </Files>
+</TKStudioProject>

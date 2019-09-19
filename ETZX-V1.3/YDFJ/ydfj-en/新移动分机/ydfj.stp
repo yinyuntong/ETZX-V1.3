@@ -1,0 +1,31 @@
+[Last Settings]
+PROTOCOL=SWIM
+DEVICE=STM8S003F3
+Hardware=ST-LINK
+Port=USB
+CpuFreq=
+Blank check before programming (when available)=1
+Verify after programming=1
+Clear memory before loading a file=1
+Erase device memory before programming (when available)=1
+Display a popup window when an error occurs=1
+Log activity=0
+Log file=
+Unlock protection before a programming cycle=1
+Prompt for new programming cycle=0
+Activate secure mode on next project loading=0
+Enable Serial=0
+Start addr=40958
+Length=2
+High Base=0
+Low Base=261
+Step=1
+[OPTION BYTE]
+Count=1
+File0=F:\ljg\soft\无线部分程序设计\新移动分机\新移动分机\option.s19
+[DATA MEMORY]
+Count=1
+File0=F:\ljg\soft\无线部分程序设计\新移动分机\新移动分机\data.s19
+[PROGRAM MEMORY]
+Count=1
+File0=F:\ljg\soft\无线部分程序设计\新移动分机\新移动分机\ydfj.s19

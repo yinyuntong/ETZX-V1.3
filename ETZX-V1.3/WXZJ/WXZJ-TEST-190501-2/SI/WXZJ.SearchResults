@@ -1,0 +1,10 @@
+---- halRfSendPacket Matches (9 in 3 files) ----
+CC1101.c (D:\ETZX-V1.3\WXZJ\WXZJ-TEST-190501)://函数名：void halRfSendPacket(INT8U *txBuffer, INT8U size)
+CC1101.c (D:\ETZX-V1.3\WXZJ\WXZJ-TEST-190501):void halRfSendPacket(INT8U *txBuffer, INT8U size) 
+CC1101.h (D:\ETZX-V1.3\WXZJ\WXZJ-TEST-190501):extern void halRfSendPacket(INT8U *txBuffer, INT8U size); 
+无线主机.c (D:\ETZX-V1.3\WXZJ\WXZJ-TEST-190501):   //halRfSendPacket(TxBuf,8);}
+无线主机.c (D:\ETZX-V1.3\WXZJ\WXZJ-TEST-190501):					   	 halRfSendPacket(RxBuf,8);}
+无线主机.c (D:\ETZX-V1.3\WXZJ\WXZJ-TEST-190501):		//	  halRfSendPacket(TxBuf,8);}
+无线主机.c (D:\ETZX-V1.3\WXZJ\WXZJ-TEST-190501):		   	 halRfSendPacket(TxBuf,8);
+无线主机.c (D:\ETZX-V1.3\WXZJ\WXZJ-TEST-190501):			halRfSendPacket(TxBuf,8);*/		   
+无线主机.c (D:\ETZX-V1.3\WXZJ\WXZJ-TEST-190501):		  halRfSendPacket(TxBuf,8);delay(1000);

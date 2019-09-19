@@ -1,0 +1,406 @@
+C51 COMPILER V9.00   KEY                                                                   06/23/2017 13:33:25 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE KEY
+OBJECT MODULE PLACED IN Key.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Key.c OPTIMIZE(SIZE) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  湖南熙旺达科技有限公司
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称               :Key.c
+   9          *文件描述               :按键驱动程序
+  10          *创建人                 :陈卫国
+  11          *创建日期               :2008-9-22
+  12          *版本号                 :V1.0
+  13          *注释                   :采用按键与灯显示控制共用一个I/O口的方式                                        
+  14          *----------------------------------------------------------
+  15          *修改人                         :
+  16          *修改日期                       :
+  17          *版本号                 :
+  18          *注释                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_KEY_
+  22          #include "config.h"
+  23          sbit    DealKey = P3^3;                                                                 //处置键        
+  24          bit             bLedRedState;                                                                   //门灯红色灯状态
+  25          bit             bLedGreenState;                                                                 //门灯绿色灯状态
+  26          bit             bLedBlueState;                                                                  //门灯蓝色灯状态                
+  27          bit             bLedDealState;                                                                  //处理灯状态 
+  28            
+  29          extern STLocalControl   xdata stLocalControl;
+  30          extern bit   SET_BY_SERIAL_FLAG;
+  31          extern bit   SerchRoomFlag;
+  32          extern bit   SerchRoomKeyFlag;
+  33          extern bit   Broadcasting_Flag;
+  34          extern uint16 xdata  SerchRoomCount;
+  35          extern uint8  xdata  Modify_Room_Number;
+  36          extern uint8  xdata  Modify_SEC_Name;
+  37          extern void SaveParameter(void);
+  38          
+  39          
+  40          extern uint8 xdata byDealKeyErrorDownTime;
+  41          extern uint8 xdata byDealKeyShortDownTime;
+  42          extern uint8 xdata byDealKeyAlwaysDownTime;
+  43          
+  44          bit   SET_BY_SERIAL_OK_FLAG;
+  45          bit   Key_SerchRoom_Flag2;
+  46          bit   Key_SerchRoom_Flag3;
+  47          /**********************************************************
+  48          ***********************************************************
+  49          *函数名称                       :SetMDLedState  
+  50          *函数描述               :设置门灯三色灯状态
+  51          *输入参数               :byState:bit0-1:红灯状态,bit2-3:绿灯状态
+  52                                                   bit4-5:蓝灯状态
+  53          *返回值                         :       
+  54          *全局变量                       :
+  55          *调用模块                       :
+C51 COMPILER V9.00   KEY                                                                   06/23/2017 13:33:25 PAGE 2   
+
+  56          ***********************************************************
+  57          *创建人                 :熊坚强
+  58          *创建日期                       :2008-9-22
+  59          ***********************************************************
+  60          *修改人                         :
+  61          *修改日期               :
+  62          *注释                   :
+  63          **********************************************************/
+  64          void SetMDLedState(uint8 byState)
+  65          {
+  66   1              stLocalControl.byMDLedState = byState;                                  //保存所有门灯的状态
+  67   1              #ifdef DL_SWAP
+                      bLedRedState   = (bit)(byState & 0x03);
+                      MDR = !bLedRedState;
+                      bLedGreenState = (bit)(byState & 0x0C);
+                      MDG = !bLedGreenState;  
+                      bLedBlueState  = (bit)(byState & 0x30);                 //设置所有门灯的状态
+                      MDB = !bLedBlueState;
+                      #else
+  75   1              MDR = bLedRedState   = (bit)(byState & 0x03);
+  76   1              MDG = bLedGreenState = (bit)(byState & 0x0C);   
+  77   1              MDB = bLedBlueState  = (bit)(byState & 0x30);                   //设置所有门灯的状态
+  78   1              #endif
+  79   1      }
+  80          /**********************************************************
+  81          *函数名称                       :SetLedDealState        
+  82          *函数描述               :设置红色Led灯状态
+  83          *输入参数               :byState:灯状态
+  84          *返回值                         :       
+  85          *全局变量                       :
+  86          *调用模块                       :
+  87          ***********************************************************
+  88          *创建人                 :陈卫国
+  89          *创建日期                       :2008-9-22
+  90          ***********************************************************
+  91          *修改人                         :
+  92          *修改日期               :
+  93          *注释                   :
+  94          **********************************************************/
+  95          void SetLedDealState(uint8 byState)
+  96          {
+  97   1              LED_DEAL = (bit)byState;
+  98   1              bLedDealState = (bit)byState;
+  99   1              stLocalControl.byLedState &= 0xF0;
+ 100   1              stLocalControl.byLedState |= byState;
+ 101   1      }
+ 102          /**********************************************************
+ 103          *函数名称                       :KeyScan        
+ 104          *函数描述               :按键扫描函数
+ 105          *输入参数               :
+ 106          *返回值                         :NO_KEY:无按键按下,SET_KEY:设置键按下
+ 107                                                   DEAL_KEY:处置键按下    
+ 108          *全局变量                       :
+ 109          *调用模块                       :
+ 110          ***********************************************************
+ 111          *创建人                 :陈卫国
+ 112          *创建日期                       :2008-9-22
+ 113          ***********************************************************
+ 114          *修改人                         :
+ 115          *修改日期               :
+ 116          *注释                   :
+ 117          **********************************************************/
+C51 COMPILER V9.00   KEY                                                                   06/23/2017 13:33:25 PAGE 3   
+
+ 118          uint8 KeyScan(void)
+ 119          {
+ 120   1              EA=0;   
+ 121   1              P3M1 &= 0xF7;                                                   //设置成弱上拉模式
+ 122   1              P3M0 &= 0xF7;
+ 123   1          DealKey = 1;                                                                                //置高电平
+ 124   1              _nop_();
+ 125   1              _nop_();
+ 126   1              _nop_();  
+ 127   1              _nop_();                                                
+ 128   1              if(0 == DealKey)
+ 129   1              {                                                                                               
+ 130   2                      P3M0 |= 0x08;                                      //还原成强上拉输出模式       
+ 131   2                      LED_DEAL = bLedDealState;                                                  //恢复指示灯的状态 
+ 132   2      
+ 133   2                      if((byDealKeyErrorDownTime==0)&&(byDealKeyShortDownTime==0)&&(byDealKeyAlwaysDownTime==0))                                              //没有进
+             -入消抖，短按，长按状态
+ 134   2                              byDealKeyErrorDownTime=4;                                                       //20ms消抖
+ 135   2                      EA=1;
+ 136   2                      return(DEAL_KEY);
+ 137   2              }       
+ 138   1              P3M0 |= 0x08;                                                                                   //还原成强上拉输出模式  
+ 139   1              LED_DEAL = bLedDealState;                                                          //恢复指示灯的状态
+ 140   1              EA=1;
+ 141   1              return(NO_KEY); 
+ 142   1      } 
+ 143          
+ 144          /**********************************************************
+ 145          *函数名称                       :KeyDownDeal    
+ 146          *函数描述               :按键按下处理函数
+ 147          *输入参数               :byKey:按下键的键值
+ 148          *返回值                         :       
+ 149          *全局变量                       :stLocalControl
+ 150          *调用模块                       :Bus0OutputData
+ 151          ***********************************************************
+ 152          *创建人                 :陈卫国
+ 153          *创建日期                       :2008-9-22
+ 154          ***********************************************************
+ 155          *修改人                         :
+ 156          *修改日期               :
+ 157          *注释                   :
+ 158          **********************************************************/
+ 159          void KeyDownDeal(uint8 byKey)
+ 160          { 
+ 161   1          if(Broadcasting_Flag)
+ 162   1              {
+ 163   2                return;   //广播状态，不处理
+ 164   2              }
+ 165   1              if(bLanding)
+ 166   1              {       //登记状态,不处理       
+ 167   2                      return;
+ 168   2              }
+ 169   1          if(SET_BY_SERIAL_FLAG)
+ 170   1           {
+ 171   2                      SET_BY_SERIAL_FLAG=0;
+ 172   2                      stLocalControl.stEepromCfgData.bySelfSecAddr  = stLocalControl.stBusDealFreq.bySndSecAddr;
+ 173   2                  stLocalControl.stEepromCfgData.bySelfRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+ 174   2                  stLocalControl.stEepromCfgData.bySelfBedAddr  = stLocalControl.stBusDealFreq.bySndBedAddr;
+ 175   2                      if(FmReadByte(Close_EnSoundNote_ADDR)==0x01)
+ 176   2                      stLocalControl.stEepromCfgData.byEnable1=0xF7;
+ 177   2                      else
+ 178   2                      stLocalControl.stEepromCfgData.byEnable1=CBYTE[0x2803];
+C51 COMPILER V9.00   KEY                                                                   06/23/2017 13:33:25 PAGE 4   
+
+ 179   2                      stLocalControl.stEepromCfgData.byEnable2=CBYTE[0x2804];
+ 180   2                      stLocalControl.stEepromCfgData.byPrio=CBYTE[0x2805];
+ 181   2                      stLocalControl.stEepromCfgData.byRingTime=CBYTE[0x2806];
+ 182   2                      stLocalControl.stEepromCfgData.byTalkTime=CBYTE[0x2807];
+ 183   2                      stLocalControl.stEepromCfgData.byBroadTime=CBYTE[0x2808];
+ 184   2                      stLocalControl.stEepromCfgData.byListenDelay=CBYTE[0x2809];
+ 185   2                      stLocalControl.stEepromCfgData.byVolumStep=CBYTE[0x280A];
+ 186   2                      stLocalControl.stEepromCfgData.byRingVol=CBYTE[0x280B];
+ 187   2                      stLocalControl.stEepromCfgData.byCH0TalkedVol=CBYTE[0x280C];
+ 188   2                      stLocalControl.stEepromCfgData.byCH1TalkedVol=CBYTE[0x280D];
+ 189   2                      stLocalControl.stEepromCfgData.byBroadVol=CBYTE[0x280E];
+ 190   2                      stLocalControl.stEepromCfgData.byNoteVol=CBYTE[0x280F];
+ 191   2                      stLocalControl.stEepromCfgData.byMusicVol=CBYTE[0x2810];
+ 192   2                      stLocalControl.stEepromCfgData.byCH0TalkVol=CBYTE[0x2811];
+ 193   2                      stLocalControl.stEepromCfgData.byCH1TalkVol=CBYTE[0x2812];
+ 194   2                      stLocalControl.stEepromCfgData.bySelfRingVol=CBYTE[0x2813];
+ 195   2                      stLocalControl.stEepromCfgData.byMaxVol=CBYTE[0x2814];
+ 196   2                      stLocalControl.stEepromCfgData.byMinVol=CBYTE[0x2815];
+ 197   2                      stLocalControl.stEepromCfgData.byReserve1=CBYTE[0x2816];
+ 198   2                      stLocalControl.stEepromCfgData.byReserve2=CBYTE[0x2817];
+ 199   2                      stLocalControl.stEepromCfgData.byReserve3=CBYTE[0x2818];
+ 200   2                      stLocalControl.stEepromCfgData.bySerialNum1=CBYTE[0x2819];
+ 201   2                      stLocalControl.stEepromCfgData.bySerialNum2=CBYTE[0x281A];
+ 202   2                      stLocalControl.stEepromCfgData.bySerialNum3=CBYTE[0x281A];
+ 203   2                      stLocalControl.stEepromCfgData.byVersionHi=CBYTE[0x281C];
+ 204   2                      stLocalControl.stEepromCfgData.byVersionLo=CBYTE[0x281D];
+ 205   2                      byEnable1 = stLocalControl.stEepromCfgData.byEnable1;
+ 206   2                  byEnable2 = stLocalControl.stEepromCfgData.byEnable2;
+ 207   2                  SaveParameter();
+ 208   2                  SetLedDealState(LED_OFF);
+ 209   2                      Modify_Room_Number = 0x01;
+ 210   2                      FmWriteByte(Modify_Room_Number_ADDR,0x01);
+ 211   2                      ShowNumberPageOK();                     //编号成功后提示
+ 212   2                      SET_BY_SERIAL_OK_FLAG=1;
+ 213   2                      return;
+ 214   2          }   
+ 215   1              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 216   1              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 217   1              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 218   1              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 219   1              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 220   1              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr; 
+ 221   1              switch(byKey)
+ 222   1              {       
+ 223   2                      case DEAL_KEY:
+ 224   2                              bDealKeyDown = 1;                                                               //保存处置键的状态                      
+ 225   2                              if((bConfusionNoting|bServiceNoting|bHelpNoting|bEmergencyNoting))
+ 226   2                              {       //有本房呼叫存在,清除本房呼叫
+ 227   3                                      stLocalControl.stBusDealFreq.byCmd = stLocalControl.stIndicationData.byCallCmd & 0x1f;
+ 228   3                                      stLocalControl.stBusDealFreq.byCmd += 0x0A; 
+ 229   3                                      stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stIndicationData.stAddr.bySecAddr;
+ 230   3                                      stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stIndicationData.stAddr.byRoomAddr;
+ 231   3                                      stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stIndicationData.stAddr.byBedAddr;                                           
+ 232   3                                      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 233   3                                      Key_SerchRoom_Flag2=0;
+ 234   3                              Key_SerchRoom_Flag3=0;                          
+ 235   3                              }                       
+ 236   2                              else if(bIndicatingOther)
+ 237   2                              {       //如果正在指示其他分机的呼叫,处理其他分机呼叫
+ 238   3                                      stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stIndicationData.stAddr.bySecAddr;
+ 239   3                                      stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stIndicationData.stAddr.byRoomAddr;
+ 240   3                                      stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stIndicationData.stAddr.byBedAddr;
+C51 COMPILER V9.00   KEY                                                                   06/23/2017 13:33:25 PAGE 5   
+
+ 241   3                                      if(CMD_EMERGENCY_CALL == (stLocalControl.stIndicationData.byCallCmd & 0x1f))
+ 242   3                                      {       //卫生间呼叫,不需要处理,直接清除
+ 243   4                                              stLocalControl.stBusDealFreq.byCmd = CMD_EMERGENCY_CLEAR;
+ 244   4                                      }
+ 245   3                                      else
+ 246   3                                      {       //其他类型呼叫,处理
+ 247   4                                              stLocalControl.stBusDealFreq.byCmd = stLocalControl.stIndicationData.byCallCmd & 0x1f;
+ 248   4                                              stLocalControl.stBusDealFreq.byCmd += 0x0A;
+ 249   4                                      }                               
+ 250   3                                      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 251   3                                      Key_SerchRoom_Flag2=0;
+ 252   3                              Key_SerchRoom_Flag3=0;                          
+ 253   3                              } 
+ 254   2                         else if(Key_SerchRoom_Flag3) //第三屏查房记录显示,显示时间为5S
+ 255   2                         {
+ 256   3                            Key_SerchRoom_Flag2=0;
+ 257   3                            Key_SerchRoom_Flag3=0;
+ 258   3                                SerchRoomKeyFlag=1;
+ 259   3                                SerchRoomCount=0;
+ 260   3                                SerchRoomFlag=0;
+ 261   3                                ShowSerchRommPage3();
+ 262   3                         }
+ 263   2                         else if(Key_SerchRoom_Flag2)  //第二屏查房记录显示，显示时间为5S
+ 264   2                         {
+ 265   3                            Key_SerchRoom_Flag3=1;
+ 266   3                                Key_SerchRoom_Flag2=0;          
+ 267   3                                SerchRoomKeyFlag=1;
+ 268   3                                SerchRoomCount=0;
+ 269   3                                SerchRoomFlag=0;
+ 270   3                            ShowSerchRommPage2();
+ 271   3                         }
+ 272   2                         else                        //第一屏查房记录显示，显示时间为5S
+ 273   2                         {
+ 274   3                            Key_SerchRoom_Flag2=1;      
+ 275   3                                Key_SerchRoom_Flag3=0;
+ 276   3                                SerchRoomKeyFlag=1;
+ 277   3                                SerchRoomCount=0;
+ 278   3                                SerchRoomFlag=0;
+ 279   3                            ShowSerchRommPage1();
+ 280   3                         } 
+ 281   2                         break;
+ 282   2               }              
+ 283   1      }
+ 284          /**********************************************************
+ 285          *函数名称                       :KeyUpDeal      
+ 286          *函数描述               :按键弹起处理函数
+ 287          *输入参数               :byKey:弹起键的键值
+ 288          *返回值                         :       
+ 289          *全局变量                       :
+ 290          *调用模块                       :MakeCH0TimerOut,MakeCH1TimerOut
+ 291          ***********************************************************
+ 292          *创建人                 :陈卫国
+ 293          *创建日期                       :2008-9-22
+ 294          ***********************************************************
+ 295          *修改人                         :
+ 296          *修改日期               :
+ 297          *注释                   :
+ 298          **********************************************************/
+ 299          void KeyUpDeal(uint8 byKey)
+ 300          {
+ 301   1          if(Broadcasting_Flag)
+ 302   1              {
+C51 COMPILER V9.00   KEY                                                                   06/23/2017 13:33:25 PAGE 6   
+
+ 303   2                return;   //广播状态，不处理
+ 304   2              }
+ 305   1              if(bLanding)
+ 306   1              {       //登记状态,不处理       
+ 307   2                      return;
+ 308   2              } 
+ 309   1              switch(byKey)
+ 310   1              {
+ 311   2                      case DEAL_KEY:                  
+ 312   2                              bDealKeyDown = 0;                                                               //保存处置键的状态                              
+ 313   2                              if((bWaitAck|bWaitListen|bChannel0Talk|bSelfBroad))
+ 314   2                              {       //通道0主动呼叫或者通话状态,减少该通道超时时间                          
+ 315   3                                      MakeCH0TimerOut(5, 0);
+ 316   3                              }
+ 317   2                              else if(bChannel1Talk)
+ 318   2                              {       //通道1主动通话状态,减少该通道超时时间
+ 319   3                                      MakeCH1TimerOut(5, 0);
+ 320   3                              }               
+ 321   2                              break;          
+ 322   2              }               
+ 323   1      }
+ 324          /**********************************************************
+ 325          *函数名称                       :KeyAlwaysDeal  
+ 326          *函数描述               :按键长按下处理函数
+ 327          *输入参数               :byKey:长按键的键值
+ 328          *返回值                         :       
+ 329          *全局变量                       :stLocalControl
+ 330          *调用模块                       :
+ 331          ***********************************************************
+ 332          *创建人                 :陈卫国
+ 333          *创建日期                       :2008-9-22
+ 334          ***********************************************************
+ 335          *修改人                         :
+ 336          *修改日期               :
+ 337          *注释                   :
+ 338          **********************************************************/
+ 339          void KeyAlwaysDeal(uint8 byKey)
+ 340          {
+ 341   1          if(Broadcasting_Flag)
+ 342   1              {
+ 343   2                return;   //广播状态，不处理
+ 344   2              }
+ 345   1              if(bLanding)
+ 346   1              {       //登记状态,不处理       
+ 347   2                      return;
+ 348   2              } 
+ 349   1              switch(byKey)
+ 350   1              {               
+ 351   2                      case DEAL_KEY:
+ 352   2                              if((bBusy|bChannel1Talk|bChannel1Talked))
+ 353   2                              {       //本机不是处于空闲状态,不作任何处理
+ 354   3                                      break;
+ 355   3                              }       
+ 356   2                      if(bNurseIn)            //长按键表示全区广播
+ 357   2                      {
+ 358   3                        stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 359   3                        stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 360   3                        stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 361   3                        stLocalControl.stBusDealFreq.byRecSecAddr = 0xff;
+ 362   3                        stLocalControl.stBusDealFreq.byRecRoomAddr = 0xff;
+ 363   3                        stLocalControl.stBusDealFreq.byRecBedAddr = 0xff;
+ 364   3                        stLocalControl.stBusDealFreq.byCmd = CMD_BROADCAST3;                                  
+C51 COMPILER V9.00   KEY                                                                   06/23/2017 13:33:25 PAGE 7   
+
+ 365   3                        Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); 
+ 366   3                        ShowCalling();        
+ 367   3                        SerchRoomKeyFlag=0;
+ 368   3                      }               
+ 369   2              }               
+ 370   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    824    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      7    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

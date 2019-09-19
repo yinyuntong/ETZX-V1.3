@@ -1,0 +1,6 @@
+---- DISPLAY_STATE_TIME_CHANGED Matches (5 in 2 files) ----
+HZXSP.h (USER_CODE):#define DISPLAY_STATE_TIME_CHANGED 0x40 //显示变化
+main.c (USER_CODE):		SystemInfo.DisplayInfo.state|=DISPLAY_STATE_TIME_CHANGED; //时间已改变
+main.c (USER_CODE):	SystemInfo.DisplayInfo.state |= DISPLAY_STATE_TIME_CHANGED;
+main.c (USER_CODE):			if (SystemInfo.DisplayInfo.state&DISPLAY_STATE_TIME_CHANGED)
+main.c (USER_CODE):				SystemInfo.DisplayInfo.state&=~DISPLAY_STATE_TIME_CHANGED;

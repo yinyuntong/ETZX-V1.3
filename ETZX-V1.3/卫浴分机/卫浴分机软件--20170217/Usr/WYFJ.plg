@@ -1,0 +1,23 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+D:\ETZX-V1.3\卫浴分机\卫浴分机软件--20170217\Usr\WYFJ.uv2
+Project File Date:  10/25/2013
+
+<h2>Output:</h2>
+Build target '卫浴分机'
+compiling SingleBus.c...
+SINGLEBUS.C(1138): warning C280: 'Bus0BugRet': unreferenced label
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_OSTASKSTKDEL?OS_CPU_C
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_SEND_DATA?MAIN
+Program Size: data=82.3 xdata=126 code=6676
+creating hex file from "WYFJ"...
+"WYFJ" - 0 Error(s), 3 Warning(s).
+</pre>
+</body>
+</html>

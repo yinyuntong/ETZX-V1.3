@@ -1,0 +1,14 @@
+".\OS_CORE.obj",
+".\OS_MEM.obj",
+".\OS_Q.obj",
+".\OS_SEM.obj",
+".\OS_CPU_C.obj",
+".\OS_CPU_A.obj",
+"IAP.obj",
+"Key.obj",
+"main.obj",
+"SingleBus.obj",
+"SPI.obj",
+"sst25vf040_2005.obj",
+"vs10xx.obj" 
+TO "GLZJ-WRITE-SST25VF020" 

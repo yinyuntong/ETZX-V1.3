@@ -1,0 +1,188 @@
+C51 COMPILER V9.00   无线_骰_                                                              02/20/2017 11:10:08 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 无线_骰_
+OBJECT MODULE PLACED IN 无线主机.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 无线主机.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          管理主机无线主机模块程序
+   3          修改：将原来转发呼叫指令改为接收总线指示指令并转换为呼叫指令  20140516
+   4          
+   5          */
+   6          #include "cc1101.h"
+   7          #include "uart.h"
+   8          #include "单总线接口.h"
+   9          #define  cont 6
+  10          sbit   led0 = P1^0;
+  11          sbit   led1 = P1^1;
+  12          unsigned char int0_buf;
+  13          unsigned char area=0xff; //所属区域
+  14          
+  15          extern unsigned int data timer;
+  16          //unsigned char cont =8;
+  17          void int0() interrupt 2
+  18          {
+  19   1        EX1=0;int0_buf=1;
+  20   1      }
+  21          void main(void)
+  22          {  unsigned long x;
+  23   1         unsigned char xdata TxBuf[8],RxBuf[24],RxBak[8];
+  24   1      //   unsigned char xdata LastCallBuf[8];
+  25   1         unsigned char leng,i;
+  26   1         led0=0;led1=0;
+  27   1         WDT_CONTR=0x3f;
+  28   1         CpuInit();
+  29   1         led0=1;
+  30   1         x=0;TxBuf[2]=1;
+  31   1         timer=6001;
+  32   1         UART_init(9600);
+  33   1         uart_send_one(0xaa);
+  34   1         SingleBusInit();
+  35   1         //halRfSendPacket(TxBuf,8);}
+  36   1         EA=1;
+  37   1         int0_buf=0;
+  38   1         ES=1;
+  39   1         EX1=1;
+  40   1         IT1=1;
+  41   1         halSpiStrobe(CCxxx0_SRX);            //进入接收状态
+  42   1         TxBuf[7]=0;uart_buf=0;TI=0;RI=0;ES=1;EA=1;
+  43   1         while(1)
+  44   1         { 
+  45   2               x++;
+  46   2           WDT_CONTR =0x3f;
+  47   2               if (timer>12000) //500us*6000 //3s超时，则自动清除备份数据
+  48   2               {
+  49   3                      for (i=0;i<8;i++) RxBak[i]=0;
+  50   3                      timer=0;
+  51   3               }
+  52   2           if(int0_buf==1)
+  53   2               { 
+  54   3                      led0=0;
+  55   3                      //uart_send_one(0xaa);
+C51 COMPILER V9.00   无线_骰_                                                              02/20/2017 11:10:08 PAGE 2   
+
+  56   3                      leng = 24;
+  57   3                      for (i=0;i<8;i++) RxBuf[i]=0;
+  58   3              if(halRfReceivePacket(RxBuf,&leng))
+  59   3                      {
+  60   4                        //for (i=0;i<leng;i++) uart_send_one(RxBuf[i]);
+  61   4                        WDT_CONTR =0x3f;
+  62   4                        if(RxBuf[7]==0x55)
+  63   4                        {
+  64   5                              //如果没有从总线获取过区域编号，则允许任何符合规则的数据进入系统，否则只允许相同区域的数据进入系统
+  65   5                              if (area==0xff||area==RxBuf[0])
+  66   5                              {
+  67   6                                      //断定是否与上一帧数据相同
+  68   6                                      for (i=0;i<8;i++)
+  69   6                                      {
+  70   7                                              if (RxBak[i]!=RxBuf[i]) break;
+  71   7                                      }
+  72   6                                      if (i<8) //如果与备份数据相同则不发送
+  73   6                                      {
+  74   7                                              //for(i=0;i<leng;i++) uart_send_one(RxBuf[i]);
+  75   7                                              timer=0;
+  76   7                                              Bus0OutputData(RxBuf);
+  77   7                                              for (i=0;i<8;i++) RxBak[i]=RxBuf[i]; //更新备份数据
+  78   7                                              //如果是加床呼叫，则需要转发到移动分机报号
+  79   7                                              if (RxBuf[1]==250&&RxBuf[3]==0x06)
+  80   7                                              {
+  81   8                                                 RxBuf[7]=0xaa;
+  82   8                                                 for(i=0;i<cont;i++)
+  83   8                                                 { 
+  84   9                                                       WDT_CONTR =0x3f;
+  85   9                                                       halSpiStrobe(CCxxx0_SIDLE);
+  86   9                                                       halRfSendPacket(RxBuf,8);}
+  87   8                                                 }  
+  88   7                                                 halSpiStrobe(CCxxx0_SRX);//delay(1000);                     //进入接收状态
+  89   7                                         }
+  90   6                                      }
+  91   5                              
+  92   5                        }
+  93   4                      }
+  94   3                      int0_buf=0;
+  95   3                      WDT_CONTR =0x3f;
+  96   3                      halSpiStrobe(CCxxx0_SRX);               //进入接收状态
+  97   3                      led0=1;
+  98   3                      EX1=1;
+  99   3                }
+ 100   2               if(x>120000)
+ 101   2               {
+ 102   3                      x=0;
+ 103   3                      //Bus0OutputData(RxBuf);
+ 104   3                //     for(i=0;i<cont;i++){TxBuf[0]=0x01;TxBuf[7]=0xaa;TxBuf[3]=0x06;TxBuf[4]=0x01;TxBuf[5]=0x01;TxBuf[4]+
+             -+;
+ 105   3                      //        halRfSendPacket(TxBuf,8);}
+ 106   3                      //        halSpiStrobe(CCxxx0_SRX);                    //进入接收状态
+ 107   3                      //  EX1=1;
+ 108   3               }
+ 109   2               if(bBus0SendFinish==1)bBus0SendFinish=0;      //如果数据发送完毕，发送标志清0;
+ 110   2               if(bBus0RecFinish==1)                         //如果接收到数据，
+ 111   2               {  
+ 112   3                      led0=0;
+ 113   3                      bBus0RecFinish=0; 
+ 114   3                      EA=0;
+ 115   3                  for(i=0;i<7;i++)
+ 116   3                      { 
+C51 COMPILER V9.00   无线_骰_                                                              02/20/2017 11:10:08 PAGE 3   
+
+ 117   4                              TxBuf[i]=byBus0RecData[i];//uart_send_one(TxBuf[i]);
+ 118   4                      }
+ 119   3                      EA=1;
+ 120   3                      if((TxBuf[3]==0x5a)||(TxBuf[3]==0x2f))
+ 121   3              {
+ 122   4                         if (TxBuf[3]==0x2f)
+ 123   4                         {
+ 124   5                    //指示码转为呼叫码
+ 125   5                                TxBuf[3] = TxBuf[4]&0x1f;     
+ 126   5                                TxBuf[4] = 0;
+ 127   5                         }
+ 128   4                         if (TxBuf[3]==0x06)area = TxBuf[0];
+ 129   4      
+ 130   4                         TxBuf[7]=0xaa;
+ 131   4                         for(i=0;i<cont;i++)
+ 132   4                         { 
+ 133   5                               WDT_CONTR =0x3f;
+ 134   5                               halSpiStrobe(CCxxx0_SIDLE);
+ 135   5                               halRfSendPacket(TxBuf,8);}
+ 136   4                         }  
+ 137   3                         halSpiStrobe(CCxxx0_SRX);//delay(1000);                     //进入接收状态
+ 138   3                      }
+ 139   2                      led0=1;
+ 140   2               /*if(uart_buf>0)
+ 141   2                  { //uart_send_one(0x5a);
+ 142   2                        TxBuf[0]=0x01;
+ 143   2                        TxBuf[1]=01;
+ 144   2                       // TxBuf[2]=1;
+ 145   2                        TxBuf[3]=0x07;
+ 146   2                TxBuf[4]=0x01;
+ 147   2                        TxBuf[5]=255;
+ 148   2                TxBuf[6]=1;
+ 149   2                        TxBuf[7]=0xaa;TxBuf[2]++;
+ 150   2                        
+ 151   2                        //for(i=0;i<cont;i++){
+ 152   2                        halRfSendPacket(TxBuf,8);delay(1000);
+ 153   2                       // }
+ 154   2                        
+ 155   2                        halSpiStrobe(CCxxx0_SRX);                    //进入接收状态
+ 156   2                uart_buf=0;
+ 157   2                        EX1=1;
+ 158   2                      }*/
+ 159   2         }
+ 160   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    663    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      40
+   PDATA SIZE       =      2       6
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

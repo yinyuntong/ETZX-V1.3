@@ -1,0 +1,23 @@
+.\output\boot_flash\tel.o: source\tel.c
+.\output\boot_flash\tel.o: source\custom.h
+.\output\boot_flash\tel.o: .\LPC17xx\LPC17xx.h
+.\output\boot_flash\tel.o: .\startup\core_cm3.h
+.\output\boot_flash\tel.o: C:\Program Files (x86)\ARM\ADSv1_2\INCLUDE\stdint.h
+.\output\boot_flash\tel.o: .\LPC17xx\system_LPC17xx.h
+.\output\boot_flash\tel.o: source\lpc1700_reg.h
+.\output\boot_flash\tel.o: C:\Keil\ARM\RV31\INC\stdlib.h
+.\output\boot_flash\tel.o: C:\Keil\ARM\RV31\INC\stdio.h
+.\output\boot_flash\tel.o: C:\Keil\ARM\RV31\INC\string.h
+.\output\boot_flash\tel.o: source\uart.h
+.\output\boot_flash\tel.o: source\pct25vf.h
+.\output\boot_flash\tel.o: source\global.h
+.\output\boot_flash\tel.o: source\wdt.h
+.\output\boot_flash\tel.o: source\voice_play.h
+.\output\boot_flash\tel.o: source\timer.h
+.\output\boot_flash\tel.o: source\interrupt.h
+.\output\boot_flash\tel.o: source\Extint.h
+.\output\boot_flash\tel.o: source\SingleBus.h
+.\output\boot_flash\tel.o: source\tel.h
+.\output\boot_flash\tel.o: source\ds3231.h
+.\output\boot_flash\tel.o: source\wpa_cli.h
+.\output\boot_flash\tel.o: source\fm62429.h

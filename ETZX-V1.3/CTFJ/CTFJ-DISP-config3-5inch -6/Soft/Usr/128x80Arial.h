@@ -1,0 +1,1 @@
+extern unsigned char code FontDots[10][1280];

@@ -1,0 +1,4 @@
+--cpu Cortex-M0 ".\debuginflash\core_cm0.o" ".\debuginflash\system_lpc11xx.o" ".\debuginflash\startup_lpc11xx.o" ".\debuginflash\e2prom.o" ".\debuginflash\main.o" ".\debuginflash\spi.o" ".\debuginflash\util.o" ".\debuginflash\led.o" ".\debuginflash\singlebus.o" ".\debuginflash\uart.o" ".\debuginflash\cc1101.o" --strict --scatter ".\DebugInFlash\KTKZQ.sct" 
+--autoat --summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\DebugInFlash\KTKZQ.map" -o ".\DebugInFlash\KTKZQ.axf"

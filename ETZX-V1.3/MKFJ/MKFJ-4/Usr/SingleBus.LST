@@ -1,0 +1,2646 @@
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE SINGLEBUS
+OBJECT MODULE PLACED IN SingleBus.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE SingleBus.c OPTIMIZE(SIZE) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  ºþÄÏÎõÍú´ï¿Æ¼¼ÓÐÏÞ¹«Ë¾
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8          *ÎÄ¼þÃû³Æ               :SingleBus.c
+   9          *ÎÄ¼þÃèÊö               :µ¥×ÜÏß³ÌÐò
+  10          *´´½¨ÈË                 :³ÂÎÀ¹ú
+  11          *´´½¨ÈÕÆÚ               :2008-9-22
+  12          *°æ±¾ºÅ                 :V1.0
+  13          *×¢ÊÍ                   :                                       
+  14          *----------------------------------------------------------
+  15          *ÐÞ¸ÄÈË                         :
+  16          *ÐÞ¸ÄÈÕÆÚ                       :
+  17          *°æ±¾ºÅ                 :
+  18          *×¢ÊÍ                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_SINGLE_BUS_
+  22          #include "config.h"
+  23          extern uint8    xdata  GT23_Rec_Data[128];
+  24          
+  25          //×ÜÏß0±äÁ¿¶¨Òå
+  26          uint8 bdata byBus0State0        = 0;                                                    //µ¥×ÜÏß0×´Ì¬×Ö1
+  27          sbit  bBus0StartRec                     = byBus0State0^0;                               //µ¥×ÜÏß0¿ªÊ¼½ÓÊÕÆðÊ¼Î»±êÖ¾
+  28          sbit  bBus0OnRec                        = byBus0State0^1;                               //µ¥×ÜÏß0¿ªÊ¼½ÓÊÕÊý¾ÝÎ»±êÖ¾
+  29          sbit  bBus0Enable                       = byBus0State0^2;                               //µ¥×ÜÏß0ÔÊÐí·¢ËÍ±êÖ¾
+  30          sbit  bBus0ReqSend                      = byBus0State0^3;                               //µ¥×ÜÏß0ÇëÇó·¢ËÍ±êÖ¾
+  31          sbit  bBus0OnSendBit            = byBus0State0^4;                               //µ¥×ÜÏß0ÕýÔÚ·¢ËÍÒ»¸öÊý¾ÝÎ»±êÖ¾
+  32          sbit  bBus0OnSendFreq           = byBus0State0^5;                               //µ¥×ÜÏß0ÕýÔÚ·¢ËÍÒ»¸öÊý¾ÝÖ¡±êÖ¾
+  33          sbit  bBus0SendError            = byBus0State0^6;                               //µ¥×ÜÏß0·¢ËÍ´íÎó±êÖ¾
+  34          sbit  bBus0Error                        = byBus0State0^7;                               //µ¥×ÜÏß0¹ÊÕÏ±êÖ¾
+  35          uint8 bdata byBus0State1        = 0;                                                    //µ¥×ÜÏß0×´Ì¬×Ö2
+  36          sbit  bBus0RecFinish            = byBus0State1^0;                               //µ¥×ÜÏß0½ÓÊÕÍê³É±êÖ¾
+  37          sbit  bBus0RecBit9                      = byBus0State1^1;                               //µ¥×ÜÏß0½ÓÊÕ×Ö½ÚÊý¾ÝµÄµÚ9Î»
+  38          sbit  bBus0SendFinish           = byBus0State1^2;                               //µ¥×ÜÏß0·¢ËÍÍê³É±êÖ¾
+  39          sbit  bBus0Disable                      = byBus0State1^3;                               //µ¥×ÜÏß0½ûÖ¹·¢ËÍ±êÖ¾
+  40          sbit  bBus0SendBit                      = byBus0State1^4;                               //µ¥×ÜÏß0ÕýÔÚ·¢ËÍµÄÊý¾ÝÎ»
+  41          sbit  bBus0RecBit                       = byBus0State1^5;                               //µ¥×ÜÏß0ÕýÔÚ½ÓÊÕµÄÊý¾ÝÎ»
+  42          uint8 data byBus0RecCount = 0;                                                          //¸ß4Î»ÊÇ×ÜÏß0½ÓÊÕ¶¨Ê±ÖÐ¶Ï¼ÆÊý£¬µÍ4Î»ÊÇ½ÓÊÕµ½µÄÎ»¼ÆÊý
+  43          uint8 data byBus0RecBuf;                                                                        //×ÜÏß0½ÓÊÕ»º³åµ¥Ôª
+  44          uint8 data byBus0SendBuf;                                                                       //×ÜÏß0·¢ËÍ»º³åµ¥Ôª     
+  45          uint8 data byBus0RecData[BUS0_FREQ_SIZE];                                       //×ÜÏß0½ÓÊÕ»º³åÇø
+  46          uint8 data byBus0SendData[BUS0_FREQ_SIZE];                                      //×ÜÏß0·¢ËÍ»º³åÇø
+  47          uint8 data byBus0SendCount = 0;                                                         //¸ß4Î»ÊÇ×ÜÏß0·¢ËÍ¶¨Ê±ÖÐ¶Ï¼ÆÊý£¬µÍ4Î»ÊÇ·¢ËÍµÄÎ»¼ÆÊý
+  48          uint8 data byBus0RecSendCount = 0;                                                      //¸ß4Î»ÊÇ×ÜÏß0½ÓÊÕµ½µÄ×Ö½Ú¼ÆÊý£¬µÍ4Î»ÊÇ×ÜÏß0·¢ËÍÍêµÄ×Ö½Ú¼ÆÊý
+  49          uint8 data byBus0SendStopCount;                                                         //×ÜÏß0Í£Ö¹Ê±¼ä¼ÆÊý
+  50          uint8 data byBus0RecTimeOut = 0;                                                        //×ÜÏß0½ÓÊÕ³¬Ê±¼ÆÊý
+  51          uint8 data byBus0DisableCount = 0;                                                      //×ÜÏß0½ûÖ¹¼ÆÊý  
+  52          uint8 idata byBus0TxQ[BUS0_TX_Q_ZISE];                                          //×ÜÏß0·¢ËÍ¶ÓÁÐ                                                 
+  53          uint8 data byBus0TxHead = 0;                                                            //µ¥×ÜÏß0·¢ËÍ¶ÓÁÐÍ·Ö¸Õë
+  54          uint8 data byBus0TxTail = 0;                                                            //µ¥×ÜÏß0·¢ËÍ¶ÓÁÐÎ²Ö¸Õë
+  55          #define IncBus0TxPtr(addr)    {addr=(addr+1)%BUS0_TX_Q_ZISE;}
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 2   
+
+  56          #define Bus0TxBuffLen()       ((byBus0TxTail+BUS0_TX_Q_ZISE-byBus0TxHead)%BUS0_TX_Q_ZISE)
+  57          //·¢ËÍºÍ½ÓÊÕÒý½Å¶¨Òå
+  58          sbit  Bus0RecPin        = P3^2;                                                                 //µ¥×ÜÏß1½ÓÊÕÒý½Å¶¨Òå
+  59          sbit  Bus0SendPin       = P4^3;                                                                 //µ¥×ÜÏß1·¢ËÍÒý½Å¶¨Òå
+  60          
+  61          extern STUartControl    idata stUartControl;
+  62          extern STLocalControl   xdata stLocalControl;
+  63          uint16  xdata PageNumber=0;
+  64          uint16  xdata SerchRoomCount=0;                                            //²é·¿µÄÊ±¼ä¼ÆÊýÆ÷
+  65          uint16  xdata SET_BY_SERIAL_COUNT=0;                                       //±àºÅµÄÊ±¼ä¼ÆÊýÆ÷    
+  66          uint8   xdata SerchRoom=0;
+  67          uint8   xdata Real_TimeBuf[5]={0x00,0x00,0x00,0x00,0x00};
+  68          uint32  xdata INSPERCTOR_Count=0;
+  69          uint16  xdata BusLow_Count=0;
+  70          uint16  xdata Self_BusLow_Count=0;
+  71          uint16  xdata Self_BusHigh_Count=0;
+  72          bit   BusLow_Flag;
+  73          bit   Self_BusLow_Flag;
+  74          bit   SerchRoomFlag;
+  75          bit   SerchRoomKeyFlag;
+  76          bit   SET_BY_SERIAL_FLAG;                                 //µ¥×ÜÏß¶ÔÉè±¸±àºÅ±êÖ¾Î»
+  77          bit   HaveSerchRoomFlag;
+  78          bit   Page_Flag;
+  79          bit   INSPERCTOR_Flag;
+  80          bit   INDICTION_Flag;
+  81          bit   NUMBER_SET_STOP_FLAG;
+  82          bit   AllBusLow_Flag;
+  83          bit   BusLowRenewOK_Flag;
+  84          extern bit   Display_BusLow_Flag;
+  85          extern uint8 xdata  Modify_Room_Number;
+  86          extern uint8 xdata  Modify_SEC_Name;
+  87          extern bit Broadcasting_Flag;
+  88          extern bit CheckBusLow_Flag;
+  89          uint16 xdata  INDICTION_Count=0; 
+  90          //---------------------------------
+  91          //---------------------------------
+  92          //2012/5/26Ìí¼Ó¶à¸ö»¤Ê¿µ½Î»
+  93          uint16 xdata NurseComeCount=0;
+  94          uint8  xdata NurseComeRoom[3]={0,0,0};
+  95          //---------------------------------
+  96          //---------------------------------
+  97          extern uint8 xdata  Page_Color[5]; 
+  98          extern bit Key_SerchRoom_Flag2;
+  99          extern bit Key_SerchRoom_Flag3;
+ 100          //uint16 xdata AllBusLow_Count=0;
+ 101          extern uint8  xdata Fbaud_Type;
+ 102          extern uint32 xdata Fbaud;   //²¨ÌØÂÊµÄÊýÖµ
+ 103          
+ 104          
+ 105          extern bit bLcdOn;
+ 106          uint8 xdata BusLowDTime=100;
+ 107          
+ 108          bit bBus0SndBitOk =0;
+ 109          
+ 110          extern void Delayms(uint16 ms);
+ 111          
+ 112          
+ 113          void ReadPageColour(void)
+ 114          {
+ 115   1          uint16 xdata fcolor,bcolor,ccolor;
+ 116   1              uint8  xdata byData1,byData2,byData3;
+ 117   1          if(Modify_SEC_Name==0x01)
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 3   
+
+ 118   1          {
+ 119   2            byData1=Page_Color[0];//×ÖÌåÑÕÉ« 
+ 120   2                byData2=Page_Color[1];//×ÖÌå±³¾°É«,Ò²ÊÇÇåÆÁÉ«
+ 121   2                byData3=Page_Color[2];//ÖÐ¼äÌî³äÉ«
+ 122   2                if(byData1==0x00) 
+ 123   2                fcolor= BLACK;
+ 124   2                else if(byData1==0x01) 
+ 125   2                fcolor= RED;
+ 126   2                else if(byData1==0x02) 
+ 127   2                fcolor= GREEN;
+ 128   2                else if(byData1==0x03) 
+ 129   2                fcolor= BLUE1;
+ 130   2                else if(byData1==0x04) 
+ 131   2                fcolor= BLUE;
+ 132   2                else if(byData1==0x05) 
+ 133   2                fcolor= YELLOW;
+ 134   2                else if(byData1==0x06) 
+ 135   2                fcolor= PURPLE;
+ 136   2                else if(byData1==0x07) 
+ 137   2                fcolor= CYAN;
+ 138   2                else if(byData1==0x08) 
+ 139   2                fcolor= WHITE;
+ 140   2                else
+ 141   2                fcolor=WHITE;//×ÖÌåÑÕÉ«
+ 142   2            if(byData2==0x00) 
+ 143   2                bcolor= BLACK;
+ 144   2                else if(byData2==0x01) 
+ 145   2                bcolor= RED;
+ 146   2                else if(byData2==0x02) 
+ 147   2                bcolor= GREEN;
+ 148   2                else if(byData2==0x03) 
+ 149   2                bcolor= BLUE1;
+ 150   2                else if(byData2==0x04) 
+ 151   2                bcolor= BLUE;
+ 152   2                else if(byData2==0x05) 
+ 153   2                bcolor= YELLOW;
+ 154   2                else if(byData2==0x06) 
+ 155   2                bcolor= PURPLE;
+ 156   2                else if(byData2==0x07) 
+ 157   2                bcolor= CYAN;
+ 158   2                else if(byData2==0x08) 
+ 159   2                bcolor= WHITE;
+ 160   2                else
+ 161   2                bcolor=BLUE1; 
+ 162   2                if(byData3==0x00) 
+ 163   2                ccolor= BLACK;
+ 164   2                else if(byData3==0x01) 
+ 165   2                ccolor= RED;
+ 166   2                else if(byData3==0x02) 
+ 167   2                ccolor= GREEN;
+ 168   2                else if(byData3==0x03) 
+ 169   2                ccolor= BLUE1;
+ 170   2                else if(byData3==0x04) 
+ 171   2                ccolor= BLUE;
+ 172   2                else if(byData3==0x05) 
+ 173   2                ccolor= YELLOW;
+ 174   2                else if(byData3==0x06) 
+ 175   2                ccolor= PURPLE;
+ 176   2                else if(byData3==0x07) 
+ 177   2                ccolor= CYAN;
+ 178   2                else if(byData3==0x08) 
+ 179   2                ccolor= WHITE;
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 4   
+
+ 180   2                else
+ 181   2                ccolor=YELLOW; 
+ 182   2          }
+ 183   1              else
+ 184   1              {
+ 185   2                fcolor=WHITE;//×ÖÌåÑÕÉ«
+ 186   2                bcolor=BLUE1; //×ÖÌå±³¾°É«,Ò²ÊÇÇåÆÁÉ«
+ 187   2                ccolor=YELLOW;//·¿ºÅÓë¼¸´²µ½¼¸´²µÄÖÐ¼äÌî³äÑÕÉ«
+ 188   2              }
+ 189   1          Lcd_Clear(bcolor,0);
+ 190   1              Lcd_Fill(0,168,480,10,ccolor);
+ 191   1          if(Modify_SEC_Name==0x01)
+ 192   1          {
+ 193   2             byData1=Page_Color[3];//×ÖÌåÑÕÉ« 
+ 194   2                 byData2=Page_Color[4];//×ÖÌå±³¾°É«,Ò²ÊÇÇåÆÁÉ«
+ 195   2                 if(byData1==0x00) 
+ 196   2                 fcolor= BLACK;
+ 197   2                 else if(byData1==0x01) 
+ 198   2                 fcolor= RED;
+ 199   2                 else if(byData1==0x02) 
+ 200   2                 fcolor= GREEN;
+ 201   2                 else if(byData1==0x03) 
+ 202   2                 fcolor= BLUE1;
+ 203   2                 else if(byData1==0x04) 
+ 204   2                 fcolor= BLUE;
+ 205   2                 else if(byData1==0x05) 
+ 206   2                 fcolor= YELLOW;
+ 207   2                 else if(byData1==0x06) 
+ 208   2                 fcolor= PURPLE;
+ 209   2                 else if(byData1==0x07) 
+ 210   2                 fcolor= CYAN;
+ 211   2                 else if(byData1==0x08) 
+ 212   2                 fcolor= WHITE;
+ 213   2                 else
+ 214   2                 fcolor=WHITE;//×ÖÌåÑÕÉ«
+ 215   2             if(byData2==0x00) 
+ 216   2                 bcolor= BLACK;
+ 217   2                 else if(byData2==0x01) 
+ 218   2                 bcolor= RED;
+ 219   2                 else if(byData2==0x02) 
+ 220   2                 bcolor= GREEN;
+ 221   2                 else if(byData2==0x03) 
+ 222   2                 bcolor= BLUE1;
+ 223   2                 else if(byData2==0x04) 
+ 224   2                 bcolor= BLUE;
+ 225   2                 else if(byData2==0x05) 
+ 226   2                 bcolor= YELLOW;
+ 227   2                 else if(byData2==0x06) 
+ 228   2                 bcolor= PURPLE;
+ 229   2                 else if(byData2==0x07) 
+ 230   2                 bcolor= CYAN;
+ 231   2                 else if(byData2==0x08) 
+ 232   2                 bcolor= WHITE;
+ 233   2                 else
+ 234   2                 bcolor=WHITE; 
+ 235   2          }
+ 236   1              else
+ 237   1              {
+ 238   2                 fcolor=BLUE1;//×ÖÌåÑÕÉ«
+ 239   2                 bcolor=WHITE;//×ÖÌå±³¾°É«,Ò²ÊÇÇåÆÁÉ«
+ 240   2              }
+ 241   1          Lcd_Fill(0,178,480,94,bcolor);      
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 5   
+
+ 242   1      } 
+ 243          /**********************************************************
+ 244          *º¯ÊýÃû³Æ                       :SingleBusInit  
+ 245          *º¯ÊýÃèÊö               :µ¥×ÜÏß³õÊ¼»¯
+ 246          *ÊäÈë²ÎÊý               :
+ 247          *·µ»ØÖµ                         :       
+ 248          *È«¾Ö±äÁ¿                       :
+ 249          *µ÷ÓÃÄ£¿é                       :
+ 250          ***********************************************************
+ 251          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 252          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 253          ***********************************************************
+ 254          *ÐÞ¸ÄÈË                         :
+ 255          *ÐÞ¸ÄÈÕÆÚ               :
+ 256          *×¢ÊÍ                   :
+ 257          **********************************************************/
+ 258          void SingleBusInit(void)
+ 259          {
+ 260   1              //×ÜÏß0·¢ËÍ½ÅÉèÖÃÎªÍÆÍìÊä³ö£¬½ÓÊÕ½ÅÉèÖÃÎª¸ß×èÊäÈë
+ 261   1              P4M1 &= 0xF7;
+ 262   1          P4M0 |= 0x08;
+ 263   1              P3M1 |= 0x04;
+ 264   1          P3M0 &= 0xFB;
+ 265   1              //×ÜÏßµçÆ½ÉèÖÃ
+ 266   1              Bus0SendPin = 0;
+ 267   1              Bus0RecPin  = 1;        
+ 268   1              TMOD |= 0x01;
+ 269   1              TL0 = TIMER0_L;
+ 270   1              TH0 = TIMER0_H;
+ 271   1              TF0 = 0;                                                                                                //Çå³ýÖÐ¶Ï±êÖ¾
+ 272   1              AUXR &= 0x7F;                                                                                   //´«Í³12·ÖÆµËÙ¶È  
+ 273   1              ET0 = 1;                                                                                                //ÔÊÐí¶¨Ê±Æ÷0ÖÐ¶Ï 
+ 274   1              TR0 = 1;                                                                                                //Æô¶¯¶¨Ê±Æ÷
+ 275   1              //ÆäËü¿ØÖÆÉèÖÃ
+ 276   1              byBus0SendStopCount = 240;                                                              //ÉÏµç×ÜÏß0½ûÖ¹·¢ËÍÊ±¼äÉèÖÃ
+ 277   1              IE0 = 0;
+ 278   1              IT0 = 1;                                                                                                //Íâ²¿ÖÐ¶Ï0ÎªÏÂ½µÑØ´¥·¢Ä£Ê½                     
+ 279   1              if(Bus0RecPin)
+ 280   1              {       //Èç¹û×ÜÏßÕý³£,¿ªÖÐ¶Ï                   
+ 281   2                      EX0 = 1;
+ 282   2              }
+ 283   1              else
+ 284   1              {       //Èç¹û×ÜÏß²»Õý³£,ÖÃ×ÜÏß¹ÊÕÏ±êÖ¾                 
+ 285   2                      bBus0Error = 1;
+ 286   2              } 
+ 287   1              PageNumber=0;   
+ 288   1      }
+ 289          /**********************************************************
+ 290          *º¯ÊýÃû³Æ                       :Bus0RecInt     
+ 291          *º¯ÊýÃèÊö               :Íâ²¿ÖÐ¶Ï0º¯Êý,µ¥×ÜÏß0½ÓÊÕÖÐ¶Ï
+ 292          *ÊäÈë²ÎÊý               :
+ 293          *·µ»ØÖµ                         :       
+ 294          *È«¾Ö±äÁ¿                       :
+ 295          *µ÷ÓÃÄ£¿é                       :
+ 296          ***********************************************************
+ 297          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 298          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 299          ***********************************************************
+ 300          *ÐÞ¸ÄÈË                         :
+ 301          *ÐÞ¸ÄÈÕÆÚ               :
+ 302          *×¢ÊÍ                   :
+ 303          **********************************************************/
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 6   
+
+ 304          #pragma disable
+ 305          void Bus0RecInt(void) interrupt 0
+ 306          { 
+ 307   1              DisableBus0RecInt();                                                                    //½ûÖ¹ÔÙ´ÎÏÂ½µÑØÖÐ¶Ï
+ 308   1              bBus0StartRec = 1;                                                                              //Æô¶¯ÆðÊ¼Î»ÑØ¼ì²â
+ 309   1              bBus0Enable = 0;                                                                                //½ûÖ¹×ÜÏß·¢ËÍ                                                  
+ 310   1              byBus0RecCount = 0;                                                                             //Çå½ÓÊÕ¼Ä´æÆ÷  
+ 311   1      }
+ 312          /**********************************************************
+ 313          *º¯ÊýÃû³Æ                       :Timer0Int      
+ 314          *º¯ÊýÃèÊö               :¶¨Ê±Æ÷0Òç³öÖÐ¶Ï,¶¨Ê±Æ÷Ã¿93.75usÖÐ¶ÏÒ»´Î
+ 315                                                   ³ÌÐò¼ä¸ô¼ì²é×ÜÏß0Óë×ÜÏß1µÄ½ÓÊÕºÍ·¢ËÍ
+ 316          *ÊäÈë²ÎÊý               :
+ 317          *·µ»ØÖµ                         :       
+ 318          *È«¾Ö±äÁ¿                       :
+ 319          *µ÷ÓÃÄ£¿é                       :
+ 320          ***********************************************************
+ 321          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 322          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 323          ***********************************************************
+ 324          *ÐÞ¸ÄÈË                         :
+ 325          *ÐÞ¸ÄÈÕÆÚ               :
+ 326          *×¢ÊÍ                   :
+ 327          **********************************************************/
+ 328          #pragma disable
+ 329          void Timer0Int(void) interrupt 1
+ 330          { 
+ 331   1          TR0=0;
+ 332   1              TH0=TIMER0_H;
+ 333   1              TL0=TIMER0_L;
+ 334   1              TR0=1;
+ 335   1      
+ 336   1              bBus0RecBit = Bus0RecPin;       
+ 337   1              /*******************************×ÜÏß0½ÓÊÕ´¦Àí***********************************/
+ 338   1          if(bBus0StartRec)                                                                           //ÅÐ¶Ï×ÜÏßËù´¦µÄ×´Ì¬£¬½ÓÊÕµ½ÆðÊ¼Î»
+ 339   1              {                       
+ 340   2                      byBus0RecCount += 0x10;                                                         //Ôö¼Ó¶¨Ê±ÖÐ¶Ï¼ÆÊý´ÎÊý
+ 341   2                      if(0x50 == (byBus0RecCount & 0xf0))                                     //µ½×ÜÏßÆðÊ¼Î»¼ì²âÊ±¼ä
+ 342   2                      {                       
+ 343   3                              bBus0StartRec = 0;
+ 344   3                              byBus0RecCount = 0x00;                                                  //ÖØÐÂ¿ªÊ¼¼ÆÊý                  
+ 345   3                              if(bBus0RecBit)                 
+ 346   3                              {       //ÎÞÐ§ÆðÊ¼Î»                                                                                                                                            
+ 347   4                                      if((!bBus0SendError)&&bBus0OnSendFreq)
+ 348   4                                      {       //Ã»ÓÐ·¢Éú¹ý×ÜÏß·¢ËÍ´íÎó,ÇÒÓÐÒ»Ö¡Êý¾ÝÕýÔÚ·¢ËÍ,Í£Ö¹Ö¡Êý¾Ý·¢ËÍ,ÖÃ·¢ËÍ´íÎó±êÖ¾                                             
+ 349   5                                              byBus0State0 &= (~BUS0_SEND_CON);
+ 350   5                                              bBus0SendError = 1;
+ 351   5                                              Bus0SendPin = 0;                                                //ÊÍ·Å×ÜÏß                                      
+ 352   5                                      }                               
+ 353   4                                      byBus0SendStopCount = 240;                                      
+ 354   4                                      byBus0RecSendCount = 0x00;                                      //½ÓÊÕ³ö´í,ÖØÖÃ½ÓÊÕ·¢ËÍ¼ÆÊýÖµ
+ 355   4                                      EnableBus0RecInt();
+ 356   4                                      PW = bPWState;                                                          //»Ö¸´ÓïÒô¹¦·ÅµÄ¿ØÖÆÒý½Å
+ 357   4                              }
+ 358   3                              else                                                            
+ 359   3                              {       //ÓÐÐ§ÆðÊ¼Î»
+ 360   4                                      bBus0OnRec = 1;                                                         //¿ªÊ¼½ÓÊÕÊý¾ÝÎ»                                                                                        
+ 361   4                              }
+ 362   3                      }
+ 363   2              }
+ 364   1              else if(bBus0OnRec)
+ 365   1              {               
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 7   
+
+ 366   2                      byBus0RecCount += 0x10;                                                         //Ôö¼Ó¶¨Ê±ÖÐ¶Ï¼ÆÊý´ÎÊý                  
+ 367   2                      if(0xa0 == (byBus0RecCount & 0xf0))
+ 368   2                      {
+ 369   3                              byBus0RecCount &= 0x0f;                                                 //Çå³ý¶¨Ê±ÖÐ¶Ï¼ÆÊý´ÎÊý
+ 370   3                              byBus0RecCount += 0x01;
+ 371   3                              if(0x0a == (byBus0RecCount & 0x0f))     
+ 372   3                              {       //ÊÕµ½µÚ10Î»,½áÊøÎ»                                     
+ 373   4                                      bBus0OnRec = 0;                                                         //Í£Ö¹Êý¾Ý½ÓÊÕ                                  
+ 374   4                                      if(bBus0RecBit)
+ 375   4                                      {       //ÓÐÐ§µÄ½áÊøÎ»                                                  
+ 376   5                                              if(((bit)(byBus0RecSendCount & 0xf0) == bBus0RecBit9)) 
+ 377   5                                              {       //Êý¾Ýèå´íÎó
+ 378   6                                                      byBus0RecTimeOut = 0;
+ 379   6                                                      byBus0RecSendCount &= 0x0f;                                                                                     
+ 380   6                                              }
+ 381   5                                              else 
+ 382   5                                              {       //Êý¾ÝèåÕýÈ·                                    
+ 383   6                                                      byBus0RecTimeOut = 230;                         //ÉèÖÃÏÂÒ»¸ö×Ö½ÚÊý¾Ý½ÓÊÕ³¬Ê±Ê±¼ä
+ 384   6                                                      byBus0RecData[byBus0RecSendCount>>4] = byBus0RecBuf;
+ 385   6                                                      byBus0RecSendCount += 0x10;                                                                                                                                                                     
+ 386   6                                                      if((byBus0RecSendCount & 0xf0) >= BUS0_FREQ_SIZE_HI)
+ 387   6                                                      {                                                                                                                                                                               
+ 388   7                                                              byBus0RecSendCount &= 0x0f;                                                     
+ 389   7                                                              if(!((bBus0OnSendFreq == 1)&&(bBus0ReqSend == 0)))
+ 390   7                                                              {       //Èç¹û½ÓÊÕµ½µÄÕâÖ¡Êý¾ÝÊÇ×Ô¼º·¢ËÍµÄ²»ÖÃ±êÖ¾                                                      
+ 391   8                                                                      bBus0RecFinish = 1;                                                                                                                                                                                                                                                                                                             
+ 392   8                                                              }                                                                                                                                               
+ 393   7                                                              byBus0RecTimeOut = 0;
+ 394   7                                                              byBus0DisableCount = 10;
+ 395   7                                                              bBus0Disable = 1;                               //½ûÖ¹×ÜÏßÊ¹ÓÃ
+ 396   7                                                              PW = bPWState;                                  //»Ö¸´ÓïÒô¹¦·ÅµÄ¿ØÖÆÒý½Å
+ 397   7                                                      }       
+ 398   6                                              }                               
+ 399   5                                              byBus0SendStopCount = 240;
+ 400   5                                              EnableBus0RecInt();                                             
+ 401   5                                      }
+ 402   4                                      else                                                    
+ 403   4                                      {       //ÎÞÐ§½áÊøÎ»
+ 404   5                                              bBus0Error = 1;                                                                         
+ 405   5                                              if((!bBus0SendError) && bBus0OnSendFreq)
+ 406   5                                              {       //Ã»ÓÐ·¢Éú¹ý×ÜÏß·¢ËÍ´íÎó,ÇÒÓÐÒ»Ö¡Êý¾ÝÕýÔÚ·¢ËÍ,Í£Ö¹Ö¡Êý¾Ý·¢ËÍ,ÖÃ·¢ËÍ´íÎó±êÖ¾
+ 407   6                                                      byBus0State0 &= (~BUS0_SEND_CON);
+ 408   6                                                      bBus0SendError = 1;                                                     
+ 409   6                                                      Bus0SendPin = 0;                                        //ÊÍ·Å×ÜÏß
+ 410   6                                              }
+ 411   5                                              byBus0RecSendCount = 0x00;                              //½ÓÊÕ³ö´í,ÖØÖÃ½ÓÊÕ·¢ËÍ¼ÆÊýÖµ
+ 412   5                                              PW = bPWState;                                                  //»Ö¸´ÓïÒô¹¦·ÅµÄ¿ØÖÆÒý½Å
+ 413   5                                      }
+ 414   4                              }
+ 415   3                              else if(0x09 == (byBus0RecCount & 0x0f))
+ 416   3                              {       //µÚ9Î»Êý¾Ý
+ 417   4                                      bBus0RecBit9 = bBus0RecBit;                                     
+ 418   4                              }
+ 419   3                              else                                                                                    
+ 420   3                              {       //ÓÐÐ§Êý¾ÝÎ»
+ 421   4                                      byBus0RecBuf >>= 1;
+ 422   4                                      if(bBus0RecBit)
+ 423   4                                      {       //Îª¸ßµçÆ½
+ 424   5                                              byBus0RecBuf |= 0x80;
+ 425   5                                      }       
+ 426   4                              }
+ 427   3                      }
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 8   
+
+ 428   2              }
+ 429   1              /*******************************×ÜÏß0·¢ËÍ´¦Àí***********************************/
+ 430   1          if((byBus0State0 & BUS0_CAN_SEND) == BUS0_CAN_SEND)
+ 431   1              {       //×ÜÏß0ÉÏÓÐÊý¾Ý·¢ËÍÇëÇó,ÇÒ×ÜÏßÔÊÐí·¢ËÍ          
+ 432   2                      if(bBus0RecBit)
+ 433   2                      {       //×ÜÏßÕý³£,¿ÉÒÔ·¢ËÍ
+ 434   3                              Bus0SendPin = 1;
+ 435   3                              bBus0SendBit = 0;                                                               //·¢ËÍÆðÊ¼Î»Êý¾Ý                        
+ 436   3                              byBus0SendCount = 0;
+ 437   3                              byBus0State0 &= (~BUS0_CAN_SEND);
+ 438   3                              byBus0SendBuf = byBus0SendData[byBus0RecSendCount & 0x0f];
+ 439   3                              bBus0OnSendBit = 1;                                                             //È¡³ö´ý·¢ËÍµÄÊý¾Ý²¢ÖÃÕýÔÚ·¢ËÍ±êÖ¾              
+ 440   3                      }
+ 441   2                      else
+ 442   2                      {       //×ÜÏß²»Õý³£,Í£Ö¹·¢ËÍ
+ 443   3                              byBus0State0 &= (~BUS0_SEND_CON);
+ 444   3                              bBus0SendError = 1;                     
+ 445   3                              byBus0RecSendCount &= 0xf0;
+ 446   3                              Bus0SendPin = 0;
+ 447   3                              byBus0SendStopCount = 240;
+ 448   3                      }
+ 449   2              }
+ 450   1              else if(bBus0OnSendBit)
+ 451   1              {       //ÓÐÊý¾ÝÎ»ÕýÔÚ·¢ËÍ,Ê×ÏÈ·¢ËÍµÄÊÇÆðÊ¼Î»   
+ 452   2                      byBus0SendCount += 0x10;
+ 453   2                      if(0x50 == (byBus0SendCount & 0xf0))
+ 454   2                      {//´¦ÓÚÒ»¸öÊý¾ÝÎ»µÄÖÐ¼ä
+ 455   3                              if(bBus0SendBit == bBus0RecBit) bBus0SndBitOk =1;
+ 456   3                              else
+ 457   3                              {       //²»ÏàÍ¬,·¢ËÍÊ§°Ü                                                               
+ 458   4                                      byBus0State0 &= ~BUS0_SEND_CON;
+ 459   4                                      byBus0RecSendCount &= 0xf0;
+ 460   4                                      bBus0SendError = 1;                                     
+ 461   4                                      Bus0SendPin = 0; 
+ 462   4                                      byBus0SendStopCount = 240;
+ 463   4      
+ 464   4                                      bBus0SndBitOk = 0;
+ 465   4                              }
+ 466   3                      }
+ 467   2                      
+ 468   2                      //if(bBus0SendBit == bBus0RecBit)       
+ 469   2                      else if(bBus0SndBitOk ==1)
+ 470   2                      {       //·¢ËÍµÄÊý¾ÝºÍ½ÓÊÕµÄÊý¾ÝÏàÍ¬
+ 471   3                              //byBus0SendCount += 0x10;
+ 472   3                              if(0xa0 == (byBus0SendCount & 0xf0))
+ 473   3                              {       //Ò»Î»Êý¾Ý·¢ËÍÍê±Ï,Ê×ÏÈ·¢ËÍµÄÊÇÆðÊ¼Î»
+ 474   4                                      bBus0SndBitOk =0;
+ 475   4                                      
+ 476   4                                      byBus0SendCount &= 0x0f;
+ 477   4                                      byBus0SendCount += 0x01;                                
+ 478   4                                      if(0x09 == (byBus0SendCount & 0x0f))
+ 479   4                                      {       //·¢ËÍµ½µÚ9Î»ÁË
+ 480   5                                              bBus0SendBit = !(bit)(byBus0RecSendCount & 0x0f);
+ 481   5                                              Bus0SendPin = !bBus0SendBit;                                            
+ 482   5                                      }
+ 483   4                                      else if(0x0a == (byBus0SendCount & 0x0f))
+ 484   4                                      {       //·¢ËÍµ½½áÊøÎ»ÁË
+ 485   5                                              bBus0SendBit = 1;
+ 486   5                                              Bus0SendPin = 0;        
+ 487   5                                      }
+ 488   4                                      else if(0x0b == (byBus0SendCount & 0x0f))
+ 489   4                                      {       //ÒÑ¾­·¢ËÍÍê½áÊøÎ»ÁË
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 9   
+
+ 490   5                                              bBus0OnSendBit = 0;                                             
+ 491   5                                              byBus0RecSendCount += 0x01;                                                                     
+ 492   5                                              if((byBus0RecSendCount & 0x0f) >= BUS0_FREQ_SIZE)
+ 493   5                                              {       //·¢ËÍÍêÒ»Ö¡Êý¾Ý                                                                                                
+ 494   6                                                      byBus0RecSendCount &= 0xf0;                     //ÖØÐÂ½øÈëÊý¾ÝÖ¡µÄ·¢ËÍ½×¶Î
+ 495   6                                                      byBus0State0 &= (~BUS0_SEND_CON);
+ 496   6                                                      byBus0SendStopCount = 240;
+ 497   6                                                      byBus0State1 |= BUS0_SEND_FINISH;                                                               
+ 498   6                                                      byBus0DisableCount = 10;                                                
+ 499   6                                              }
+ 500   5                                              else
+ 501   5                                              {                                               
+ 502   6                                                      byBus0SendStopCount = 10;
+ 503   6                                                      bBus0ReqSend = 1;
+ 504   6                                              }
+ 505   5                                              EnableBus0RecInt();                                             //ÔÙ´ÎÊ¹ÄÜ½ÓÊÕÖÐ¶Ï
+ 506   5                                      }
+ 507   4                                      else
+ 508   4                                      {
+ 509   5                                              if(byBus0SendBuf & 0x01)
+ 510   5                                              {       //·¢ËÍ¸ßµçÆ½
+ 511   6                                                      bBus0SendBit = 1;
+ 512   6                                                      Bus0SendPin = 0;                                        
+ 513   6                                              }
+ 514   5                                              else
+ 515   5                                              {       //·¢ËÍµÍµçÆ½
+ 516   6                                                      bBus0SendBit = 0;
+ 517   6                                                      Bus0SendPin = 1;
+ 518   6                                              }
+ 519   5                                              byBus0SendBuf >>= 1;                                    //·¢ËÍÊý¾ÝÎ»ÒÆÎ»²Ù×÷
+ 520   5                                      }
+ 521   4                              }
+ 522   3                      }
+ 523   2      /*              else
+ 524   2                      {       //²»ÏàÍ¬,·¢ËÍÊ§°Ü                                                               
+ 525   2                              byBus0State0 &= ~BUS0_SEND_CON;
+ 526   2                              byBus0RecSendCount &= 0xf0;
+ 527   2                              bBus0SendError = 1;                                     
+ 528   2                              Bus0SendPin = 0; 
+ 529   2                              byBus0SendStopCount = 240;
+ 530   2                      }*/
+ 531   2              }               
+ 532   1              /*******************************×ÜÏß0¿ØÖÆ´¦Àí***********************************/
+ 533   1              if(0 == (byBus0State0 & BUS0_ON_REC))
+ 534   1              {       
+ 535   2                      if(byBus0SendStopCount != 0)
+ 536   2                      {
+ 537   3                              if((--byBus0SendStopCount) == 0)
+ 538   3                              {                               
+ 539   4                                      bBus0Enable = 1;                                                                
+ 540   4                              }
+ 541   3                      }               
+ 542   2                      if(bBus0Error)
+ 543   2                      {                                                               
+ 544   3                              bBus0Enable = 0;                        
+ 545   3                              if(bBus0RecBit)
+ 546   3                              {                               
+ 547   4                                      bBus0Error = 0;
+ 548   4                                      EnableBus0RecInt();
+ 549   4                                      byBus0SendStopCount = 240;
+ 550   4                              }
+ 551   3                      }
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 10  
+
+ 552   2              }       
+ 553   1              /*******************************×ÜÏß0³¬Ê±´¦Àí***********************************/
+ 554   1              if(byBus0RecTimeOut != 0)
+ 555   1              {
+ 556   2                      if(--byBus0RecTimeOut == 0)                                                     
+ 557   2                      {       //½ÓÊÕ³¬Ê±µ½
+ 558   3                              byBus0RecSendCount &= 0x0f;
+ 559   3                              PW = bPWState;
+ 560   3                      }
+ 561   2              }
+ 562   1              if(byBus0DisableCount != 0)
+ 563   1              {
+ 564   2                      if(--byBus0DisableCount == 0)                                           
+ 565   2                      {       //½ûÖ¹³¬Ê±µ½            
+ 566   3                              bBus0Disable = 0;
+ 567   3                      }
+ 568   2              }       
+ 569   1              /***********×ÜÏß0×Ô¶¯·¢ËÍ¹ÜÀí**********/         
+ 570   1              if((byBus0State0 & BUS0_ON_WORK) == 0x00)                               
+ 571   1              {       //×ÜÏß0Ã»ÓÐ¹¤×÷                         
+ 572   2                      if(bBus0SendError)                                              
+ 573   2                      {       //²úÉúÁË·¢ËÍ´íÎó,×Ô¶¯ÖØ·¢                                                               
+ 574   3                              bBus0SendError = 0;                             
+ 575   3                              byBus0State0 |= BUS0_REQ_SEND;          
+ 576   3                      }
+ 577   2                      else                                                                    
+ 578   2                      {       //×ÜÏß0ÎÞ·¢ËÍ´íÎó               
+ 579   3                              if(!(bBus0SendFinish|bBus0Disable))
+ 580   3                              {       //×ÜÏß0Ã»ÓÐ½ûÖ¹Ê¹ÓÃ,ÇÒ·¢ËÍ½áÊø´¦ÀíÒÑ¾­Íê³É
+ 581   4                                      if(Bus0TxBuffLen() >= BUS0_FREQ_SIZE)
+ 582   4                                      {       //ÓÐÒ»Ö¡ÍêÕûµÄÊý¾ÝÔÚ·¢ËÍ¶ÓÁÐÖÐ                                                                                                                                          
+ 583   5                                              byBus0SendData[0] = byBus0TxQ[byBus0TxHead];
+ 584   5                                              IncBus0TxPtr(byBus0TxHead);
+ 585   5                                              byBus0SendData[1] = byBus0TxQ[byBus0TxHead];
+ 586   5                                              IncBus0TxPtr(byBus0TxHead);
+ 587   5                                              byBus0SendData[2] = byBus0TxQ[byBus0TxHead];
+ 588   5                                              IncBus0TxPtr(byBus0TxHead);
+ 589   5                                              byBus0SendData[3] = byBus0TxQ[byBus0TxHead];
+ 590   5                                              IncBus0TxPtr(byBus0TxHead);
+ 591   5                                              byBus0SendData[4] = byBus0TxQ[byBus0TxHead];
+ 592   5                                              IncBus0TxPtr(byBus0TxHead);
+ 593   5                                              byBus0SendData[5] = byBus0TxQ[byBus0TxHead];
+ 594   5                                              IncBus0TxPtr(byBus0TxHead);
+ 595   5                                              byBus0SendData[6] = byBus0TxQ[byBus0TxHead];
+ 596   5                                              IncBus0TxPtr(byBus0TxHead);     
+ 597   5                                              byBus0State0 |= BUS0_REQ_SEND;                                          
+ 598   5                                      }
+ 599   4                                      else
+ 600   4                                      {       //Ã»ÓÐÒ»Ö¡ÍêÕûµÄÊý¾ÝÔÚ·¢ËÍ¶ÓÁÐÖÐÁË
+ 601   5                                              byBus0TxHead = byBus0TxTail = 0;
+ 602   5                                      }                                                               
+ 603   4                              }
+ 604   3                      }
+ 605   2              } 
+ 606   1      } 
+ 607          /**********************************************************
+ 608          *º¯ÊýÃû³Æ                       :Bus0OutputData 
+ 609          *º¯ÊýÃèÊö               :µ¥×ÜÏß0½«´ý·¢ËÍÊý¾Ý·ÅÈë»º³åÇø
+ 610          *ÊäÈë²ÎÊý               :pbyData:´ý·¢ËÍµÄÊý¾ÝÖ¸Õë
+ 611          *·µ»ØÖµ                         :TRUE:·¢ËÍ³É¹¦,FALSE:¶ÓÁÐÂú,·¢ËÍÊ§°Ü    
+ 612          *È«¾Ö±äÁ¿                       :
+ 613          *µ÷ÓÃÄ£¿é                       :
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 11  
+
+ 614          ***********************************************************
+ 615          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 616          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 617          ***********************************************************
+ 618          *ÐÞ¸ÄÈË                         :
+ 619          *ÐÞ¸ÄÈÕÆÚ               :
+ 620          *×¢ÊÍ                   :
+ 621          **********************************************************/
+ 622          uint8 Bus0OutputData(uint8* pbyData)
+ 623          {
+ 624   1              uint8 byTemp = BUS0_FREQ_SIZE;
+ 625   1      
+ 626   1              EA=0;
+ 627   1              if(Bus0TxBuffLen() >= (BUS0_TX_Q_ZISE - 1))
+ 628   1              {       //Ã»ÓÐ¿Õ¼ä´æ´¢ÁË,Ê§°Ü   
+ 629   2                      EA=1;;
+ 630   2                      return(FALSE);
+ 631   2              }       
+ 632   1              while(byTemp--)
+ 633   1              {       //Êý¾ÝÈë·¢ËÍ¶ÓÁÐ
+ 634   2                      byBus0TxQ[byBus0TxTail] = *pbyData++;
+ 635   2                      IncBus0TxPtr(byBus0TxTail);
+ 636   2              }
+ 637   1              EA=1;;  
+ 638   1              return(TRUE);   
+ 639   1      }
+ 640          /**********************************************************
+ 641          *º¯ÊýÃû³Æ                       :BcdToHex       
+ 642          *º¯ÊýÃèÊö               :BCD×ª»»³ÉÊ®Áù½øÖÆ
+ 643          *ÊäÈë²ÎÊý               :byData:´ý×ª»»µÄBCDÂë
+ 644          *·µ»ØÖµ                         :byRet:×ª»¯ºóµÄ16½øÖÆÊý¾Ý
+ 645          *È«¾Ö±äÁ¿                       :
+ 646          *µ÷ÓÃÄ£¿é                       :
+ 647          ***********************************************************
+ 648          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 649          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 650          ***********************************************************
+ 651          *ÐÞ¸ÄÈË                         :
+ 652          *ÐÞ¸ÄÈÕÆÚ               :
+ 653          *×¢ÊÍ                   :
+ 654          **********************************************************/
+ 655          uint8 BcdToHex(uint8 byData)
+ 656          {
+ 657   1              uint8 byRet;
+ 658   1              byRet = byData >> 4;
+ 659   1              byRet *= 10;
+ 660   1              byData &= 0x0f;
+ 661   1              byRet += byData;
+ 662   1              return(byRet);
+ 663   1      }
+ 664          /**********************************************************
+ 665          /**********************************************************
+ 666          *º¯ÊýÃû³Æ                       :AddrCompareCheck       
+ 667          *º¯ÊýÃèÊö               :±È½Ï¼ì²âÊ±µÄµØÖ·
+ 668          *ÊäÈë²ÎÊý               :pstBusFreq:´ý±È½ÏµÄÊý¾ÝÖ¡Ö¸Õë
+ 669          *·µ»ØÖµ                         :1:·¢ËÍµÄÊÇ¼ì²âÊ±Êý¾Ý,0:²»ÊÇ·¢ËÍ¼ì²âµ½µÄÊý¾Ý    
+ 670          *È«¾Ö±äÁ¿                       :
+ 671          *µ÷ÓÃÄ£¿é                       :
+ 672          ***********************************************************
+ 673          *´´½¨ÈË                 :ÐÜ¼áÇ¿
+ 674          *´´½¨ÈÕÆÚ                       :2012-3-14
+ 675          ***********************************************************
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 12  
+
+ 676          *ÐÞ¸ÄÈË                         :
+ 677          *ÐÞ¸ÄÈÕÆÚ               :
+ 678          *×¢ÊÍ                   :
+ 679          **********************************************************/
+ 680          bit AddrCompareCheck(pSTBusFreq pstBusFreq)
+ 681          {
+ 682   1              if((pstBusFreq->byRecSecAddr==0x01)&&(pstBusFreq->byRecRoomAddr==0x02)&&(pstBusFreq->byRecBedAddr==0x03))
+ 683   1              {       
+ 684   2                      return(1);
+ 685   2              } 
+ 686   1              else
+ 687   1          return(0);
+ 688   1      }
+ 689          /**********************************************************
+ 690          /**********************************************************
+ 691          *º¯ÊýÃû³Æ                       :AddrCompare    
+ 692          *º¯ÊýÃèÊö               :±È½ÏµØÖ·(º¬¹ã²¥µØÖ·)
+ 693          *ÊäÈë²ÎÊý               :pstBusFreq:´ý±È½ÏµÄÊý¾ÝÖ¡Ö¸Õë
+ 694          *·µ»ØÖµ                         :1:·¢ËÍµ½±¾»úµÄÊý¾Ý,0:²»ÊÇ·¢ËÍµ½±¾»úµÄÊý¾Ý      
+ 695          *È«¾Ö±äÁ¿                       :
+ 696          *µ÷ÓÃÄ£¿é                       :
+ 697          ***********************************************************
+ 698          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 699          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 700          ***********************************************************
+ 701          *ÐÞ¸ÄÈË                         :
+ 702          *ÐÞ¸ÄÈÕÆÚ               :
+ 703          *×¢ÊÍ                   :
+ 704          **********************************************************/
+ 705          bit AddrCompare(pSTBusFreq pstBusFreq)
+ 706          {
+ 707   1              if((pstBusFreq->byRecSecAddr != 0xff) && (pstBusFreq->byRecSecAddr != stLocalControl.stEepromCfgData.bySe
+             -lfSecAddr))
+ 708   1              {       
+ 709   2                      return(0);
+ 710   2              } 
+ 711   1              if((pstBusFreq->byRecRoomAddr != 0xff) && (pstBusFreq->byRecRoomAddr != stLocalControl.stEepromCfgData.by
+             -SelfRoomAddr))
+ 712   1              {       
+ 713   2                      return(0);
+ 714   2              }
+ 715   1              if((pstBusFreq->byRecBedAddr != 0xff) && (pstBusFreq->byRecBedAddr != stLocalControl.stEepromCfgData.bySe
+             -lfBedAddr))
+ 716   1              {       
+ 717   2                      return(0);
+ 718   2              }
+ 719   1              return(1); 
+ 720   1      }
+ 721          /**********************************************************
+ 722          *º¯ÊýÃû³Æ                       :MakeCH0TimerOut        
+ 723          *º¯ÊýÃèÊö               :ÉèÖÃÍ¨µÀ0³¬Ê±²ÎÊý
+ 724          *ÊäÈë²ÎÊý               :byTimerOut:³¬Ê±Ê±¼ä,byTimerOutCount:³¬Ê±´ÎÊý
+ 725          *·µ»ØÖµ                         :
+ 726          *È«¾Ö±äÁ¿                       :stLocalControl
+ 727          *µ÷ÓÃÄ£¿é                       :
+ 728          ***********************************************************
+ 729          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 730          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 731          ***********************************************************
+ 732          *ÐÞ¸ÄÈË                         :
+ 733          *ÐÞ¸ÄÈÕÆÚ               :
+ 734          *×¢ÊÍ                   :
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 13  
+
+ 735          **********************************************************/  
+ 736          void MakeCH0TimerOut(uint8 byTimerOut, uint8 byTimerOutCount)
+ 737          {
+ 738   1              stLocalControl.stCH0TimerOut.byTimerOutSet   = byTimerOut;
+ 739   1              stLocalControl.stCH0TimerOut.byTimerOut      = byTimerOut;
+ 740   1              stLocalControl.stCH0TimerOut.byTimerOutCount = byTimerOutCount; 
+ 741   1      }
+ 742          /**********************************************************
+ 743          *º¯ÊýÃû³Æ                       :MakeCH1TimerOut        
+ 744          *º¯ÊýÃèÊö               :ÉèÖÃÍ¨µÀ1³¬Ê±²ÎÊý
+ 745          *ÊäÈë²ÎÊý               :byTimerOut:³¬Ê±Ê±¼ä,byTimerOutCount:³¬Ê±´ÎÊý
+ 746          *·µ»ØÖµ                         :
+ 747          *È«¾Ö±äÁ¿                       :stLocalControl
+ 748          *µ÷ÓÃÄ£¿é                       :
+ 749          ***********************************************************
+ 750          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 751          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 752          ***********************************************************
+ 753          *ÐÞ¸ÄÈË                         :
+ 754          *ÐÞ¸ÄÈÕÆÚ               :
+ 755          *×¢ÊÍ                   :
+ 756          **********************************************************/   
+ 757          void MakeCH1TimerOut(uint8 byTimerOut, uint8 byTimerOutCount)
+ 758          {
+ 759   1              stLocalControl.stCH1TimerOut.byTimerOutSet   = byTimerOut;
+ 760   1              stLocalControl.stCH1TimerOut.byTimerOut      = byTimerOut;
+ 761   1              stLocalControl.stCH1TimerOut.byTimerOutCount = byTimerOutCount; 
+ 762   1      } 
+ 763          /**********************************************************
+ 764          *º¯ÊýÃû³Æ                       :SaveIndicationData     
+ 765          *º¯ÊýÃèÊö               :±£´æÐÅÏ¢Ö¸Ê¾Êý¾ÝÄÚÈÝ
+ 766          *ÊäÈë²ÎÊý               :pstBus0SendFreq:´ý±£´æµÄÊý¾ÝÖ¡Ö¸Õë
+ 767          *·µ»ØÖµ                         :
+ 768          *È«¾Ö±äÁ¿                       :stLocalControl
+ 769          *µ÷ÓÃÄ£¿é                       :
+ 770          ***********************************************************
+ 771          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 772          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 773          ***********************************************************
+ 774          *ÐÞ¸ÄÈË                         :
+ 775          *ÐÞ¸ÄÈÕÆÚ               :
+ 776          *×¢ÊÍ                   :
+ 777          **********************************************************/
+ 778          void SaveIndicationData(pSTBusFreq pstBus0SendFreq)
+ 779          {       
+ 780   1              stLocalControl.stIndicationData.stAddr.bySecAddr  = pstBus0SendFreq->bySndSecAddr;
+ 781   1              stLocalControl.stIndicationData.stAddr.byRoomAddr = pstBus0SendFreq->bySndRoomAddr;
+ 782   1              stLocalControl.stIndicationData.stAddr.byBedAddr  = pstBus0SendFreq->bySndBedAddr;
+ 783   1              stLocalControl.stIndicationData.byCallCmd         = pstBus0SendFreq->byRecSecAddr; 
+ 784   1      }
+ 785          /**********************************************************
+ 786          *º¯ÊýÃû³Æ                       :SaveCallAddr   
+ 787          *º¯ÊýÃèÊö               :±£´æÖ÷¶¯Í¨»°·½µØÖ·
+ 788          *ÊäÈë²ÎÊý               :pstBus0SendFreq:´ý±£´æµÄÊý¾ÝÖ¡Ö¸Õë
+ 789          *·µ»ØÖµ                         :
+ 790          *È«¾Ö±äÁ¿                       :stLocalControl
+ 791          *µ÷ÓÃÄ£¿é                       :
+ 792          ***********************************************************
+ 793          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 794          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 795          ***********************************************************
+ 796          *ÐÞ¸ÄÈË                         :
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 14  
+
+ 797          *ÐÞ¸ÄÈÕÆÚ               :
+ 798          *×¢ÊÍ                   :
+ 799          **********************************************************/
+ 800          void SaveCallAddr(pSTBusFreq pstBusFreq)
+ 801          {       
+ 802   1              stLocalControl.stCallAddr.bySecAddr  = pstBusFreq->bySndSecAddr;
+ 803   1              stLocalControl.stCallAddr.byRoomAddr = pstBusFreq->bySndRoomAddr;
+ 804   1              stLocalControl.stCallAddr.byBedAddr  = pstBusFreq->bySndBedAddr;
+ 805   1      }
+ 806          /**********************************************************
+ 807          *º¯ÊýÃû³Æ                       :LedControl     
+ 808          *º¯ÊýÃèÊö               :Ö¸Ê¾µÆÏÔÊ¾×´Ì¬¿ØÖÆ
+ 809          *ÊäÈë²ÎÊý               :
+ 810          *·µ»ØÖµ                         :
+ 811          *È«¾Ö±äÁ¿                       :
+ 812          *µ÷ÓÃÄ£¿é                       :SetLedSetState,SetLedDealState
+ 813          ***********************************************************
+ 814          *´´½¨ÈË                 :ÐÜ¼áÇ¿
+ 815          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 816          ***********************************************************
+ 817          *ÐÞ¸ÄÈË                         :
+ 818          *ÐÞ¸ÄÈÕÆÚ               :
+ 819          *×¢ÊÍ                   :
+ 820          **********************************************************/ 
+ 821          void LedControl(void)
+ 822          {
+ 823   1              if(bNurseIn)
+ 824   1              {
+ 825   2                      SetMDLedState(LED_ON<<4);         //»¤Ê¿µ½Î»ÃÅµÆÖ¸Ê¾ÎªÂÌÉ«
+ 826   2              }
+ 827   1              else if((bConfusionNoting|bServiceNoting|bHelpNoting))
+ 828   1              {
+ 829   2                      SetMDLedState(LED_ON<<2);//ºìÉ«   //ÓÐÆÕÍ¨ºô½ÐÃÅµÆÏÔÊ¾ÎªºìÉ«
+ 830   2              }
+ 831   1              else if(bEmergencyNoting)
+ 832   1              {               
+ 833   2                      SetMDLedState(LED_FLASH<<2); //ÓÐ½ô¼±ºô½ÐÃÅµÆÏÔÊ¾ÎªºìÉ«ÉÁË¸
+ 834   2              }
+ 835   1              else
+ 836   1              {
+ 837   2                      SetMDLedState(0);
+ 838   2              }
+ 839   1              if(bIndicatingOther)
+ 840   1              {
+ 841   2                  SetLedDealState(LED_FLASH); //Èç¹ûÓÐÆäËûºô½Ð£¬ÃÅ¿Ú´¦ÀíµÆÉÁË¸
+ 842   2              }
+ 843   1              else if((bChannel1Talk|bChannel1Talked|bChannel0Talk|bChannel0Talked|bSelfBroad|bSickRoomBroad|bOfficeBro
+             -ad|bAllBroad))
+ 844   1              {       
+ 845   2                      SetLedDealState(LED_ON);        //Éè±¸´¦ÓÚÍ¨»°×´Ì¬Éè¶¨´¦ÀíµÆ³¤ÁÁ
+ 846   2              } 
+ 847   1              else
+ 848   1              {
+ 849   2                      SetLedDealState(LED_OFF);
+ 850   2              }       
+ 851   1      }
+ 852          /**********************************************************
+ 853          *º¯ÊýÃû³Æ                       :VoiceChannelCtx        
+ 854          *º¯ÊýÃèÊö               :ÓïÒôÍ¨µÀÇÐ»»´¦Àíº¯Êý
+ 855          *ÊäÈë²ÎÊý               :
+ 856          *·µ»ØÖµ                         :
+ 857          *È«¾Ö±äÁ¿                       :
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 15  
+
+ 858          *µ÷ÓÃÄ£¿é                       :
+ 859          ***********************************************************
+ 860          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 861          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 862          ***********************************************************
+ 863          *ÐÞ¸ÄÈË                         :
+ 864          *ÐÞ¸ÄÈÕÆÚ               :
+ 865          *×¢ÊÍ                   :
+ 866          **********************************************************/ 
+ 867          void VoiceChannelCtx(void)
+ 868          {       
+ 869   1              if(bChannel1Talked)       //Í¨µÀ1ÎªSA
+ 870   1              {       //Í¨µÀ1±»¶¯Í¨»°
+ 871   2                      CCAP1H = stLocalControl.stEepromCfgData.byCH1TalkedVol;
+ 872   2                      CloseCGB();
+ 873   2                      OpenCBD();
+ 874   2                      CTD = 0;
+ 875   2                      CTA = 1;
+ 876   2                      bPWState =  PW = 0;                     
+ 877   2              }
+ 878   1              else if(bChannel1Talk)
+ 879   1              {       //Í¨µÀ1Ö÷¶¯Í¨»°
+ 880   2                      CCAP1H = stLocalControl.stEepromCfgData.byCH1TalkVol;
+ 881   2                      CloseCGB();
+ 882   2                      OpenCBD();
+ 883   2                      CTD = 0;
+ 884   2                      CTA = 1;
+ 885   2                      bPWState =  PW = 0;             
+ 886   2              } 
+ 887   1              else if((bSickRoomBroad|bOfficeBroad|bAllBroad))        //¹ã²¥×´Ì¬ÎªSDÍ¨µÀ
+ 888   1              {       //¹ã²¥×´Ì¬
+ 889   2                      CCAP1H = stLocalControl.stEepromCfgData.byBroadVol;
+ 890   2                      CloseCBD();
+ 891   2                      OpenCGB();
+ 892   2                      CTA = CTD = 0;
+ 893   2                      bPWState = PW = 0;              
+ 894   2              }
+ 895   1              else if(bChannel0Talked)  //Í¨µÀ2ÎªSD
+ 896   1              {       //Í¨µÀ0±»½ÐÍ¨»°×´Ì¬
+ 897   2                      CCAP1H = stLocalControl.stEepromCfgData.byCH0TalkedVol;
+ 898   2                      CloseCBD();
+ 899   2                      OpenCGB();
+ 900   2                      CTA = 0;
+ 901   2                      CTD = 1;
+ 902   2                      bPWState = PW = 0;              
+ 903   2              }
+ 904   1              else if(bChannel0Talk)
+ 905   1              {       //Í¨µÀ0Ö÷¶¯Í¨»°×´Ì¬
+ 906   2                      CCAP1H = stLocalControl.stEepromCfgData.byCH0TalkVol;
+ 907   2                      CloseCBD();
+ 908   2                      OpenCGB();
+ 909   2                      CTA = 0;
+ 910   2                      CTD = 1;
+ 911   2                      bPWState = PW = 0;              
+ 912   2              }       
+ 913   1              else if(bSelfBroad)             //¹ã²¥×´Ì¬ÎªSDÍ¨µÀ
+ 914   1              {       //Ö÷¶¯¹ã²¥×´Ì¬
+ 915   2                      CCAP1H = stLocalControl.stEepromCfgData.byBroadVol;
+ 916   2                      CloseCBD();
+ 917   2                      OpenCGB();
+ 918   2                      CTA = 0;
+ 919   2                      CTD = 1;
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 16  
+
+ 920   2                      bPWState = PW = 0;                      
+ 921   2              }
+ 922   1              else if((bCalledRing|bWaitListen))      //±¨ºÅ¹Ø±ÕSA¡¢SDÍ¨µÀ
+ 923   1              {       //±»ºô½ÐÕñÁå»òÕßµÈ´ý½ÓÌý
+ 924   2                      CCAP1H = stLocalControl.stEepromCfgData.bySelfRingVol;
+ 925   2                      CloseCBD();
+ 926   2                      OpenCGB();
+ 927   2                      CTA = CTD = 0;
+ 928   2                      bPWState = PW = 0;              
+ 929   2              }
+ 930   1              else if(bIndicatingOther&&bEnSoundNote)  //±¨ºÅÎªSDÍ¨µÀ
+ 931   1              {       //ÕýÔÚÖ¸Ê¾ÆäËü·Ö»úÇÒÐí¿É±¨ºÅ
+ 932   2                      CCAP1H = stLocalControl.stEepromCfgData.byRingVol;
+ 933   2                      CloseCBD();
+ 934   2                      OpenCGB();
+ 935   2                      CTA = CTD = 0;
+ 936   2                      bPWState = PW = 0;              
+ 937   2              }
+ 938   1              else if(bMusicPlaying)
+ 939   1              {       //±³¾°ÒôÀÖ²¥·Å×´Ì¬
+ 940   2                      CCAP1H = stLocalControl.stEepromCfgData.byMusicVol;
+ 941   2                      CloseCGB();
+ 942   2                      OpenCBD();
+ 943   2                      CTA = CTD = 0;
+ 944   2                      bPWState = PW = 0;                              
+ 945   2              }
+ 946   1              else if(bVoiceNoting)
+ 947   1              {       //ÓïÒôÌáÊ¾
+ 948   2                      CCAP1H = stLocalControl.stEepromCfgData.byNoteVol;
+ 949   2                      CloseCGB();
+ 950   2                      OpenCBD();
+ 951   2                      CTA = CTD = 0;
+ 952   2                      bPWState = PW = 0;
+ 953   2              }
+ 954   1              else
+ 955   1              {       //Ã»ÓÐÈÎºÎÓïÒô×´Ì¬´æÔÚ          
+ 956   2                      CCAP1H = 10;
+ 957   2                      CloseCGB();
+ 958   2                      CloseCBD();
+ 959   2                      CTA = CTD = 0;
+ 960   2                      bPWState = PW = 1;
+ 961   2              }       
+ 962   1      }
+ 963          /**********************************************************
+ 964          *º¯ÊýÃû³Æ                       :SysReset       
+ 965          *º¯ÊýÃèÊö               :ÏµÍ³¸´Î»,¸Ãº¯Êý½ö½ö½«Í¨µÀ0¸´Î»,½«Í¨µÀ0
+ 966                                                   »Ö¸´µ½¿ÕÏÐ×´Ì¬
+ 967          *ÊäÈë²ÎÊý               :
+ 968          *·µ»ØÖµ                         :
+ 969          *È«¾Ö±äÁ¿                       :
+ 970          *µ÷ÓÃÄ£¿é                       :
+ 971          ***********************************************************
+ 972          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 973          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 974          ***********************************************************
+ 975          *ÐÞ¸ÄÈË                         :
+ 976          *ÐÞ¸ÄÈÕÆÚ               :
+ 977          *×¢ÊÍ                   :
+ 978          **********************************************************/
+ 979          void SysReset(void)
+ 980          {       
+ 981   1          Broadcasting_Flag=0;
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 17  
+
+ 982   1              bBusy = bWaitAck = bWaitListen = bCalledRing = bChannel0Talked = bChannel0Talk = bSickRoomBroad = bOffice
+             -Broad = bAllBroad = bSelfBroad = 0;                   
+ 983   1              MakeCH0TimerOut(0, 0);  
+ 984   1              VoiceChannelCtx();
+ 985   1              LedControl();
+ 986   1              bIndication = 0; 
+ 987   1              SetLcdState(1);         
+ 988   1              ShowPage();     
+ 989   1      }
+ 990          /**********************************************************
+ 991          *º¯ÊýÃû³Æ                       :Bus0RecDeal    
+ 992          *º¯ÊýÃèÊö               :µ¥×ÜÏß0ÊÕµ½Ò»Ö¡Êý¾Ý´¦Àíº¯Êý,¸Ãº¯ÊýÊ×ÏÈ
+ 993                                                   È¡³öÊÕµ½µÄÊý¾Ý,Õë¶ÔÃ¿ÌõÃüÁîÖ´ÐÐ¶ÔÓ¦µÄ¿Ø
+ 994                                                   ÖÆ¶¯×÷
+ 995          *ÊäÈë²ÎÊý               :
+ 996          *·µ»ØÖµ                         :
+ 997          *È«¾Ö±äÁ¿                       :stLocalControl
+ 998          *µ÷ÓÃÄ£¿é                       :
+ 999          ***********************************************************
+1000          *´´½¨ÈË                 :ÐÜ¼áÇ¿
+1001          *´´½¨ÈÕÆÚ                       :2008-9-22
+1002          ***********************************************************
+1003          *ÐÞ¸ÄÈË                         :
+1004          *ÐÞ¸ÄÈÕÆÚ               :
+1005          *×¢ÊÍ                   :
+1006          **********************************************************/
+1007          void Bus0RecDeal(void)
+1008          {
+1009   1              uint8 idata timebuf[5];
+1010   1              //È¡³öÊÕµ½µÄÊý¾ÝÖ¡                      
+1011   1              EA=0;
+1012   1              memcpy(&(stLocalControl.stBusDealFreq), byBus0RecData, sizeof(STBusFreq));
+1013   1              bBus0RecFinish = 0;     
+1014   1              EA=1;;  
+1015   1              if(bLanding && (stLocalControl.stBusDealFreq.byCmd != CMD_ENTER))
+1016   1              {       //Èç¹ûÊÇµÇ¼Ç×´Ì¬,ÊÕµ½µÄÃüÁî²»ÊÇµÇ¼ÇÈ·ÈÏÃüÁî,²»×÷´¦Àí
+1017   2                      return;
+1018   2              }
+1019   1              //-----------------------------------------
+1020   1              //-----------------------------------------
+1021   1              //µ÷ÊÔÊ¹ÓÃ
+1022   1               //SBUF=stLocalControl.stBusDealFreq.byCmd;
+1023   1              //while(!TI);
+1024   1              //TI=0;         
+1025   1              //-----------------------------------------
+1026   1              //-----------------------------------------
+1027   1              switch(stLocalControl.stBusDealFreq.byCmd)
+1028   1              {
+1029   2                /*case CMD_ENTER:                                                                             //È·ÈÏµÇ¼ÇÃüÁî
+1030   2                              if(bLanding)
+1031   2                              {       
+1032   2                                      if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1033   2                                      {                                                                               
+1034   2                                              SetLedDealState(LED_OFF);
+1035   2                                              SetMDLedState(LED_OFF);
+1036   2                                              SetLcdState(1);
+1037   2                                              ReadPageColour();       
+1038   2                                              ShowPage();                                                             
+1039   2                                              byDevState1 = stLocalControl.stBusDealFreq.byRecSecAddr & 0x80;                                                                         
+1040   2                                              MakeCH0TimerOut(0, 0);                                                                          
+1041   2                                      }
+1042   2                              }                       
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 18  
+
+1043   2                              break;*/
+1044   2                      //---------------------------------------------------------------------
+1045   2                      //---------------------------------------------------------------------
+1046   2                      //Ôö¼Ó×Ô¶¯¼ì²âÃüÁî--2012.3.13
+1047   2                      case CMD_BUS0_CHECK:     //µ¥×ÜÏß¼ì²â
+1048   2                              RST_BUS=0;      
+1049   2                              stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+1050   2                              stLocalControl.stBusDealFreq.byRecSecAddr = CMD_BUS0_CHECK;
+1051   2                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));           
+1052   2                              break;  
+1053   2      
+1054   2                      case CMD_SD_TAL_VOL_CHECK:
+1055   2                              RST_BUS=0;       //SD¡¢SAÍ¨µÀÕý³£
+1056   2                              
+1057   2                              stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+1058   2                              stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SD_TAL_VOL_CHECK;
+1059   2                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1060   2                              CTD=1;
+1061   2                              OpenCGB();
+1062   2                              CloseCBD();
+1063   2                              PW =0;  //´ò¿ª¹¦·Å34119
+1064   2                              break;
+1065   2      
+1066   2                      case CMD_SD_TAL_VOL_CHECK_END:
+1067   2                              RST_BUS=0;      //SD¡¢SAÍ¨µÀÕý³£
+1068   2                              
+1069   2                              stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+1070   2                              stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SD_TAL_VOL_CHECK_END;
+1071   2                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));                   
+1072   2                              break;
+1073   2                              
+1074   2      
+1075   2                      case CMD_SA_TAL_VOL_CHECK:
+1076   2                              RST_BUS=0;      //SD¡¢SAÍ¨µÀÕý³£
+1077   2                              
+1078   2                              stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+1079   2                              stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SA_TAL_VOL_CHECK;
+1080   2                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1081   2                              CTA = 1;
+1082   2                              CloseCGB();
+1083   2                              OpenCBD();
+1084   2                              PW=0;   //´ò¿ª¹¦·Å34119
+1085   2                              break;
+1086   2      
+1087   2      
+1088   2                      case CMD_SA_TAL_VOL_CHECK_END:
+1089   2                              RST_BUS=0;      //SD¡¢SAÍ¨µÀÕý³£
+1090   2                              
+1091   2                              stLocalControl.stBusDealFreq.byCmd = CMD_BUS_ANSWER; 
+1092   2                              stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SA_TAL_VOL_CHECK_END;
+1093   2                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1094   2                              CTA = 0;
+1095   2                              CloseCBD();
+1096   2                              PW=1;   //¹Ø±Õ¹¦·Å34119
+1097   2                              break;
+1098   2                      //---------------------------------------------------------------------
+1099   2                      case CMD_QUEST:                                                                         //²éÑ¯ÃüÁî
+1100   2                              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+1101   2                              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+1102   2                              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+1103   2                              stLocalControl.stBusDealFreq.byCmd = CMD_ANSWER;                        
+1104   2                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));                   
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 19  
+
+1105   2                              break;                  
+1106   2                      case CMD_NURSE_COME:                                                    //»¤Ê¿µ½Î»ÃüÁî²¢ÇÒÊÇ»¤Ê¿²é·¿ÃüÁî                        
+1107   2                              if((stLocalControl.stBusDealFreq.byRecSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr) &&((stLo
+             -calControl.stBusDealFreq.byRecRoomAddr&0x7f) == (stLocalControl.stEepromCfgData.bySelfRoomAddr&0x7f)))  //...±È½ÏÇøºÅºÍ·
+             -¿ºÅ
+1108   2                              {               
+1109   3                                      bNurseIn = 1;                          //ÈçÈ·ÈÏµÄÉè±¸ÊÇ±¾·¿µÄ,±íÃ÷»¤Ê¿µ½´ï±¾·¿,ÖÃµ½Î»±êÖ¾                               
+1110   3                                      LedControl();
+1111   3                                      VoiceChannelCtx();  
+1112   3                                      INSPERCTOR_Count=0;
+1113   3                                      //----------------------------------------------------------------
+1114   3                                      //----------------------------------------------------------------
+1115   3                                      //2012/5/26Ìí¼Ó¶à¸ö»¤Ê¿µ½Î»
+1116   3                                      NurseComeCount++;
+1117   3                                      if(NurseComeCount==1)
+1118   3                                      {
+1119   4                                        NurseComeRoom[0]=stLocalControl.stBusDealFreq.bySndBedAddr;
+1120   4                                        INSPERCTOR_Flag=0;
+1121   4                                      }
+1122   3                                      else if(NurseComeCount>1)
+1123   3                                      {
+1124   4                        if(NurseComeRoom[0]==stLocalControl.stBusDealFreq.bySndBedAddr)
+1125   4                                        goto  NurseIN;
+1126   4                                        if(NurseComeRoom[1]==0x00)
+1127   4                                        {
+1128   5                                           if(stLocalControl.stBusDealFreq.bySndBedAddr!=NurseComeRoom[0]&&stLocalControl.stBusDealFreq.bySn
+             -dBedAddr!=NurseComeRoom[2])
+1129   5                                               {
+1130   6                                             NurseComeRoom[1]=stLocalControl.stBusDealFreq.bySndBedAddr;
+1131   6                                             INSPERCTOR_Flag=0;
+1132   6                                             goto  NurseIN;  
+1133   6                                               }
+1134   5                                        }
+1135   4                                        else if(NurseComeRoom[1]==stLocalControl.stBusDealFreq.bySndBedAddr)
+1136   4                                        goto  NurseIN;                                        
+1137   4                                        if(NurseComeRoom[2]==0x00)
+1138   4                                        {
+1139   5                                           if(stLocalControl.stBusDealFreq.bySndBedAddr!=NurseComeRoom[0]&&stLocalControl.stBusDealFreq.bySn
+             -dBedAddr!=NurseComeRoom[1])
+1140   5                                               {
+1141   6                                             NurseComeRoom[2]=stLocalControl.stBusDealFreq.bySndBedAddr;
+1142   6                                             INSPERCTOR_Flag=0;
+1143   6                                                 goto  NurseIN;
+1144   6                                               }
+1145   5                                        }
+1146   4                                        else if(NurseComeRoom[2]==stLocalControl.stBusDealFreq.bySndBedAddr)
+1147   4                                        goto  NurseIN;        
+1148   4                                      }
+1149   3                                      //----------------------------------------------------------------
+1150   3                                      //----------------------------------------------------------------
+1151   3                                      //2012/4/24½«´ËÃüÁîÍ¬Ê±ÈÏÎªÊÇ²é·¿ÃüÁî
+1152   3      NurseIN:                if(!INSPERCTOR_Flag)
+1153   3                               {
+1154   4                                       INSPERCTOR_Flag=1;
+1155   4                                       SerchRoom++;
+1156   4                                           if(SerchRoom>15)   //²é·¿´óÓÚ15´ÎµÄ»°£¬ÖØÐÂ»Øµ½µÚ1Ò³½øÐÐÏÔÊ¾
+1157   4                                           {
+1158   5                                             PageNumber++;
+1159   5                                             SerchRoom=1;
+1160   5                                           }                     
+1161   4                                       if(PageNumber==1)   //µÚÒ»ÆÁÒÑ¾­Ð´Âú
+1162   4                                       {
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 20  
+
+1163   5                                         Page_Flag=1;
+1164   5                                         FmWriteByte(Serch_Room_Page_ADDR,INIT_FLAG);
+1165   5                                   }                                                     
+1166   4                                           FmWriteByte(Serch_Room_ADDR, SerchRoom);//´æ´¢µÚ¼¸´Î²é·¿Êý¾Ý
+1167   4      
+1168   4                                               
+1169   4                                               if(SerchRoom==1)         //Èç¹ûµÚÒ»´Î²é·¿
+1170   4                                       {
+1171   5                                         FmWriteByte(Serch_Room_ADDR+0x1000, stLocalControl.stBusDealFreq.bySndBedAddr);
+1172   5                                                 HaveSerchRoomFlag=1;
+1173   5                                             FmWriteBytes(Serch_Room_TIME_ADDR+0x1000,5,Real_TimeBuf);
+1174   5                                       }
+1175   4                                           else if(SerchRoom==2) //Èç¹ûµÚ¶þ´Î²é·¿
+1176   4                                   { 
+1177   5                                         FmWriteByte(Serch_Room_ADDR+0x2000, stLocalControl.stBusDealFreq.bySndBedAddr);
+1178   5                                         HaveSerchRoomFlag=1; 
+1179   5                                             FmWriteBytes(Serch_Room_TIME_ADDR+0x2000,5,Real_TimeBuf);
+1180   5                                       }
+1181   4                                           else if(SerchRoom==3)//Èç¹ûµÚÈý´Î²é·¿
+1182   4                                   {
+1183   5                                         FmWriteByte(Serch_Room_ADDR+0x3000, stLocalControl.stBusDealFreq.bySndBedAddr);
+1184   5                                         HaveSerchRoomFlag=1;
+1185   5                                             FmWriteBytes(Serch_Room_TIME_ADDR+0x3000,5,Real_TimeBuf);
+1186   5                                       }
+1187   4                                           else if(SerchRoom==4)//Èç¹ûµÚËÄ´Î²é·¿
+1188   4                                   {
+1189   5                                     FmWriteByte(Serch_Room_ADDR+0x4000, stLocalControl.stBusDealFreq.bySndBedAddr);
+1190   5                                         HaveSerchRoomFlag=1;
+1191   5                                             FmWriteBytes(Serch_Room_TIME_ADDR+0x4000,5,Real_TimeBuf);
+1192   5                                   }
+1193   4                                           else if(SerchRoom==5)//Èç¹ûµÚÎå´Î²é·¿
+1194   4                                   {
+1195   5                                         FmWriteByte(Serch_Room_ADDR+0x5000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1196   5                                         HaveSerchRoomFlag=1;
+1197   5                                             FmWriteBytes(Serch_Room_TIME_ADDR+0x5000,5,Real_TimeBuf);
+1198   5                                   }
+1199   4                                           else if(SerchRoom==6)//Èç¹ûµÚÁù´Î²é·¿
+1200   4                                   {
+1201   5                                         FmWriteByte(Serch_Room_ADDR+0x6000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1202   5                                         HaveSerchRoomFlag=1;
+1203   5                                             FmWriteBytes(Serch_Room_TIME_ADDR+0x6000,5,Real_TimeBuf);
+1204   5                                   }
+1205   4                                           else if(SerchRoom==7)//Èç¹ûµÚÆß´Î²é·¿
+1206   4                                   {
+1207   5                                         FmWriteByte(Serch_Room_ADDR+0x7000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1208   5                                         HaveSerchRoomFlag=1;
+1209   5                                             FmWriteBytes(Serch_Room_TIME_ADDR+0x7000,5,Real_TimeBuf);
+1210   5                                   }
+1211   4                                           else if(SerchRoom==8)//Èç¹ûµÚ°Ë´Î²é·¿
+1212   4                                   {
+1213   5                                          FmWriteByte(Serch_Room_ADDR+0x8000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1214   5                                          HaveSerchRoomFlag=1;
+1215   5                                              FmWriteBytes(Serch_Room_TIME_ADDR+0x8000,5,Real_TimeBuf);
+1216   5                                       }
+1217   4                                           else if(SerchRoom==9)//Èç¹ûµÚ¾Å´Î²é·¿
+1218   4                                   {
+1219   5                                          FmWriteByte(Serch_Room_ADDR+0x9000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1220   5                                          HaveSerchRoomFlag=1;
+1221   5                                              FmWriteBytes(Serch_Room_TIME_ADDR+0x9000,5,Real_TimeBuf);
+1222   5                                   }
+1223   4                                           else if(SerchRoom==10)//Èç¹ûµÚÊ®´Î²é·¿
+1224   4                                   {
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 21  
+
+1225   5                                          FmWriteByte(Serch_Room_ADDR+0xA000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1226   5                                          HaveSerchRoomFlag=1;
+1227   5                                              FmWriteBytes(Serch_Room_TIME_ADDR+0xA000,5,Real_TimeBuf);
+1228   5                                   }
+1229   4                                          else if(SerchRoom==11)//Èç¹ûµÚÊ®Ò»´Î²é·¿
+1230   4                                  {
+1231   5                                         FmWriteByte(Serch_Room_ADDR+0xB000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1232   5                                         HaveSerchRoomFlag=1;
+1233   5                                             FmWriteBytes(Serch_Room_TIME_ADDR+0xB000,5,Real_TimeBuf);
+1234   5                                  }
+1235   4                                          else if(SerchRoom==12)//Èç¹ûµÚÊ®¶þ´Î²é·¿
+1236   4                                  {
+1237   5                                         FmWriteByte(Serch_Room_ADDR+0xC000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1238   5                                         HaveSerchRoomFlag=1;
+1239   5                                             FmWriteBytes(Serch_Room_TIME_ADDR+0xC000,5,Real_TimeBuf);
+1240   5                                  }
+1241   4                                          else if(SerchRoom==13)//Èç¹ûµÚÊ®Èý´Î²é·¿
+1242   4                                  {    
+1243   5                                         FmWriteByte(Serch_Room_ADDR+0x2D000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1244   5                                         HaveSerchRoomFlag=1;
+1245   5                                             FmWriteBytes(Serch_Room_TIME_ADDR+0xD000,5,Real_TimeBuf);
+1246   5                                  }
+1247   4                                          else if(SerchRoom==14)//Èç¹ûµÚÊ®ËÄ´Î²é·¿
+1248   4                                  {   
+1249   5                                        FmWriteByte(Serch_Room_ADDR+0x2E000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1250   5                                        HaveSerchRoomFlag=1;
+1251   5                                            FmWriteBytes(Serch_Room_TIME_ADDR+0xE000,5,Real_TimeBuf);
+1252   5                                  }
+1253   4                                          else if(SerchRoom==15)//Èç¹ûµÚÊ®Îå´Î²é·¿
+1254   4                                  {
+1255   5                                        FmWriteByte(Serch_Room_ADDR+0x2F000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1256   5                                        HaveSerchRoomFlag=1;
+1257   5                                            FmWriteBytes(Serch_Room_TIME_ADDR+0xF000,5,Real_TimeBuf);
+1258   5                                  } 
+1259   4                                }     
+1260   3                                  //--------------------------------------------------------------------------------------
+1261   3                                      //--------------------------------------------------------------------------------------                                        
+1262   3                               }
+1263   2                               //-----------------------------------------------------------------------------------------
+1264   2                               //-----------------------------------------------------------------------------------------
+1265   2                               //È¡Ïûµôµ±ÓÐ»¤Ê¿µ½Î»Ç°ÌáÏÂ£¬Èç¹û»¤Ê¿µ½Î»±ðµÄ·¿¼ä£¬ÃÅµÆ»¤Ê¿µ½Î»Ö¸Ê¾µÆÏ¨ÃðµÄÇé¿ö£¬¶øÊÇÖ»ÓÐµ±»¤Ê¿Àë¿ªºó²Å
+             -Ï¨Ãð
+1266   2                              /*else if(bNurseIn)
+1267   2                              {                                       
+1268   2                                      bNurseIn = 0;                        //²»ÊÇµ½Î»±¾·¿¼äµ«±¾»úµÄ»¤Ê¿µ½Î»±êÖ¾ÖÃÎ»ÁË,Çå³ýÖ®Ç°µÄ»¤Ê¿µ½Î»±êÖ¾  
+             -                        
+1269   2                                      LedControl();
+1270   2                                      VoiceChannelCtx();                      
+1271   2                              } */
+1272   2                              //------------------------------------------------------------------------------------------
+1273   2                              //------------------------------------------------------------------------------------------
+1274   2                              break;
+1275   2                      case CMD_NURSE_BACK:                                                    //»¤Ê¿Àë¿ªÃüÁî
+1276   2                              if((stLocalControl.stBusDealFreq.byRecSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr) &&((stLo
+             -calControl.stBusDealFreq.byRecRoomAddr&0x7f) == (stLocalControl.stEepromCfgData.bySelfRoomAddr&0x7f))) //...±È½ÏÇøºÅºÍ·¿
+             -ºÅ
+1277   2                              {       //Çå³ýµÄÉè±¸ÊÇ±¾·¿µÄ,±íÃ÷»¤Ê¿Àë¿ª±¾·¿,Çåµ½Î»±êÖ¾
+1278   3                                      bNurseIn = 0;                                   
+1279   3                                      LedControl();
+1280   3                                      VoiceChannelCtx();                              
+1281   3                              }                       
+1282   2                              break;          
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 22  
+
+1283   2                      case CMD_COMM_CALL:                                                                     //ÆÕÍ¨ºô½ÐÃüÁî
+1284   2                              if(!bBusy)
+1285   2                              {       //Í¨µÀ0¿ÕÏÐ                     
+1286   3                                      bBusy = 1;
+1287   3                                      if(bIndicatingOther)
+1288   3                                      {       //Èç¹ûÕýÔÚÖ¸Ê¾ÆäËû·Ö»ú,Í£Ö¹Ö¸Ê¾ 
+1289   4                                          //----------------------------------------------------------------------------------------
+1290   4                                              //----------------------------------------------------------------------------------------
+1291   4                                              bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;      
+1292   4                                          VoiceChannelCtx();
+1293   4                                      LedControl();
+1294   4                                              //----------------------------------------------------------------------------------------
+1295   4                                              //----------------------------------------------------------------------------------------                                                                              
+             -                                
+1296   4                                              bIndication = 0; 
+1297   4                                      SetLcdState(1);                 
+1298   4                                      ShowPage();     
+1299   4                                      }                               
+1300   3                                      //Çå³ýËùÓÐºô½ÐÖ¸Ê¾±êÖ¾
+1301   3                                      bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;
+1302   3                                      VoiceChannelCtx();                                                      //ÓïÒôÇÐ»»                                      
+1303   3                                      //±£´æÖ÷¶¯ºô½Ð·½µØÖ·
+1304   3                                      SaveCallAddr(&(stLocalControl.stBusDealFreq));                  
+1305   3                                      MakeCH0TimerOut(250, 0);                                        //ÉèÖÃ³¬Ê±5s
+1306   3                                      if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1307   3                                      {       //ºô½Ð±¾»úÉè±¸  
+1308   4                                              if(!(bChannel1Talk|bChannel1Talked))
+1309   4                                              {       //Í¨µÀ1¿ÕÏÐ,Ôò±¾»úÎª¿ÕÏÐ×´Ì¬,·µ»ØÓ¦´ðÃüÁî
+1310   5                                                      stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+1311   5                                                      stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+1312   5                                                      stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+1313   5                                                      stLocalControl.stBusDealFreq.byCmd = CMD_COMM_ANSWER;
+1314   5                                                      stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.bySecAddr;
+1315   5                                                      stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.byRoomAddr;
+1316   5                                                      stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.byBedAddr;
+1317   5                                                      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1318   5                                              }                               
+1319   4                                      }
+1320   3                                      LedControl();                                                           //Ö¸Ê¾µÆÇÐ»»
+1321   3                              }
+1322   2                              break;
+1323   2                      case CMD_COMM_ANSWER:                                                           //ÆÕÍ¨Ó¦´ðÃüÁî                  
+1324   2                              bBusy = 1;
+1325   2                              //ÉèÖÃÕñÁå³¬Ê±                  
+1326   2                              MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byRingTime);
+1327   2                              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1328   2                              {       //Ó¦´ð±¾»ú,ÇåµÈ´ýÓ¦´ð,½øÈëµÈ´ý½ÓÌý×´Ì¬  
+1329   3                                      bWaitAck = 0;                                   
+1330   3                                      bWaitListen = 1;                                                                                
+1331   3                                      if((bChannel1Talk|bChannel1Talked)||(!bDealKeyDown))
+1332   3                                      {       //Èç¹ûÍ¨µÀ1Ã¦,»òÕß±¾»úÖ÷¶¯Í¨»°Ìõ¼þ²»´æÔÚÁË,Ëõ¶Ì³¬Ê±Ê±¼ä                         
+1333   4                                              MakeCH0TimerOut(5, 0);
+1334   4                                              break;
+1335   4                                      }
+1336   3                                      VoiceChannelCtx();
+1337   3                                      LedControl();                           
+1338   3                              }
+1339   2                              break;
+1340   2                      case CMD_CALL_LISTEN:                                                           //½ÓÌýÃüÁî                                      
+1341   2                              bBusy = 1;
+1342   2                              //ÉèÖÃÍ¨»°³¬Ê±
+1343   2                              MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byTalkTime);
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 23  
+
+1344   2                              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1345   2                              {       //½ÓÌý±¾»ú,ÇåµÈ´ý½ÓÌý,½øÈëÍ¨µÀ0Ö÷¶¯Í¨»°×´Ì¬             
+1346   3                                      bWaitListen = 0;                                
+1347   3                                      bChannel0Talk = 1;                                                              
+1348   3                                      if((bChannel1Talk|bChannel1Talked)||(!bDealKeyDown))
+1349   3                                      {       //Èç¹ûÍ¨µÀ1Ã¦,»òÕß±¾»úÖ÷¶¯Í¨»°Ìõ¼þ²»´æÔÚÁË,Ëõ¶Ì³¬Ê±Ê±¼ä                         
+1350   4                                              MakeCH0TimerOut(5, 0);
+1351   4                                              break;
+1352   4                                      }
+1353   3                                      VoiceChannelCtx();
+1354   3                                      LedControl();
+1355   3                              }
+1356   2                              break;                  
+1357   2                      case CMD_BROADCAST1:                                                            //ÊÕµ½²¡Çø¹ã²¥ÃüÁî
+1358   2                      case CMD_BROADCAST2:                                                            //ÊÕµ½°ì¹«Çø¹ã²¥ÃüÁî
+1359   2                      case CMD_BROADCAST3:                                                            //ÊÕµ½È«Çø¹ã²¥ÃüÁî
+1360   2                              if(!bBusy)
+1361   2                              {       //Í¨µÀ0¿ÕÏÐ                     
+1362   3                                      bBusy = 1;      
+1363   3                                      //ÔÝ´æÃüÁî                              
+1364   3                                      stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stBusDealFreq.byCmd;                                 
+1365   3                                      //ÉèÖÃ¹ã²¥³¬Ê±
+1366   3                                      MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byBroadTime); 
+1367   3                                      //±£´æÖ÷¶¯ºô½Ð·½µØÖ·                            
+1368   3                                      SaveCallAddr(&(stLocalControl.stBusDealFreq));                          
+1369   3                                      if(bIndicatingOther)
+1370   3                                      {       
+1371   4                                              //----------------------------------------------------------------------------------------
+1372   4                                              //----------------------------------------------------------------------------------------
+1373   4                                              bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;      
+1374   4                                          VoiceChannelCtx();
+1375   4                                      LedControl();
+1376   4                                              //----------------------------------------------------------------------------------------
+1377   4                                              //----------------------------------------------------------------------------------------                                                                              
+1378   4                                              bIndication = 0; 
+1379   4                                      SetLcdState(1);                 
+1380   4                                      ShowPage();                                     
+1381   4                                      }
+1382   3                                      bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;
+1383   3                                      VoiceChannelCtx();
+1384   3                                      LedControl();
+1385   3                                      if((bChannel1Talk|bChannel1Talked))
+1386   3                                      {
+1387   4                                              break;
+1388   4                                      }                       
+1389   3                                      switch(stLocalControl.stBusDealFreq.byRecSecAddr)
+1390   3                                      {       //Õë¶Ô¾ßÌåÃüÁî,¿´±¾»úÊÇ·ñÔÊÐíÏàÓ¦µÄ¹ã²¥
+1391   4                                              case CMD_BROADCAST1:
+1392   4                                                      bSickRoomBroad = bEnSickRoomBroad;                                              
+1393   4                                                      break;
+1394   4                                              case CMD_BROADCAST2:
+1395   4                                                      bOfficeBroad = bEnOfficeBroad;                                          
+1396   4                                                      break;
+1397   4                                              case CMD_BROADCAST3:
+1398   4                                                      bAllBroad = bEnAllBroad;        //È«Çø¹ã²¥×´Ì¬                                  
+1399   4                                                      break;
+1400   4                                      }
+1401   3                                      VoiceChannelCtx();
+1402   3                                      LedControl();
+1403   3                                      ShowBROADCASTing();
+1404   3                              }
+1405   2                              break;                  
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 24  
+
+1406   2                      case CMD_INFO_INDICATION:                                                       //ÊÕµ½ºô½ÐÖ¸Ê¾ÃüÁî                                                                                                              
+1407   2                              if(!bBusy)              
+1408   2                              {                       
+1409   3                                      SaveIndicationData(&(stLocalControl.stBusDealFreq));
+1410   3                                      if((stLocalControl.stBusDealFreq.bySndSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr) &&
+1411   3                                              ((stLocalControl.stBusDealFreq.bySndRoomAddr&0x7f) == (stLocalControl.stEepromCfgData.bySelfRoomAddr&
+             -0x7f)))
+1412   3                                      {       //ÊÕµ½µÄÊÇ±¾·¿µÄºô½ÐÖ¸Ê¾,²»ÐèÒª×÷´¦Àí,Çå³ýÉÏ´ÎµÄºô½ÐÖ¸Ê¾
+1413   4                                              if(bIndicatingOther)
+1414   4                                          {   
+1415   5                                                 //----------------------------------------------------------------------------------------
+1416   5                                                 //----------------------------------------------------------------------------------------
+1417   5                                                 bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;   
+1418   5                                             VoiceChannelCtx();
+1419   5                                         LedControl();
+1420   5                                                 //----------------------------------------------------------------------------------------
+1421   5                                                 //----------------------------------------------------------------------------------------                                                           
+             -                
+1422   5                                                 bIndication = 0; 
+1423   5                                         SetLcdState(1);                      
+1424   5                                         ShowPage();                                  
+1425   5                                          }
+1426   4                                              bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;
+1427   4                                              switch(stLocalControl.stBusDealFreq.byRecSecAddr & 0x1f)
+1428   4                                              {
+1429   5                                                      case CMD_INFUSION_CALL:                         //ÊäÒººô½Ð
+1430   5                                                              bConfusionNoting = bEnInfusionDeal;                                                                                             
+1431   5                                                              break;
+1432   5                                                      case CMD_SERVICE_CALL:                          //·þÎñºô½Ð
+1433   5                                                              bServiceNoting = bEnServiceDeal;                                                                                        
+1434   5                                                              break;
+1435   5                                                      case CMD_HELP_CALL:                                     //ÇóÔ®ºô½Ð
+1436   5                                                              bHelpNoting = bEnHelpDeal;                                                                                      
+1437   5                                                              break;
+1438   5                                                      case CMD_EMERGENCY_CALL:                        //½ô¼±ºô½Ð
+1439   5                                                              bEmergencyNoting = bEnEmergencyDeal;                                                                                    
+1440   5                                                              break;
+1441   5                                                      default:
+1442   5                                                              return;
+1443   5                                              }
+1444   4                                              VoiceChannelCtx();
+1445   4                                              LedControl();                                   
+1446   4                                      }
+1447   3                                      else
+1448   3                                      {       //ÊÕµ½µÄ²»ÊÇ±¾·¿µÄºô½ÐÖ¸Ê¾,ÅÐ¶ÏÊÇ·ñ±¾»úÄÜ¹»´¦Àí
+1449   4                                      /*      bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;
+1450   4                                              VoiceChannelCtx();
+1451   4                                          LedControl();
+1452   4                                              switch(stLocalControl.stBusDealFreq.byRecSecAddr & 0x1f)
+1453   4                                              {
+1454   4                                                      case CMD_INFUSION_CALL:                         //ÊäÒººô½Ð
+1455   4                                                              if(!bEnInfusionDeal)
+1456   4                                                              {       
+1457   4                                                                      return;                                                                                                 
+1458   4                                                              }                                                                                               
+1459   4                                                              break;
+1460   4                                                      case CMD_SERVICE_CALL:                          //·þÎñºô½Ð
+1461   4                                                              if(!bEnServiceDeal)
+1462   4                                                              {       
+1463   4                                                                      return;                                                 
+1464   4                                                              }                                                                                       
+1465   4                                                              break;
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 25  
+
+1466   4                                                      case CMD_HELP_CALL:                                     //ÇóÔ®ºô½Ð
+1467   4                                                              if(!bEnHelpDeal)
+1468   4                                                              {       
+1469   4                                                                      return;                                                 
+1470   4                                                              }                                                                                       
+1471   4                                                              break;
+1472   4                                                      case CMD_EMERGENCY_CALL:                        //½ô¼±ºô½Ð
+1473   4                                                              if(!bEnEmergencyDeal)
+1474   4                                                              {
+1475   4                                                                      return;                                         
+1476   4                                                              }                                                                                       
+1477   4                                                              break;
+1478   4                                                      default:
+1479   4                                                              return;
+1480   4                                              } */
+1481   4                                              bIndicatingOther = 1;
+1482   4                                              if((bChannel1Talked|bChannel1Talk))
+1483   4                                              {       //Èç¹ûÍ¨µÀ1´¦ÓÚÍ¨»°×´Ì¬,²»×÷´¦Àí
+1484   5                                                      return;
+1485   5                                              }       
+1486   4                                              VoiceChannelCtx();
+1487   4                                              LedControl();
+1488   4                                              bIndication = 1;
+1489   4                                      ShowCallFace(stLocalControl.stBusDealFreq.bySndRoomAddr, stLocalControl.stBusDealFreq.bySndBedA
+             -ddr, stLocalControl.stIndicationData.byCallCmd&0x1f);                 
+1490   4                                      }               
+1491   3                              }                       
+1492   2                              break;
+1493   2                      case CMD_INFUSION_ANSWER:                                                       //´¦ÀíÊäÒººô½ÐÃüÁî
+1494   2                      case CMD_SERVICE_ANSWER:                                                        //´¦Àí·þÎñºô½ÐÃüÁî
+1495   2                      case CMD_EMERGENCY_ANSWER:                                                      //´¦Àí½ô¼±ºô½ÐÃüÁî
+1496   2                      case CMD_HELP_ANSWER:                                                           //´¦ÀíÇóÔ®ºô½ÐÃüÁî
+1497   2                              if(!bBusy)
+1498   2                              {       //Í¨µÀ0²»Ã¦                             
+1499   3                                      bBusy = 1;
+1500   3                                  if(bIndicatingOther)
+1501   3                                      {
+1502   4                                              //----------------------------------------------------------------------------------------
+1503   4                                              //----------------------------------------------------------------------------------------
+1504   4                                              bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;      
+1505   4                                          VoiceChannelCtx();
+1506   4                                      LedControl();
+1507   4                                              //----------------------------------------------------------------------------------------
+1508   4                                              //----------------------------------------------------------------------------------------                                      
+1509   4                                              bIndication = 0; 
+1510   4                                      SetLcdState(1);                 
+1511   4                                      ShowPage();                                                                             
+1512   4                                      }                               
+1513   3                                      //±£´æÖ÷¶¯ºô½Ð·½µØÖ·                            
+1514   3                                      SaveCallAddr(&(stLocalControl.stBusDealFreq));                          
+1515   3                                      MakeCH0TimerOut(250, 0);
+1516   3                                      bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;
+1517   3                                      VoiceChannelCtx();                              
+1518   3                                      LedControl();  
+1519   3                              }
+1520   2                              break;
+1521   2                      case CMD_STOP_INDICATION:                                                       //Í£Ö¹Ö¸Ê¾ÃüÁî
+1522   2                               if(bIndicatingOther)
+1523   2                               {      
+1524   3                                      //----------------------------------------------------------------------------------------
+1525   3                                  //----------------------------------------------------------------------------------------
+1526   3                                  bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;  
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 26  
+
+1527   3                                      VoiceChannelCtx();
+1528   3                                  LedControl();
+1529   3                                  //----------------------------------------------------------------------------------------
+1530   3                                  //----------------------------------------------------------------------------------------          
+1531   3                                      bIndication = 0; 
+1532   3                                  SetLcdState(1);                     
+1533   3                                  ShowPage(); 
+1534   3                               } 
+1535   2                               bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;
+1536   2                               VoiceChannelCtx();
+1537   2                               LedControl();
+1538   2                               break;
+1539   2                      case CMD_INFUSION_CLEAR:                                                        //Çå³ýÊäÒººô½ÐÃüÁî
+1540   2                      case CMD_SERVICE_CLEAR:                                                         //Çå³ý·þÎñºô½ÐÃüÁî
+1541   2                      case CMD_HELP_CLEAR:                                                            //Çå³ýÇóÔ®ºô½ÐÃüÁî
+1542   2                      case CMD_EMERGENCY_CLEAR:                                                       //Çå³ý½ô¼±ºô½ÐÃüÁî                       
+1543   2                              if(     (stLocalControl.stBusDealFreq.byRecSecAddr == stLocalControl.stIndicationData.stAddr.bySecAddr) &&
+1544   2                                      (stLocalControl.stBusDealFreq.byRecRoomAddr == stLocalControl.stIndicationData.stAddr.byRoomAddr) &&
+1545   2                                      (stLocalControl.stBusDealFreq.byRecBedAddr == stLocalControl.stIndicationData.stAddr.byBedAddr) &&
+1546   2                                      ((stLocalControl.stBusDealFreq.byCmd-0x0a) == (stLocalControl.stIndicationData.byCallCmd & 0x1f)))
+1547   2                              {       //Çå³ý±¾»úÕýÔÚÖ¸Ê¾µÄºô½ÐÐÅÏ¢ 
+1548   3                                 if(bIndicatingOther)
+1549   3                                      {       
+1550   4                                          //----------------------------------------------------------------------------------------
+1551   4                                              //----------------------------------------------------------------------------------------
+1552   4                                              bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;      
+1553   4                                          VoiceChannelCtx();
+1554   4                                      LedControl();
+1555   4                                              //----------------------------------------------------------------------------------------
+1556   4                                              //----------------------------------------------------------------------------------------
+1557   4                                              bIndication = 0; 
+1558   4                                              SetLcdState(1);                 
+1559   4                                              ShowPage();                                             
+1560   4                                      }                               
+1561   3                                      bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;
+1562   3                                      VoiceChannelCtx();
+1563   3                                      LedControl();   
+1564   3                              }       
+1565   2                              break;                  
+1566   2                      case CMD_SYSTERM_RESET:                                                         //ÏµÍ³¸´Î»ÃüÁî
+1567   2                              SysReset();
+1568   2                              break; 
+1569   2                      case CMD_START_VOICE:                                                           //Æô¶¯²¥ÒôÃüÁî
+1570   2                              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1571   2                              {       
+1572   3                                      bChannel1Talked = bChannel1Talk = 0;                            
+1573   3                                      MakeCH1TimerOut(0, 0);                          
+1574   3                                      bVoiceNoting = bEnVoiceNote;                            
+1575   3                                      VoiceChannelCtx();
+1576   3                                      LedControl();                                                           
+1577   3                              }
+1578   2                              break;
+1579   2                      case CMD_MUSIC_PLAY:                                                            //±³¾°ÒôÀÖ²¥·Å
+1580   2                              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1581   2                              {       
+1582   3                                      bChannel1Talked = bChannel1Talk = 0;
+1583   3                                      MakeCH1TimerOut(0, 0);                          
+1584   3                                      bMusicPlaying = bEnMusicplay;                           
+1585   3                                      VoiceChannelCtx();
+1586   3                                      LedControl();                                   
+1587   3                              }
+1588   2                              break;  
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 27  
+
+1589   2                      case CMD_STOP_VOICE:                                                            //Í£Ö¹ËùÓÐÒôÀÖ²¥·Å
+1590   2                              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1591   2                              {       
+1592   3                                      bVoiceNoting = bMusicPlaying = 0;
+1593   3                                      VoiceChannelCtx();                                      
+1594   3                              }
+1595   2                              break; 
+1596   2                      case CMD_CHANNEL_CHANGE:                                                        //Í¨µÀÇÐ»»ÃüÁî  
+1597   2                              //½«Í¨µÀ0µÄ×´Ì¬ÇÐ»»µ½Í¨µÀ1ÉÏ,Í¬Ê±Çå³ýÍ¨µÀ0µÄ×´Ì¬                                                        
+1598   2                              bBusy = bWaitAck = bWaitListen = bCalledRing =  
+1599   2                                      bSickRoomBroad = bOfficeBroad = bAllBroad = bSelfBroad = 0;                     
+1600   2                              MakeCH0TimerOut(0, 0);  
+1601   2                              //-----------------------------------------------------------------------------------------------
+1602   2                              //-----------------------------------------------------------------------------------------------
+1603   2                              //2012/5/18Ïû³ý·Ç±¾·¿·Ö»úÊ±µÄºô½ÐÖ¸Ê¾   
+1604   2                              if(bIndicatingOther)
+1605   2                          {
+1606   3                                  bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;  
+1607   3                                      VoiceChannelCtx();
+1608   3                                  LedControl();                               
+1609   3                                  bIndication = 0; 
+1610   3                                  SetLcdState(1);                     
+1611   3                                  ShowPage();                                                                                 
+1612   3                              } 
+1613   2                              //-----------------------------------------------------------------------------------------------
+1614   2                              //-----------------------------------------------------------------------------------------------       
+1615   2                              if((bChannel0Talked|bChannel0Talk))
+1616   2                              { 
+1617   3                                      bChannel1Talked = bChannel0Talked;
+1618   3                                      bChannel1Talk = bChannel0Talk;
+1619   3                                      bChannel0Talked = bChannel0Talk = 0;                                                            
+1620   3                                      //ÉèÖÃÍ¨µÀ1Í¨»°³¬Ê±                                     
+1621   3                                      MakeCH1TimerOut(50, stLocalControl.stEepromCfgData.byTalkTime);
+1622   3                                      if(bChannel1Talk&&(!bDealKeyDown))
+1623   3                                      {       //±¾»úÖ÷¶¯Í¨»°Ìõ¼þ²»´æÔÚÁË,Ëõ¶Ì³¬Ê±Ê±¼ä                                                                         
+1624   4                                              MakeCH1TimerOut(5, 0);
+1625   4                                              break;                  
+1626   4                                      }                               
+1627   3                                      VoiceChannelCtx();
+1628   3                                      LedControl(); 
+1629   3                              }       
+1630   2                              break;
+1631   2                      case CMD_CHANNEL_CLOSE:                                                         //¹Ø±ÕÍ¨µÀÇÐ»»ÃüÁî                      
+1632   2                              if((bChannel1Talked|bChannel1Talk))
+1633   2                              {               //Èç¹ûÍ¨µÀ1´¦ÓÚÍ¨»°×´Ì¬,½áÊøºóÐèÖ¸Ê¾ÐÂµÄÐÅÏ¢,ÈçÃ»ÓÐ,±£³Ö×´Ì¬
+1634   3                                      if(bIndicatingOther)
+1635   3                                      {       //Èç¹ûÓÐÖ¸Ê¾,Á¢¼´ÏÔÊ¾Ö¸Ê¾ÐÅÏ¢ 
+1636   4                                        bIndication = 0; 
+1637   4                                        SetLcdState(1);                       
+1638   4                                        ShowPage();
+1639   4                                      }
+1640   3                              }
+1641   2                              bChannel1Talked = bChannel1Talk = 0;                            
+1642   2                              MakeCH1TimerOut(0, 0);  
+1643   2                              VoiceChannelCtx();
+1644   2                              LedControl();                   
+1645   2                              break;
+1646   2               /*     case CMD_OPEN_485BUS_IN:                                                        //´ò¿ª485Êä³öÃüÁî       
+1647   2                              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1648   2                              { 
+1649   2                                      KDR = 0;
+1650   2                                      stLocalControl.stBusDealFreq.byRecSecAddr = CMD_OPEN_485BUS_IN;
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 28  
+
+1651   2                                      stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+1652   2                                      stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;
+1653   2                                      stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+1654   2                                      stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+1655   2                                      stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+1656   2                                      stLocalControl.stBusDealFreq.byCmd = 0x02;                                                      
+1657   2                                      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));   
+1658   2                              }
+1659   2                              break;
+1660   2                      case CMD_CLOSE_485BUS:                                                          //¹Ø±Õ485Êä³ö
+1661   2                              KDR = 1;                        
+1662   2                              break;*/
+1663   2                      //------------------------------------------------------
+1664   2                      //------------------------------------------------------
+1665   2                      //2012/4/9ÉèÖÃÏµÍ³²¨ÌØÂÊ
+1666   2                      case CMD_SET_BAUD:
+1667   2                           if(stLocalControl.stBusDealFreq.bySndSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr)
+1668   2                               {
+1669   3                             Fbaud_Type=stLocalControl.stBusDealFreq.byRecSecAddr;
+1670   3                                 FmWriteByte(Set_Baud_ADDR,INIT_FLAG);
+1671   3                                 FmWriteByte(System_Baud_ADDR,Fbaud_Type);
+1672   3                                 switch(Fbaud_Type)
+1673   3                         {
+1674   4                           case 1:
+1675   4                               Fbaud=1200;
+1676   4                               break;
+1677   4                               case 2:
+1678   4                               Fbaud=2400;
+1679   4                                   break;
+1680   4                               case 3:
+1681   4                               Fbaud=4800;
+1682   4                               break;
+1683   4                               case 4:
+1684   4                               Fbaud=9600;
+1685   4                               break;
+1686   4                               case 5:
+1687   4                               Fbaud=14400;
+1688   4                               break;
+1689   4                               case 6:
+1690   4                               Fbaud=19200;
+1691   4                               break;
+1692   4                               case 7:
+1693   4                               Fbaud=28800;
+1694   4                               break;
+1695   4                               case 8:
+1696   4                               Fbaud=38400;
+1697   4                               break;
+1698   4                               case 9:
+1699   4                               Fbaud=57600;
+1700   4                               break;
+1701   4                               case 10:
+1702   4                               Fbaud=115200;
+1703   4                               break;
+1704   4                          }
+1705   3                         if(Fbaud>2000)
+1706   3                         {
+1707   4                                   AUXR |= 0x40;                 //1TÄ£Ê½ 
+1708   4                           TL1=TH1=256-(Fosc/32/Fbaud);
+1709   4                         }
+1710   3                         else
+1711   3                         {
+1712   4                                       AUXR &= 0xBF;
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 29  
+
+1713   4                                       TL1=TH1=256-(Fosc/32/Fbaud/12);
+1714   4                         }
+1715   3                               }  
+1716   2                          break;
+1717   2                      //------------------------------------------------------
+1718   2                      //------------------------------------------------------
+1719   2                      //2012/5/8ÉèÖÃÏµÍ³ÇøºÅÃüÁî
+1720   2                      case CMD_SET_SEC_SERIAL:
+1721   2                               stLocalControl.stEepromCfgData.bySelfSecAddr=stLocalControl.stBusDealFreq.byRecSecAddr;
+1722   2                               SaveParameter();
+1723   2                               ReadPageColour();
+1724   2                               SetLcdState(1);        
+1725   2                               ShowPage();
+1726   2                      break;
+1727   2                      //------------------------------------------------------
+1728   2                      //------------------------------------------------------
+1729   2                      case CMD_OPEN_LCD:                                                                      //´ò¿ªLCD±³¹âÏÔÊ¾
+1730   2                           if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1731   2                               {
+1732   3                                 stLocalControl.stBusDealFreq.byRecSecAddr = CMD_OPEN_LCD;
+1733   3                                 stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+1734   3                                 stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;
+1735   3                                 stLocalControl.stBusDealFreq.byCmd = 0x02;
+1736   3                                 stLocalControl.stBusDealFreq.bySndSecAddr  = 0x01;
+1737   3                                 stLocalControl.stBusDealFreq.bySndRoomAddr = 0x02;
+1738   3                                 stLocalControl.stBusDealFreq.bySndBedAddr  = 0x03;
+1739   3                                 Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1740   3                                 SetLcdState(1);
+1741   3                               } 
+1742   2                           break;
+1743   2                      case CMD_CLOSE_LCD:                                                                     //¹Ø±ÕLCD±³¹âÏÔÊ¾
+1744   2                           if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1745   2                               {
+1746   3                                 stLocalControl.stBusDealFreq.byRecSecAddr = CMD_CLOSE_LCD;
+1747   3                                 stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+1748   3                                 stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;
+1749   3                                 stLocalControl.stBusDealFreq.byCmd = 0x02;
+1750   3                                 stLocalControl.stBusDealFreq.bySndSecAddr  = 0x01;
+1751   3                                 stLocalControl.stBusDealFreq.bySndRoomAddr = 0x02;
+1752   3                                 stLocalControl.stBusDealFreq.bySndBedAddr  = 0x03;
+1753   3                                 Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1754   3                                 SetLcdState(0);
+1755   3                               }
+1756   2                           break;
+1757   2                      //--------------------------------------------------------------
+1758   2                      //--------------------------------------------------------------
+1759   2                       case CMD_ENABLE_SOUND:                                                                 //Ðí¿ÉÓïÒô±¨ºÅÃüÁî
+1760   2                           if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1761   2                               {
+1762   3                                 stLocalControl.stBusDealFreq.byRecSecAddr = CMD_ENABLE_SOUND;
+1763   3                                 stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+1764   3                                 stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;
+1765   3                                 stLocalControl.stBusDealFreq.byCmd = 0x02;
+1766   3                                 stLocalControl.stBusDealFreq.bySndSecAddr  = 0x01;
+1767   3                                 stLocalControl.stBusDealFreq.bySndRoomAddr = 0x02;
+1768   3                                 stLocalControl.stBusDealFreq.bySndBedAddr  = 0x03;
+1769   3                                 Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1770   3                                 FmWriteByte(Close_EnSoundNote_ADDR,0x00);
+1771   3                             byEnable1=0xFF;
+1772   3                               } 
+1773   2                           break;
+1774   2                      case CMD_DISABLE_SOUND:                                                                 //¹Ø±ÕÓïÒô±¨ºÅÃüÁî 
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 30  
+
+1775   2                           if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1776   2                               {
+1777   3                                 stLocalControl.stBusDealFreq.byRecSecAddr = CMD_DISABLE_SOUND;
+1778   3                                 stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+1779   3                                 stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;
+1780   3                                 stLocalControl.stBusDealFreq.byCmd = 0x02;
+1781   3                                 stLocalControl.stBusDealFreq.bySndSecAddr  = 0x01;
+1782   3                                 stLocalControl.stBusDealFreq.bySndRoomAddr = 0x02;
+1783   3                                 stLocalControl.stBusDealFreq.bySndBedAddr  = 0x03;
+1784   3                                 Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1785   3                                 FmWriteByte(Close_EnSoundNote_ADDR,0x01);
+1786   3                             byEnable1=0xF7;
+1787   3                               }
+1788   2                           break;
+1789   2                      //--------------------------------------------------------------
+1790   2                      //--------------------------------------------------------------
+1791   2                      case CMD_SEC_CLR:                                                                       //Çå³ý¿ÆÊÒÄÚÈÝ
+1792   2                              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1793   2                              {
+1794   3                                 stLocalControl.stBusDealFreq.byRecSecAddr = CMD_SEC_CLR;
+1795   3                                 stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+1796   3                                 stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;
+1797   3                                 stLocalControl.stBusDealFreq.byCmd = 0x02;
+1798   3                                 stLocalControl.stBusDealFreq.bySndSecAddr  = 0x01;
+1799   3                                 stLocalControl.stBusDealFreq.bySndRoomAddr = 0x02;
+1800   3                                 stLocalControl.stBusDealFreq.bySndBedAddr  = 0x03;
+1801   3                                 Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+1802   3                                 Modify_SEC_Name      = 0x00;
+1803   3                                 FmWriteByte(LCD_SEC_MSK_ADDR, 0);
+1804   3                                 SetLcdState(1);
+1805   3                                 ReadPageColour();                                                                    
+1806   3                                 ShowPage(); 
+1807   3                              }
+1808   2                              break;                  
+1809   2                      case CMD_POWER_ON:                                                                      //±¾»úÖØÐÂÈÈÆô¶¯
+1810   2                              if(AddrCompare(&(stLocalControl.stBusDealFreq)))
+1811   2                              {                                       
+1812   3                                      EA=0;
+1813   3                                      //¹Ø±ÕËùÓÐ´ò¿ªµÄÖÐ¶Ï
+1814   3                                      CCAPM0 = 0x00;
+1815   3                                      ET0 = 0;
+1816   3                                      TR0 = 0;
+1817   3                                      EX0 = EX1 = 0;
+1818   3                                      IAP_CONTR = 0x20;               
+1819   3                                      break;                                                  
+1820   3                              }
+1821   2                              break;  
+1822   2                      case CMD_SET_BY_SERIAL:                                                          //ÊÕµ½±àºÅµÄÃüÁî       
+1823   2                           if(stLocalControl.stBusDealFreq.bySndBedAddr==0x00) //´²ºÅÎª0±íÊ¾ÎªÃÅ¿Ú·Ö»ú±àºÅ
+1824   2                               {
+1825   3                                 SET_BY_SERIAL_FLAG=1;
+1826   3                                 SetLedDealState(LED_FLASH);
+1827   3                                 ShowNumberPage();
+1828   3                               }
+1829   2                               break;
+1830   2                       /*case  CMD_INSPERCTOR_ENTER:  //ÊÕµ½²é·¿ÃüÁî£¬·¢ËÍ¸øTFTÏÔÊ¾ÆÁ
+1831   2                       {
+1832   2                         if(!INSPERCTOR_Flag)
+1833   2                         {
+1834   2                            if((stLocalControl.stBusDealFreq.byRecSecAddr == stLocalControl.stEepromCfgData.bySelfSecAddr) &&
+1835   2                                      ((stLocalControl.stBusDealFreq.byRecRoomAddr&0x7F) == (stLocalControl.stEepromCfgData.bySelfRoomAddr&0
+             -x7F)))  //...±È½ÏÇøºÅºÍ·¿ºÅ
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 31  
+
+1836   2                                {
+1837   2                                  INSPERCTOR_Flag=1;
+1838   2                                  SerchRoom++;
+1839   2                                      if(SerchRoom>15)        //²é·¿´óÓÚ15´ÎµÄ»°£¬ÖØÐÂ»Øµ½µÚ1Ò³½øÐÐÏÔÊ¾
+1840   2                                      {
+1841   2                                         PageNumber++;
+1842   2                                         SerchRoom=1;
+1843   2                                      }                          
+1844   2                             if(PageNumber==1)   //µÚÒ»ÆÁÒÑ¾­Ð´Âú
+1845   2                             {
+1846   2                                Page_Flag=1;
+1847   2                                    FmWriteByte(Serch_Room_Page_ADDR,INIT_FLAG);
+1848   2                             }                                                           
+1849   2                                      FmWriteByte(Serch_Room_ADDR, SerchRoom);//´æ´¢µÚ¼¸´Î²é·¿Êý¾Ý
+1850   2                                      if(SerchRoom==1)          //Èç¹ûµÚÒ»´Î²é·¿
+1851   2                              {
+1852   2                                    FmWriteByte(Serch_Room_ADDR+0x1000, stLocalControl.stBusDealFreq.bySndBedAddr);
+1853   2                                        HaveSerchRoomFlag=1;
+1854   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0x1000,5,Real_TimeBuf);
+1855   2                                  }
+1856   2                                      else if(SerchRoom==2) //Èç¹ûµÚ¶þ´Î²é·¿
+1857   2                              { 
+1858   2                                    FmWriteByte(Serch_Room_ADDR+0x2000, stLocalControl.stBusDealFreq.bySndBedAddr);
+1859   2                                    HaveSerchRoomFlag=1; 
+1860   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0x2000,5,Real_TimeBuf);
+1861   2                                  }
+1862   2                                      else if(SerchRoom==3)//Èç¹ûµÚÈý´Î²é·¿
+1863   2                              {
+1864   2                                    FmWriteByte(Serch_Room_ADDR+0x3000, stLocalControl.stBusDealFreq.bySndBedAddr);
+1865   2                                    HaveSerchRoomFlag=1;
+1866   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0x3000,5,Real_TimeBuf);
+1867   2                                  }
+1868   2                                      else if(SerchRoom==4)//Èç¹ûµÚËÄ´Î²é·¿
+1869   2                              {
+1870   2                                FmWriteByte(Serch_Room_ADDR+0x4000, stLocalControl.stBusDealFreq.bySndBedAddr);
+1871   2                                    HaveSerchRoomFlag=1;
+1872   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0x4000,5,Real_TimeBuf);
+1873   2                               }
+1874   2                                      else if(SerchRoom==5)//Èç¹ûµÚÎå´Î²é·¿
+1875   2                              {
+1876   2                                    FmWriteByte(Serch_Room_ADDR+0x5000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1877   2                                    HaveSerchRoomFlag=1;
+1878   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0x5000,5,Real_TimeBuf);
+1879   2                              }
+1880   2                                      else if(SerchRoom==6)//Èç¹ûµÚÁù´Î²é·¿
+1881   2                              {
+1882   2                                    FmWriteByte(Serch_Room_ADDR+0x6000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1883   2                                    HaveSerchRoomFlag=1;
+1884   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0x6000,5,Real_TimeBuf);
+1885   2                              }
+1886   2                                      else if(SerchRoom==7)//Èç¹ûµÚÆß´Î²é·¿
+1887   2                              {
+1888   2                                    FmWriteByte(Serch_Room_ADDR+0x7000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1889   2                                    HaveSerchRoomFlag=1;
+1890   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0x7000,5,Real_TimeBuf);
+1891   2                              }
+1892   2                                      else if(SerchRoom==8)//Èç¹ûµÚ°Ë´Î²é·¿
+1893   2                              {
+1894   2                                    FmWriteByte(Serch_Room_ADDR+0x8000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1895   2                                    HaveSerchRoomFlag=1;
+1896   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0x8000,5,Real_TimeBuf);
+1897   2                              }
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 32  
+
+1898   2                                      else if(SerchRoom==9)//Èç¹ûµÚ¾Å´Î²é·¿
+1899   2                              {
+1900   2                                    FmWriteByte(Serch_Room_ADDR+0x9000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1901   2                                    HaveSerchRoomFlag=1;
+1902   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0x9000,5,Real_TimeBuf);
+1903   2                              }
+1904   2                                      else if(SerchRoom==10)//Èç¹ûµÚÊ®´Î²é·¿
+1905   2                              {
+1906   2                                    FmWriteByte(Serch_Room_ADDR+0xA000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1907   2                                    HaveSerchRoomFlag=1;
+1908   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0xA000,5,Real_TimeBuf);
+1909   2                              }
+1910   2                                      else if(SerchRoom==11)//Èç¹ûµÚÊ®Ò»´Î²é·¿
+1911   2                              {
+1912   2                                    FmWriteByte(Serch_Room_ADDR+0xB000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1913   2                                    HaveSerchRoomFlag=1;
+1914   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0xB000,5,Real_TimeBuf);
+1915   2                              }
+1916   2                                      else if(SerchRoom==12)//Èç¹ûµÚÊ®¶þ´Î²é·¿
+1917   2                              {
+1918   2                                    FmWriteByte(Serch_Room_ADDR+0xC000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1919   2                                    HaveSerchRoomFlag=1;
+1920   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0xC000,5,Real_TimeBuf);
+1921   2                              }
+1922   2                                      else if(SerchRoom==13)//Èç¹ûµÚÊ®Èý´Î²é·¿
+1923   2                              {        
+1924   2                                    FmWriteByte(Serch_Room_ADDR+0x2D000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1925   2                                    HaveSerchRoomFlag=1;
+1926   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0xD000,5,Real_TimeBuf);
+1927   2                              }
+1928   2                                      else if(SerchRoom==14)//Èç¹ûµÚÊ®ËÄ´Î²é·¿
+1929   2                              {       
+1930   2                                    FmWriteByte(Serch_Room_ADDR+0x2E000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1931   2                                    HaveSerchRoomFlag=1;
+1932   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0xE000,5,Real_TimeBuf);
+1933   2                              }
+1934   2                                      else if(SerchRoom==15)//Èç¹ûµÚÊ®Îå´Î²é·¿
+1935   2                              {
+1936   2                                    FmWriteByte(Serch_Room_ADDR+0x2F000, stLocalControl.stBusDealFreq.bySndBedAddr); 
+1937   2                                    HaveSerchRoomFlag=1;
+1938   2                                        FmWriteBytes(Serch_Room_TIME_ADDR+0xF000,5,Real_TimeBuf);
+1939   2                              } 
+1940   2                            }
+1941   2                         }
+1942   2                       }
+1943   2                       break; */
+1944   2                 case   CMD_DATA_SEND:   
+1945   2                 {
+1946   3                        Real_TimeBuf[4]=BcdToHex(stLocalControl.stBusDealFreq.byRecBedAddr); // »ñÈ¡ÊµÊ±Ê±¼ä
+1947   3                        Real_TimeBuf[3]=BcdToHex(stLocalControl.stBusDealFreq.byRecRoomAddr & 0x1F);
+1948   3                        Real_TimeBuf[2]=BcdToHex(stLocalControl.stBusDealFreq.byRecSecAddr & 0x3F);
+1949   3                    Real_TimeBuf[1]=BcdToHex(stLocalControl.stBusDealFreq.bySndBedAddr & 0x3F); 
+1950   3                        Real_TimeBuf[0]=BcdToHex(stLocalControl.stBusDealFreq.bySndRoomAddr & 0x7F); 
+1951   3                        if(HaveSerchRoomFlag)
+1952   3                        {
+1953   4                          HaveSerchRoomFlag=0;
+1954   4                              timebuf[0]=BcdToHex(stLocalControl.stBusDealFreq.bySndRoomAddr & 0x7F); //·Ö
+1955   4                          timebuf[1]=BcdToHex(stLocalControl.stBusDealFreq.bySndBedAddr & 0x3F);      //Ê±
+1956   4                              timebuf[2]=BcdToHex(stLocalControl.stBusDealFreq.byRecSecAddr & 0x3F);  //ÈÕ
+1957   4                              timebuf[3]=BcdToHex(stLocalControl.stBusDealFreq.byRecRoomAddr & 0x1F); //ÔÂ
+1958   4                              timebuf[4]=BcdToHex(stLocalControl.stBusDealFreq.byRecBedAddr);            //Äê
+1959   4                              if(SerchRoom==1)
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 33  
+
+1960   4                               { 
+1961   5                                      FmWriteBytes(Serch_Room_TIME_ADDR+0x1000,5,timebuf);
+1962   5                               }
+1963   4                              else if(SerchRoom==2)
+1964   4                               {
+1965   5                                      FmWriteBytes(Serch_Room_TIME_ADDR+0x2000,5,timebuf);
+1966   5                               }
+1967   4                              else if(SerchRoom==3)
+1968   4                              {
+1969   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0x3000,5,timebuf);
+1970   5                              }
+1971   4                              else if(SerchRoom==4)
+1972   4                              {
+1973   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0x4000,5,timebuf);
+1974   5                              }
+1975   4                              else if(SerchRoom==5)
+1976   4                              {
+1977   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0x5000,5,timebuf);
+1978   5                              }
+1979   4                              else if(SerchRoom==6)
+1980   4                              {
+1981   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0x6000,5,timebuf);
+1982   5                              }
+1983   4                              else if(SerchRoom==7)
+1984   4                              {
+1985   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0x7000,5,timebuf);
+1986   5                              }
+1987   4                              else if(SerchRoom==8)
+1988   4                              {
+1989   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0x8000,5,timebuf);
+1990   5                              }
+1991   4                              else if(SerchRoom==9)
+1992   4                              {
+1993   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0x9000,5,timebuf);
+1994   5                              }
+1995   4                              else if(SerchRoom==10)
+1996   4                              {
+1997   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0xA000,5,timebuf);
+1998   5                              }
+1999   4                              else if(SerchRoom==11)
+2000   4                              {
+2001   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0xB000,5,timebuf);
+2002   5                              }
+2003   4                              else if(SerchRoom==12)
+2004   4                              {
+2005   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0xC000,5,timebuf);
+2006   5                              }
+2007   4                              else if(SerchRoom==13)
+2008   4                              {
+2009   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0xD000,5,timebuf);
+2010   5                              }
+2011   4                              else if(SerchRoom==14)
+2012   4                              {
+2013   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0xE000,5,timebuf);
+2014   5                              }
+2015   4                              else if(SerchRoom==15)
+2016   4                              {
+2017   5                                 FmWriteBytes(Serch_Room_TIME_ADDR+0xF000,5,timebuf);
+2018   5                              } 
+2019   4                       }
+2020   3                 }
+2021   2                 break;       
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 34  
+
+2022   2              }       
+2023   1      }
+2024          /**********************************************************
+2025          *º¯ÊýÃû³Æ                       :Bus0SendDeal   
+2026          *º¯ÊýÃèÊö               :µ¥×ÜÏß0·¢ËÍÍêÒ»Ö¡Êý¾Ý´¦Àíº¯Êý,¸Ãº¯ÊýÊ×ÏÈ
+2027                                                   È¡³öÊÕµ½µÄÊý¾Ý,Õë¶ÔÃ¿ÌõÃüÁîÖ´ÐÐ¶ÔÓ¦µÄ¿Ø
+2028                                                   ÖÆ¶¯×÷
+2029          *ÊäÈë²ÎÊý               :
+2030          *·µ»ØÖµ                         :
+2031          *È«¾Ö±äÁ¿                       :stLocalControl
+2032          *µ÷ÓÃÄ£¿é                       :
+2033          ***********************************************************
+2034          *´´½¨ÈË                 :³ÂÎÀ¹ú
+2035          *´´½¨ÈÕÆÚ                       :2008-9-22
+2036          ***********************************************************
+2037          *ÐÞ¸ÄÈË                         :
+2038          *ÐÞ¸ÄÈÕÆÚ               :
+2039          *×¢ÊÍ                   :
+2040          **********************************************************/
+2041          void Bus0SendDeal(void)
+2042          {
+2043   1              //È¡³ö·¢ËÍÍê³ÉµÄÊý¾ÝÖ¡
+2044   1              EA=0;
+2045   1              memcpy(&(stLocalControl.stBusDealFreq), byBus0SendData, sizeof(STBusFreq));             
+2046   1              bBus0SendFinish = 0;                                                                            
+2047   1              EA=1;   
+2048   1              switch(stLocalControl.stBusDealFreq.byCmd)
+2049   1              {
+2050   2                 /*case CMD_LANDING:                                                                  //µÇ¼ÇÃüÁî
+2051   2                              if(bLanding)
+2052   2                              {       //±¾»úÈ·Êµ´¦ÔÚµÇ¼Ç×´Ì¬,ÉèÖÃµÈ´ýÈ·ÈÏ³¬Ê±
+2053   2                                      MakeCH0TimerOut(150, 0);                                                                
+2054   2                              }                       
+2055   2                              break;*/
+2056   2                      case CMD_COMM_CALL:                                                                     //ÆÕÍ¨ºô½ÐÃüÁî                                                  
+2057   2                      case CMD_INFUSION_ANSWER:                                                       //´¦ÀíÊäÒººô½Ð
+2058   2                      case CMD_SERVICE_ANSWER:                                                        //´¦Àí·þÎñºô½Ð
+2059   2                      case CMD_EMERGENCY_ANSWER:                                                      //´¦Àí½ô¼±ºô½Ð
+2060   2                      case CMD_HELP_ANSWER:                                                           //´¦ÀíÇóÔ®ºô½Ð                                                  
+2061   2                              if(!bBusy)
+2062   2                              {
+2063   3                                      bBusy = bWaitAck = 1;
+2064   3                                      SaveCallAddr(&(stLocalControl.stBusDealFreq)); 
+2065   3                                      MakeCH0TimerOut(250, 0);                                                
+2066   3                              }               
+2067   2                      case CMD_INFUSION_CLEAR:                                                        //Çå³ýÊäÒººô½Ð
+2068   2                      case CMD_SERVICE_CLEAR:                                                         //Çå³ý·þÎñºô½Ð
+2069   2                      case CMD_HELP_CLEAR:                                                            //Çå³ýÇóÔ®ºô½Ð
+2070   2                      case CMD_EMERGENCY_CLEAR:                                                       //Çå³ý½ô¼±ºô½Ð
+2071   2                              //Í£Ö¹ÕýÔÚÖ¸Ê¾µÄºô½Ð    
+2072   2                              if(bIndicatingOther)
+2073   2                              {
+2074   3                                //----------------------------------------------------------------------------------------
+2075   3                                //----------------------------------------------------------------------------------------
+2076   3                                bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;    
+2077   3                                VoiceChannelCtx();
+2078   3                                LedControl();
+2079   3                                //----------------------------------------------------------------------------------------
+2080   3                                //----------------------------------------------------------------------------------------                            
+2081   3                                bIndication = 0; 
+2082   3                                SetLcdState(1);                       
+2083   3                                ShowPage();                   
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 35  
+
+2084   3                              }
+2085   2                              bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;
+2086   2                              VoiceChannelCtx();
+2087   2                              LedControl();                   
+2088   2                              break;  
+2089   2                      case CMD_COMM_ANSWER:                                                           //ÆÕÍ¨Ó¦´ðÃüÁî
+2090   2                              if(bBusy)
+2091   2                              {
+2092   3                                      bCalledRing = 1;                                                                
+2093   3                                      if((bChannel1Talk|bChannel1Talked))
+2094   3                                      {       //±¾»úÒÑ¾­´¦ÓÚÍ¨»°×´Ì¬ÁË,Ëõ¶Ì³¬Ê±,ÍË³ö                                  
+2095   4                                              MakeCH0TimerOut(5, 0);
+2096   4                                              break;
+2097   4                                      }
+2098   3                                      MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byRingTime);
+2099   3                                      VoiceChannelCtx();
+2100   3                                      LedControl();                           
+2101   3                                      if(bEnAutoListen)
+2102   3                                      {
+2103   4                                              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2104   4                                              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2105   4                                              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2106   4                                              stLocalControl.stBusDealFreq.byCmd = CMD_CALL_LISTEN;
+2107   4                                              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.bySecAddr;
+2108   4                                              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.byRoomAddr;
+2109   4                                              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.byBedAddr;
+2110   4                                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr)); 
+2111   4                                      }                                       
+2112   3                              }
+2113   2                              break;
+2114   2                      case CMD_CALL_LISTEN:                                                           //½ÓÌýÃüÁî
+2115   2                              if(bBusy)
+2116   2                              {
+2117   3                                      bCalledRing = 0;
+2118   3                                      bChannel0Talked = 1;                                                    
+2119   3                                      if((bChannel1Talk|bChannel1Talked))
+2120   3                                      {       //±¾»úÒÑ¾­´¦ÓÚÍ¨»°×´Ì¬ÁË,Ëõ¶Ì³¬Ê±,ÍË³ö                                  
+2121   4                                              MakeCH0TimerOut(5, 0);
+2122   4                                              break;
+2123   4                                      }
+2124   3                                      //ÉèÖÃÍ¨»°³¬Ê±
+2125   3                                      MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byTalkTime);                         
+2126   3                                      VoiceChannelCtx();
+2127   3                                      LedControl();
+2128   3                              }
+2129   2                              break;
+2130   2                      case CMD_BROADCAST1:
+2131   2                      case CMD_BROADCAST2:
+2132   2                      case CMD_BROADCAST3:                                                            //¹ã²¥ÃüÁî
+2133   2                              //Í£Ö¹ÕýÔÚÖ¸Ê¾µÄºô½Ð
+2134   2                              if(bIndicatingOther)
+2135   2                              {                               
+2136   3                                bIndication = 0; 
+2137   3                                SetLcdState(1);                       
+2138   3                                ShowPage();
+2139   3                              }
+2140   2                              bConfusionNoting = bServiceNoting = bHelpNoting = bEmergencyNoting = bIndicatingOther = 0;
+2141   2                              VoiceChannelCtx();                      
+2142   2                              if(!bBusy)
+2143   2                              {       
+2144   3                                      bBusy = 1;                              
+2145   3                                      //±£´æÖ÷¶¯ºô½Ð·½µØÖ·(±¾»úµØÖ·)
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 36  
+
+2146   3                                      SaveCallAddr(&(stLocalControl.stBusDealFreq));                          
+2147   3                                      bSelfBroad = 1;
+2148   3                                      if((bChannel1Talk|bChannel1Talked)||(!bDealKeyDown))
+2149   3                                      {       //±¾»ú¹ã²¥Ìõ¼þ²»´æÔÚÁË,Ëõ¶Ì³¬Ê±,ÍË³ö                    
+2150   4                                              MakeCH0TimerOut(5, 0);
+2151   4                                              break;
+2152   4                                      }
+2153   3                                      //ÉèÖÃ¹ã²¥³¬Ê±
+2154   3                                      MakeCH0TimerOut(50, stLocalControl.stEepromCfgData.byBroadTime);
+2155   3                                      VoiceChannelCtx();                              
+2156   3                              }
+2157   2                              LedControl();                   
+2158   2                              break;                  
+2159   2                      case CMD_CHANNEL_CLOSE:                                                         //¹Ø±ÕÓïÒôÍ¨µÀÃüÁî
+2160   2                              bChannel1Talk = bChannel1Talked = 0;                    
+2161   2                              MakeCH1TimerOut(0, 0);
+2162   2                              VoiceChannelCtx();
+2163   2                              LedControl();
+2164   2                              if(bIndicatingOther)
+2165   2                              { 
+2166   3                                bIndication = 0; 
+2167   3                                SetLcdState(1);                       
+2168   3                                ShowPage();
+2169   3                              }       
+2170   2                              break;  
+2171   2                      case CMD_GET_BUS:                                                                       //Õ¼ÓÃ×ÜÏß
+2172   2                              Bus0SendPin = 1;                                                                //ÖÆÔì×ÜÏß¹ÊÕÏ
+2173   2                              SaveParameter();
+2174   2                              Bus0SendPin = 0;                                                                //ÊÍ·Å×ÜÏß
+2175   2                              PW = bPWState;                                                                  //»Ö¸´ÓïÒô¹¦·ÅµÄ¿ØÖÆÒý½Å                        
+2176   2                              break;  
+2177   2                      case CMD_SYSTERM_RESET:                                                         //ÏµÍ³¸´Î»ÃüÁî
+2178   2                              SysReset();
+2179   2                              break;
+2180   2                      case CMD_BUS_ANSWER:
+2181   2                              switch(stLocalControl.stBusDealFreq.byRecSecAddr)
+2182   2                              {
+2183   3                                      case CMD_SD_TAL_VOL_CHECK_END:
+2184   3                                              CTD=0;
+2185   3                                              CloseCGB();
+2186   3                                              PW=1; //¹Ø±Õ¹¦·Å34119
+2187   3                                              break;
+2188   3                              }
+2189   2                              break;
+2190   2              }       
+2191   1      }       
+2192          
+2193          /**********************************************************
+2194          *º¯ÊýÃû³Æ                       :TimerOutDeal   
+2195          *º¯ÊýÃèÊö               :³¬Ê±´¦Àíº¯Êý
+2196          *ÊäÈë²ÎÊý               :
+2197          *·µ»ØÖµ                         :
+2198          *È«¾Ö±äÁ¿                       :stLocalControl
+2199          *µ÷ÓÃÄ£¿é                       :Bus0OutputData                                  
+2200          ***********************************************************
+2201          *´´½¨ÈË                 :ÐÜ¼áÇ¿
+2202          *´´½¨ÈÕÆÚ                       :2008-9-22
+2203          ***********************************************************
+2204          *ÐÞ¸ÄÈË                         :
+2205          *ÐÞ¸ÄÈÕÆÚ               :
+2206          *×¢ÊÍ                   :
+2207          **********************************************************/
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 37  
+
+2208          void TimerOutDeal(void)
+2209          { 
+2210   1              //Í¨µÀ0³¬Ê±´¦Àí         
+2211   1              if(stLocalControl.stCH0TimerOut.byTimerOut != 0)
+2212   1              {       //ÓÐ³¬Ê±ÉèÖÃ´æÔÚ
+2213   2                      stLocalControl.stCH0TimerOut.byTimerOut--;
+2214   2                      if(stLocalControl.stCH0TimerOut.byTimerOut == 0)
+2215   2                      {       //³¬Ê±Ò»´Îµ½ÁË 
+2216   3                              if(stLocalControl.stCH0TimerOut.byTimerOutCount == 0x00)
+2217   3                              {       //ËùÓÐ³¬Ê±Íê³É
+2218   4                                      if(bLanding)
+2219   4                                      {       //ÉÏµç×´Ì¬
+2220   5                                              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2221   5                                              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2222   5                                              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2223   5                                              stLocalControl.stBusDealFreq.byCmd = CMD_LANDING;
+2224   5                                              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySerialNum1;
+2225   5                                              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySerialNum2;
+2226   5                                              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySerialNum3;
+2227   5                                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2228   5                                      }
+2229   4                                      else if((bWaitAck|bWaitListen|bChannel0Talk|bSelfBroad))
+2230   4                                      {       //µÈ´ýÓ¦´ð£¬µÈ´ý½ÓÌý£¬Ö÷¶¯Í¨»°£¬Ö÷¶¯¹ã²¥×´Ì¬                    
+2231   5                                              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2232   5                                              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2233   5                                              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2234   5                                              stLocalControl.stBusDealFreq.byCmd = CMD_SYSTERM_RESET;
+2235   5                                              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.bySecAddr;
+2236   5                                              stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.byRoomAddr;
+2237   5                                              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.byBedAddr;
+2238   5                                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2239   5                                      }                               
+2240   4                                      else
+2241   4                                      {
+2242   5                                              bBusy = bCalledRing = bChannel0Talked = bSickRoomBroad = bOfficeBroad = bAllBroad = 0;
+2243   5                                              VoiceChannelCtx();
+2244   5                                              LedControl();
+2245   5                                      }
+2246   4                              }
+2247   3                              else
+2248   3                              {       //³¬Ê±´ÎÊýÃ»ÓÐÍê
+2249   4                                      stLocalControl.stCH0TimerOut.byTimerOutCount--;
+2250   4                                      if(stLocalControl.stCH0TimerOut.byTimerOutCount == 0x00)
+2251   4                                      {       //ËùÓÐ³¬Ê±Íê³É
+2252   5                                              if(bLanding)
+2253   5                                              {       //ÉÏµç×´Ì¬
+2254   6                                                      stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2255   6                                                      stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2256   6                                                      stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2257   6                                                      stLocalControl.stBusDealFreq.byCmd = CMD_LANDING;
+2258   6                                                      stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stEepromCfgData.bySerialNum1;
+2259   6                                                      stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stEepromCfgData.bySerialNum2;
+2260   6                                                      stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stEepromCfgData.bySerialNum3;
+2261   6                                                      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2262   6                                              }
+2263   5                                              else if((bWaitAck|bWaitListen|bChannel0Talk|bSelfBroad))
+2264   5                                              {       //µÈ´ýÓ¦´ð£¬µÈ´ý½ÓÌý£¬Ö÷¶¯Í¨»°£¬Ö÷¶¯¹ã²¥×´Ì¬            
+2265   6                                                      stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+2266   6                                                      stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+2267   6                                                      stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+2268   6                                                      stLocalControl.stBusDealFreq.byCmd = CMD_SYSTERM_RESET;
+2269   6                                                      stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stCallAddr.bySecAddr;
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 38  
+
+2270   6                                                      stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stCallAddr.byRoomAddr;
+2271   6                                                      stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stCallAddr.byBedAddr;
+2272   6                                                      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2273   6                                              }                               
+2274   5                                              else
+2275   5                                              {
+2276   6                                                      bBusy = bCalledRing = bChannel0Talked = bSickRoomBroad = bOfficeBroad = bAllBroad = 0;
+2277   6                                                      VoiceChannelCtx();
+2278   6                                                      LedControl();
+2279   6                                              }
+2280   5                                      }
+2281   4                                      else
+2282   4                                      {       //³¬Ê±´ÎÊýÃ»ÓÐÍê³É£¬ÖØÐÂ¼ÓÔØµ¥Î»³¬Ê±Ê±¼ä                        
+2283   5                                              stLocalControl.stCH0TimerOut.byTimerOut = stLocalControl.stCH0TimerOut.byTimerOutSet;
+2284   5                                      }
+2285   4                              }                       
+2286   3                      }
+2287   2              }
+2288   1              //Í¨µÀ1³¬Ê±´¦Àí
+2289   1              if(stLocalControl.stCH1TimerOut.byTimerOut != 0)
+2290   1              {       //ÓÐ³¬Ê±ÉèÖÃ´æÔÚ
+2291   2                      stLocalControl.stCH1TimerOut.byTimerOut--;
+2292   2                      if(stLocalControl.stCH1TimerOut.byTimerOut == 0)
+2293   2                      {       //³¬Ê±Ò»´Îµ½ÁË 
+2294   3                              if(stLocalControl.stCH1TimerOut.byTimerOutCount == 0x00)
+2295   3                              {       //ËùÓÐ³¬Ê±Íê³É
+2296   4                                      if(bChannel1Talk)
+2297   4                                      {       //Ö÷¶¯Í¨»°×´Ì¬£¬·¢ËÍÇÐ»»ÃüÁî                    
+2298   5                                              stLocalControl.stBusDealFreq.byCmd = CMD_CHANNEL_CLOSE;                                         
+2299   5                                              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+2300   5                                      }
+2301   4                                      else if(bChannel1Talked)
+2302   4                                      {       //±»¶¯Í¨»°×´Ì¬£¬×Ô¼º¸´Î»
+2303   5                                              bChannel1Talked = 0;
+2304   5                                              if(bIndicatingOther)
+2305   5                                              { 
+2306   6                                                 bIndication = 0; 
+2307   6                                         SetLcdState(1);                      
+2308   6                                         ShowPage();  
+2309   6                                              }
+2310   5                                              VoiceChannelCtx();
+2311   5                                              LedControl();
+2312   5                                      }       
+2313   4                              }
+2314   3                              else
+2315   3                              {       //³¬Ê±´ÎÊýÃ»ÓÐÍê
+2316   4                                      stLocalControl.stCH1TimerOut.byTimerOutCount--;
+2317   4                                      if(stLocalControl.stCH1TimerOut.byTimerOutCount == 0x00)
+2318   4                                      {       //ËùÓÐ³¬Ê±Íê³É
+2319   5                                              if(bChannel1Talk)
+2320   5                                              {       //Ö÷¶¯Í¨»°×´Ì¬£¬·¢ËÍÇÐ»»ÃüÁî                                            
+2321   6                                                      stLocalControl.stBusDealFreq.byCmd = CMD_CHANNEL_CLOSE;                                         
+2322   6                                                      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));   
+2323   6                                              }
+2324   5                                              else if(bChannel1Talked)
+2325   5                                              {       //±»¶¯Í¨»°×´Ì¬£¬×Ô¼º¸´Î»
+2326   6                                                      bChannel1Talked = 0;
+2327   6                                                      if(bIndicatingOther)
+2328   6                                                      { 
+2329   7                                                        bIndication = 0; 
+2330   7                                            SetLcdState(1);                   
+2331   7                                            ShowPage();       
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 39  
+
+2332   7                                                      }
+2333   6                                                      VoiceChannelCtx();
+2334   6                                                      LedControl();
+2335   6                                              }
+2336   5                                      }
+2337   4                                      else
+2338   4                                      {       //³¬Ê±´ÎÊýÃ»ÓÐÍê³É£¬ÖØÐÂ¼ÓÔØµ¥Î»³¬Ê±Ê±¼ä                                
+2339   5                                              stLocalControl.stCH1TimerOut.byTimerOut = stLocalControl.stCH1TimerOut.byTimerOutSet;
+2340   5                                      }
+2341   4                              }                       
+2342   3                      }
+2343   2              }
+2344   1              //µÆ×´Ì¬¿ØÖÆ    
+2345   1              if(--stLocalControl.byLedFlashTime == 0x00)
+2346   1              {
+2347   2                      stLocalControl.byLedFlashTime = 50;
+2348   2                      if((stLocalControl.byLedState & 0x0f) == LED_FLASH)
+2349   2                      {       //ºìµÆÉÁË¸×´Ì¬  
+2350   3                              bLedDealState = !bLedDealState;
+2351   3                              LED_DEAL = bLedDealState;
+2352   3                      }
+2353   2              }
+2354   1              if(--stLocalControl.byLedFlashDelay == 0x00)
+2355   1              {
+2356   2                      stLocalControl.byLedFlashDelay = 25;
+2357   2                      if((stLocalControl.byMDLedState&LED_FLASH) == LED_FLASH)
+2358   2                      {       //ºìµÆÉÁË¸×´Ì¬
+2359   3                              bLedRedState = !bLedRedState;
+2360   3                              #ifdef DL_SWAP
+                                      MDR = !bLedRedState;
+                                      #else
+2363   3                              MDR = bLedRedState;
+2364   3                              #endif
+2365   3                      }
+2366   2                      if((stLocalControl.byMDLedState&(LED_FLASH<<2)) == (LED_FLASH<<2))
+2367   2                      {       //ÂÌµÆÉÁË¸×´Ì¬
+2368   3                              bLedGreenState = !bLedGreenState;
+2369   3                              #ifdef DL_SWAP
+                                      MDG = !bLedGreenState;
+                                      #else
+2372   3                              MDG = bLedGreenState;
+2373   3                              #endif
+2374   3                      }  
+2375   2                      if((stLocalControl.byMDLedState&(LED_FLASH<<4)) == (LED_FLASH<<4))
+2376   2                      {       //À¶µÆÉÁË¸×´Ì¬
+2377   3                              bLedBlueState = !bLedBlueState;
+2378   3                              #ifdef DL_SWAP
+                                      MDB = !bLedBlueState;
+                                      #else
+2381   3                              MDB = bLedBlueState;
+2382   3                              #endif
+2383   3                      }
+2384   2              }
+2385   1      
+2386   1              //¿ØÖÆÆÁÄ»´ò¿ª
+2387   1              if (bLcdOn)
+2388   1              {
+2389   2                      LCD_LED=0;
+2390   2                      LCD_LED=1;
+2391   2              }
+2392   1              else LCD_LED=0;
+2393   1      
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 40  
+
+2394   1              
+2395   1              if(SET_BY_SERIAL_FLAG)//Èç¹ûÊÕµ½Éè±¸±àºÅÃüÁî£¬Ôò¿ªÊ¼5Ãë¶¨Ê±
+2396   1              {
+2397   2                      SET_BY_SERIAL_COUNT++;
+2398   2              }
+2399   1               else   SET_BY_SERIAL_COUNT=0;
+2400   1      
+2401   1               
+2402   1               if(SET_BY_SERIAL_COUNT>250)            //5ÃëÊ±¼äµ½
+2403   1               {
+2404   2                      SET_BY_SERIAL_FLAG=0;
+2405   2                      SET_BY_SERIAL_COUNT=0;
+2406   2                      SetLedDealState(LED_OFF);
+2407   2                      NUMBER_SET_STOP_FLAG=1;
+2408   2               }
+2409   1               
+2410   1              if(SerchRoomKeyFlag)  SerchRoomCount++;
+2411   1              else SerchRoomCount=0;
+2412   1              
+2413   1              if(SerchRoomCount>300)                  //6ÃëÊ±¼äµ½
+2414   1              { 
+2415   2                SerchRoomCount=0;
+2416   2                SerchRoomFlag=1;
+2417   2                SerchRoomKeyFlag=0;
+2418   2                Key_SerchRoom_Flag2=0;
+2419   2                Key_SerchRoom_Flag3=0;
+2420   2              }
+2421   1      
+2422   1              
+2423   1              if(INSPERCTOR_Flag)  INSPERCTOR_Count++;
+2424   1              else INSPERCTOR_Count=0;
+2425   1              if(INSPERCTOR_Count>3000) //Á½´Î»¤Ê¿²é·¿µÄÊ±¼ä¼ä¸ôÊ±¼ä±ØÐë´óÓÚ1·ÖÖÓ²ÅÓÐÐ§¼ÇÂ¼ 
+2426   1              {
+2427   2                INSPERCTOR_Count=0;
+2428   2                INSPERCTOR_Flag=0;
+2429   2            //---------------------------------
+2430   2            //---------------------------------
+2431   2            //2012/5/26Ìí¼Ó¶à¸ö»¤Ê¿µ½Î»
+2432   2                memset(NurseComeRoom,0,3);
+2433   2                NurseComeCount=0;
+2434   2            //---------------------------------
+2435   2            //---------------------------------
+2436   2              }
+2437   1      
+2438   1              
+2439   1              //-----------------------------------
+2440   1              if(INDICTION_Flag)  INDICTION_Count++;
+2441   1              else  INDICTION_Count=0;
+2442   1              if(INDICTION_Count>50)  // 1Ãëµ½
+2443   1              {
+2444   2                INDICTION_Count=0;
+2445   2                INDICTION_Flag=0;
+2446   2              }
+2447   1      
+2448   1      
+2449   1      
+2450   1              if(Bus0RecPin ==1)      //×ÜÏßÕý³£
+2451   1              {
+2452   2                      BusLowDTime = 100;      //20ms*100=2s           
+2453   2              }
+2454   1              else
+2455   1              {//Bus0RecPin =0
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 41  
+
+2456   2                      if(BusLowDTime)
+2457   2                      {
+2458   3                              if(--BusLowDTime ==0)
+2459   3                              {
+2460   4                                      RST_BUS =1;     //¶Ï¿ªSDµ½×ÜÏß
+2461   4                                      Bus0SendPin =0; //Ê¹SDÎª¸ßµçÆ½
+2462   4                                      Delayms(400);
+2463   4      
+2464   4                                      
+2465   4                                      if(Bus0RecPin ==0)
+2466   4                                      {//±¾»úÓÐ¹ÊÕÏ //Ê¹µÆ¿ìÉÁ
+2467   5                                              ShowSelfError();     //Òº¾§ÆÁÌáÊ¾±¾»ú¹ÊÕÏ
+2468   5                                              do
+2469   5                                              {
+2470   6                                                      RST_BUS =1;     //¶Ï¿ªSDµ½×ÜÏß
+2471   6                                                      Bus0SendPin =0; //Ê¹SDÎª¸ßµçÆ½
+2472   6                                                      
+2473   6                                                      SetLedDealState(1);
+2474   6                                                      Delayms(100);           //ÑÓÊ±200ms
+2475   6      
+2476   6                                                      SetLedDealState(0);
+2477   6                                                      Delayms(100);
+2478   6                                              }while(Bus0RecPin==0);  //Ò»Ö±µÈ´ýÎª¸ß
+2479   5      
+2480   5                                              
+2481   5                                              RST_BUS = 0;    //Ê¹SDÏßÂ·Á¬Í¨                                  
+2482   5                                              BusLowDTime = 100;
+2483   5                                              //Ê¹µÆ»Ö¸´³£Ãð
+2484   5                                              SetLedDealState(0);
+2485   5                                              ShowNormal();
+2486   5                                      }
+2487   4      
+2488   4                                      
+2489   4                                      else 
+2490   4                                      {//ÊÇÍâ²¿×ÜÏßÒýÆð
+2491   5                                              ShowBusError();
+2492   5                                              RST_BUS = 0;    //Ê¹SDÏßÂ·Á¬Í¨
+2493   5                                              Bus0SendPin =0; //Ê¹SDÎª¸ßµçÆ½
+2494   5      
+2495   5                                              do
+2496   5                                              {
+2497   6                                                              
+2498   6                                                      RST_BUS = 0;    //Ê¹SDÏßÂ·Á¬Í¨
+2499   6                                                      Bus0SendPin =0; //Ê¹SDÎª¸ßµçÆ½
+2500   6                                                      
+2501   6                                                      SetLedDealState(1);     //µÆÂýÉÁ
+2502   6                                                      Delayms(400);           //ÑÓÊ±600ms 
+2503   6                                                      SetLedDealState(0);
+2504   6                                                      Delayms(400);
+2505   6                                                      
+2506   6                                              }while(Bus0RecPin==0);  //Ò»Ö±µÈ´ýÎª¸ß
+2507   5                                              
+2508   5      
+2509   5                                              //Ê¹µÆ»Ö¸´³£Ãð
+2510   5      Bus0BugRet:
+2511   5                                              SetLedDealState(0);
+2512   5                                              ShowNormal();
+2513   5                                              Bus0SendPin =0; //Ê¹SDÎª¸ßµçÆ½
+2514   5                                              RST_BUS = 0;    //Ê¹SDÏßÂ·Á¬Í¨                                  
+2515   5                                              BusLowDTime = 100;
+2516   5      
+2517   5                                      }                               
+C51 COMPILER V9.00   SINGLEBUS                                                             06/23/2017 13:33:25 PAGE 42  
+
+2518   4                              }
+2519   3                      }
+2520   2              }       
+2521   1      }
+*** WARNING C280 IN LINE 2510 OF SINGLEBUS.C: 'Bus0BugRet': unreferenced label
+2522                    
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   6733    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     30       9
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     32       4
+   IDATA SIZE       =     29       5
+   BIT SIZE         =     13    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

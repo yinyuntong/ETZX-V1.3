@@ -1,0 +1,10 @@
+---- SaveParameter Matches (9 in 2 files) ----
+SingleBus.c (Usr):*º¯ÊýÃû³Æ			:SaveParameter	
+SingleBus.c (Usr):void SaveParameter(uint16 addr)
+SingleBus.c (Usr):				SaveParameter(IAP0_ADDR);
+SingleBus.c (Usr):				SaveParameter();								
+SingleBus.c (Usr):						SaveParameter();
+SingleBus.c (Usr):									SaveParameter();
+SingleBus.c (Usr):				SaveParameter();			
+SingleBus.c (Usr):			SaveParameter();
+SingleBus.h (Usr):extern void SaveParameter(void);

@@ -1,0 +1,102 @@
+C51 COMPILER V9.00   PCF8563                                                               02/15/2019 14:56:43 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE PCF8563
+OBJECT MODULE PLACED IN PCF8563.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE PCF8563.c LARGE BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *            湖南一特电子股份有限公司
+   4          *             All Rights Reserved
+   5          *              
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称         :PCF8563.c
+   9          *文件描述       :时钟驱动程序
+  10          *创建人         :尹运同
+  11          *创建日期       :2009-4-6
+  12          *版本号           :V1.0
+  13          *注释         :         
+  14          *----------------------------------------------------------
+  15          *修改人       :
+  16          *修改日期       :
+  17          *版本号           :
+  18          *注释         :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_PCF8563_
+  22          #include "config.h"
+  23          
+  24          STTime xdata stTime;
+  25          uchar xdata byMinute;
+  26          
+  27          void P8563_Read();
+  28          void P8563_gettime();
+  29          void P8563_settime();
+  30          void P8563_init();
+  31          void P8563Manager(void);
+  32          
+  33          extern STLocalControl  xdata      stLocalControl;
+  34          
+  35          /********************************************
+  36          内部函数,读入时间到内部缓冲区
+  37          ********************************************/
+  38          void P8563_Read()
+  39          {   
+  40   1          ReadDataStr(PCF8563_SEC_ADDR,0x04,(uchar *)&stTime);  //读取秒,分,小时,天
+  41   1          ReadDataStr(PCF8563_MONTH_ADDR,0x02,&(stTime.byMonth)); //读取月年
+  42   1          
+  43   1          stTime.bySecond =stTime.bySecond&0x7f; /*秒*///BCD
+  44   1          stTime.byMinute =stTime.byMinute&0x7f; /*分*///BCD
+  45   1          stTime.byHour   =stTime.byHour&0x3f; /*小时*///BCD
+  46   1          stTime.byDay  =stTime.byDay&0x3f; /*天*///BCD
+  47   1          stTime.byMonth  =stTime.byMonth&0x1f; /*世纪/月*///BCD   bit7=0:表示20
+  48   1        //stTime.byYear  占用8位
+  49   1        
+  50   1      }
+  51          /********************************************
+  52          读入时间到内部缓冲区----外部调用 
+  53          ********************************************/
+  54          void P8563_gettime()
+  55          {
+C51 COMPILER V9.00   PCF8563                                                               02/15/2019 14:56:43 PAGE 2   
+
+  56   1          P8563_Read();
+  57   1      //    if(stTime.bySecond==0)
+  58   1      //      P8563_Read(); /*如果为秒=0，为防止时间变化，再读一次*/
+  59   1      }
+  60          /********************************************
+  61          写时间修改值
+  62          ********************************************/
+  63          void P8563_settime()
+  64          {
+  65   1         writeDataStr(PCF8563_SEC_ADDR,0x04,(uchar *)&stTime);//写秒,分,小时,天
+  66   1           writeDataStr(PCF8563_MONTH_ADDR,0x02,&(stTime.byMonth)); //写月年
+  67   1      }
+  68          /********************************************
+  69          P8563的初始化-----外部调用
+  70          ********************************************/
+  71          void P8563_init()
+  72          {
+  73   1          writeData(0x0,0x00);
+  74   1          writeData(0xa,0x8); /*8:00报警*/
+  75   1          writeData(0x1,0x12); /*报警有效*/
+  76   1          writeData(0xd,0xf0);
+  77   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    110    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      7    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

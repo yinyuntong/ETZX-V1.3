@@ -1,0 +1,6 @@
+---- pa_sel Matches (5 in 2 files) ----
+main.c:unsigned char pa_sel,mode,voml;
+main.c:	EEPROM_write(2,pa_sel);
+main.c:	pa_sel = EEPROM_read(2);
+main.c:		pa_sel=4;//默认无线查房功率为4
+TAGS.txt:pa_sel	main.c	114;"	variable

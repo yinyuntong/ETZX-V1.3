@@ -1,0 +1,3 @@
+---- ColorArray Matches (2 in 2 files) ----
+LCD.c (Usr):uint16 code ColorArray[8]={BLACK,RED,GREEN,BLUE,YELLOW,PURPLE,CYAN,WHITE};
+LCD.h (Usr):extern uint16 code ColorArray[];

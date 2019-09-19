@@ -1,0 +1,80 @@
+C51 COMPILER V9.00   UART                                                                  04/30/2019 16:04:01 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE UART
+OBJECT MODULE PLACED IN uart.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE uart.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include    "stc12c5624.h"
+   2          ////////////////////////////////////////////////////////////
+   3          //
+   4          ////////////////////////////////////////////////////////////
+   5          unsigned char uart_data[10];
+   6          unsigned char uart_buf;
+   7          unsigned char int_buf;
+   8          void UART_init(unsigned long  band)
+   9          {  
+  10   1        /* switch(band)
+  11   1         {  case 1200:    TH1  = TL1  = 0xd8;
+  12   1            case 2400:    TH1  = TL1  = 0xec;
+  13   1            case 4800:    TH1  = TL1  = 0xf6;
+  14   1                case 9600:    TH1  = TL1  = 0xfb;
+  15   1                case 19200:   AUXR = 0x20;TH1  = TL1  = 0xf1;
+  16   1                case 38400:   AUXR = 0x20;TH1  = TL1  = 0xf8;
+  17   1                case 57600:   AUXR = 0x20;TH1  = TL1  = 0xfb;
+  18   1                case 115200:  AUXR = 0x20;TH1  = TL1  = 0xfd;
+  19   1         }
+  20   1         */
+  21   1         TH1=TL1=-(26000000/32/12/band);
+  22   1         PCON = 0x00;
+  23   1         TMOD = 0x21;
+  24   1         SCON = 0x50;
+  25   1         TI   = 0;
+  26   1         RI   = 0;
+  27   1         TR1  = 1;
+  28   1         //ES   = 1;
+  29   1      } 
+  30          /**********************************************************
+  31          **
+  32          **
+  33          /**********************************************************/
+  34          
+  35          void UART (void) interrupt 4
+  36          {      if(RI)
+  37   1                 { RI = 0;
+  38   2                   uart_data[uart_buf]=SBUF;
+  39   2                       uart_buf++;
+  40   2                   if(uart_buf>9){uart_buf=9;};
+  41   2                 }
+  42   1               TI = 0;
+  43   1      }
+  44          /**********************************************************
+  45          **
+  46          /**********************************************************/
+  47          void uart_send_one(unsigned char x)
+  48          { 
+  49   1        TI = 0;
+  50   1        SBUF =x; 
+  51   1        while(TI==0);TI=0;
+  52   1      }///////////////////////////////////////////////////////////
+  53          //
+  54          ///////////////////////////////////////////////////////////
+  55          
+C51 COMPILER V9.00   UART                                                                  04/30/2019 16:04:01 PAGE 2   
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     98    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =     12    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

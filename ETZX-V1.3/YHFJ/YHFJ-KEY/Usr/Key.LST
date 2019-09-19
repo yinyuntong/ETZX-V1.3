@@ -1,0 +1,270 @@
+C51 COMPILER V8.08   KEY                                                                   07/06/2011 08:51:32 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE KEY
+OBJECT MODULE PLACED IN Key.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE Key.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  湖南熙旺达科技有限公司
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称               :Key.c
+   9          *文件描述               :医护分机键盘处理程序
+  10          *创建人                 :陈卫国
+  11          *创建日期               :2008-9-22
+  12          *版本号                 :V1.0
+  13          *注释                   :                                       
+  14          *----------------------------------------------------------
+  15          *修改人                         :
+  16          *修改日期                       :
+  17          *版本号                 :
+  18          *注释                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_KEY_
+  22          #include "config.h"
+  23          
+  24          #define KeyScanWait()   {_nop_();_nop_();}
+  25          //32个按键状态联合体     
+  26          typedef union 
+  27          {
+  28                  uint8   byKeyValue[4];
+  29                  uint32  ulKeyValue;
+  30          } UNKeyValue, *pUNKeyValue;     
+  31          
+  32          
+  33          //按键扫描引脚定义
+  34          sbit    H1      = P1^0;
+  35          sbit    H2      = P1^1;
+  36          sbit    H3      = P1^2;
+  37          sbit    H4      = P1^3; 
+  38          sbit    H5      = P1^4; 
+  39          
+  40          sbit    L1      = P3^0;
+  41          sbit    L2      = P3^1;
+  42          //sbit  L1      = P1^7;
+  43          //sbit  L2      = P1^6;
+  44          sbit    L3      = P3^2;
+  45          sbit    L4      = P3^5;
+  46          sbit    L5      = P3^7;
+  47          
+  48          
+  49          extern uint8    OS_Q_MEM_SEL    byMainCmdQ[];     
+  50          extern STLocalControl   xdata stLocalControl;
+  51          
+  52          /**********************************************************
+  53          *函数名称                       :KeyScan        
+  54          *函数描述               :键盘扫描函数
+  55          *输入参数               :
+C51 COMPILER V8.08   KEY                                                                   07/06/2011 08:51:32 PAGE 2   
+
+  56          *返回值                         :       
+  57          *全局变量                       :
+  58          *调用模块                       :
+  59          ***********************************************************
+  60          *创建人                 :陈卫国
+  61          *创建日期                       :2008-9-22
+  62          ***********************************************************
+  63          *修改人                         :
+  64          *修改日期               :
+  65          *注释                   :
+  66          **********************************************************/
+  67          uint8 KeyScan(void)
+  68          {
+  69   1          H1=1;
+  70   1              H2=1;
+  71   1          H3=1;
+  72   1              H4=1;   
+  73   1              H5=1;
+  74   1      
+  75   1              
+  76   1              H1=0;
+  77   1      //      KeyScanWait();
+  78   1              delay_nus(100);
+  79   1              if(L1==0)  return(KEY_3);
+  80   1              else if(L2==0)  return(KEY_2);
+  81   1              else if(L3==0)  return(KEY_1);
+  82   1              else if(L4==0)  return(KEY_SEARCH);
+  83   1              else if(L5==0)  return(KEY_ADDBED);
+  84   1      
+  85   1                              
+  86   1              H1 = 1;
+  87   1              H2 = 0;
+  88   1      //      KeyScanWait();
+  89   1              delay_nus(100);
+  90   1              if(L1==0)  return(KEY_6);
+  91   1              else if(L2==0)  return(KEY_5);
+  92   1              else if(L3==0)  return(KEY_4);
+  93   1              else if(L4==0)  return(KEY_CALCULATE);
+  94   1              else if(L5==0)  return(KEY_SEC);
+  95   1      
+  96   1              H2 = 1;
+  97   1              H3 = 0;
+  98   1      //      KeyScanWait();
+  99   1              delay_nus(100);
+ 100   1              if(L1==0)  return(KEY_9);
+ 101   1              else if(L2==0)  return(KEY_8);
+ 102   1              else if(L3==0)  return(KEY_7);
+ 103   1      //      else if(L4==0)  return(KEY_MODE);
+ 104   1              else if(L4==0)  return(KEY_BROAD);
+ 105   1      //      else if(L5==0)  return(KEY_ROOM);
+ 106   1              else if(L5==0)  return(KEY_MS);
+ 107   1      
+ 108   1      
+ 109   1              H3 = 1;
+ 110   1              H4 = 0;
+ 111   1      //      KeyScanWait();
+ 112   1              delay_nus(100);
+ 113   1              if(L1==0)  return(KEY_ENTER);
+ 114   1              else if(L2==0)  return(KEY_0);
+ 115   1              else if(L3==0)  return(KEY_CLEAR);
+ 116   1      //      else if(L4==0)  return(KEY_BROAD);
+ 117   1              else if(L4==0)  return(KEY_MODE);
+C51 COMPILER V8.08   KEY                                                                   07/06/2011 08:51:32 PAGE 3   
+
+ 118   1      //      else if(L5==0)  return(KEY_MS);
+ 119   1              else if(L5==0)  return(KEY_ROOM);
+ 120   1      
+ 121   1      
+ 122   1              H4 = 1;
+ 123   1              H5 = 0;
+ 124   1      //      KeyScanWait();
+ 125   1              delay_nus(100);
+ 126   1              if(L1==0)  return(KEY_VOICEDEC);
+ 127   1              else if(L2==0)  return(KEY_RESERVE);
+ 128   1              else if(L3==0)  return(KEY_VOICEINC);
+ 129   1              else if(L4==0)  return(KEY_MUSIC);
+ 130   1              else if(L5==0)  return(KEY_MR); 
+ 131   1              H5 = 1;
+ 132   1              return(NO_KEY);
+ 133   1      }
+ 134          /**********************************************************
+ 135          *函数名称                       :KeyManager     
+ 136          *函数描述               :键盘监控程序
+ 137          *输入参数               :
+ 138          *返回值                         :       
+ 139          *全局变量                       :
+ 140          *调用模块                       :
+ 141          ***********************************************************
+ 142          *创建人                 :陈卫国
+ 143          *创建日期                       :2008-9-22
+ 144          ***********************************************************
+ 145          *修改人                         :
+ 146          *修改日期               :
+ 147          *注释                   :
+ 148          **********************************************************/
+ 149          void KeyManager(void)
+ 150          {       
+ 151   1              static uint8 byKeyValue;        
+ 152   1      
+ 153   1              L1=1;
+ 154   1              L2=1;
+ 155   1              L3=1;
+ 156   1              L4=1;   
+ 157   1              L5=1;   
+ 158   1          while (TRUE)
+ 159   1          {
+ 160   2      //        OSWait(K_TMO, OS_TICKS_PER_SEC/50);                           //延时20ms
+ 161   2              OSWait(K_TMO, 10);                      //延时100ms   
+ 162   2              byKeyValue = KeyScan();                                         //获当前按键状态
+ 163   2              if(byKeyValue == NO_KEY)
+ 164   2              {               
+ 165   3                      continue;
+ 166   3              }        
+ 167   2      //        OSWait(K_TMO, OS_TICKS_PER_SEC/50);                           //延时20ms 
+ 168   2              OSWait(K_TMO, 10);                      //延时100ms 
+ 169   2              if(byKeyValue != KeyScan())
+ 170   2              {
+ 171   3                  continue;
+ 172   3              }
+ 173   2              OSQPost(byMainCmdQ, KEY_DOWN|byKeyValue);                       //处理按键闭合事件
+ 174   2              if(byKeyValue == KEY_CLEAR)
+ 175   2              {
+ 176   3                      OSWait(K_TMO, 200);                                     //键按下之后延时1000ms,避免频凡按键
+ 177   3              }
+ 178   2      
+ 179   2                      //等待按键松开                                                  
+C51 COMPILER V8.08   KEY                                                                   07/06/2011 08:51:32 PAGE 4   
+
+ 180   2              while(byKeyValue == KeyScan())
+ 181   2              {       //处理按键连击事件
+ 182   3      //                      OSWait(K_TMO, OS_TICKS_PER_SEC/50);    
+ 183   3                      OSWait(K_TMO, 10);                      //延时100ms 
+ 184   3              }
+ 185   2                      OSQPost(byMainCmdQ, KEY_UP|byKeyValue);                         //处理按键弹起事件                      
+ 186   2          }
+ 187   1      }
+ 188          /**********************************************************
+ 189          *函数名称                       :KeyDownDeal    
+ 190          *函数描述               :按键按下处理程序
+ 191          *输入参数               :
+ 192          *返回值                         :       
+ 193          *全局变量                       :
+ 194          *调用模块                       :
+ 195          ***********************************************************
+ 196          *创建人                 :陈卫国
+ 197          *创建日期                       :2008-9-22
+ 198          ***********************************************************
+ 199          *修改人                         :
+ 200          *修改日期               :
+ 201          *注释                   :
+ 202          **********************************************************/
+ 203          void KeyDownDeal(uint8 byKey)
+ 204          {
+ 205   1              stLocalControl.stBusDealFreq.bySndSecAddr = byKey;
+ 206   1              stLocalControl.stBusDealFreq.bySndRoomAddr = 0x00;
+ 207   1              stLocalControl.stBusDealFreq.bySndBedAddr = 0x00;
+ 208   1              stLocalControl.stBusDealFreq.byCmd = CMD_KEY_DOWN;
+ 209   1              stLocalControl.stBusDealFreq.byRecSecAddr = 0xff;
+ 210   1              stLocalControl.stBusDealFreq.byRecRoomAddr = 0xff;
+ 211   1              stLocalControl.stBusDealFreq.byRecBedAddr = 0xff;
+ 212   1              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));  
+ 213   1      }
+ 214          /**********************************************************
+ 215          *函数名称                       :KeyUpDeal      
+ 216          *函数描述               :按键弹起处理程序
+ 217          *输入参数               :
+ 218          *返回值                         :       
+ 219          *全局变量                       :
+ 220          *调用模块                       :
+ 221          ***********************************************************
+ 222          *创建人                 :陈卫国
+ 223          *创建日期                       :2008-9-22
+ 224          ***********************************************************
+ 225          *修改人                         :
+ 226          *修改日期               :
+ 227          *注释                   :
+ 228          **********************************************************/
+ 229          void KeyUpDeal(uint8 byKey)
+ 230          {
+ 231   1              stLocalControl.stBusDealFreq.bySndSecAddr = byKey;
+ 232   1              stLocalControl.stBusDealFreq.bySndRoomAddr = 0x00;
+ 233   1              stLocalControl.stBusDealFreq.bySndBedAddr = 0x00;
+ 234   1              stLocalControl.stBusDealFreq.byCmd = CMD_KEY_UP;
+ 235   1              stLocalControl.stBusDealFreq.byRecSecAddr = 0xff;
+ 236   1              stLocalControl.stBusDealFreq.byRecRoomAddr = 0xff;
+ 237   1              stLocalControl.stBusDealFreq.byRecBedAddr = 0xff;
+ 238   1              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));  
+ 239   1      }
+
+
+C51 COMPILER V8.08   KEY                                                                   07/06/2011 08:51:32 PAGE 5   
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    358    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

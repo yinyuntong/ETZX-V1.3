@@ -1,0 +1,1 @@
+"..\Target\OS_CPU_A.ASM" SET (LARGE) DEBUG PRINT(.\OS_CPU_A.lst) OBJECT(.\OS_CPU_A.obj) EP

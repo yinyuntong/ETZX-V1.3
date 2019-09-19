@@ -1,0 +1,4 @@
+---- intMasterEnable Matches (3 in 1 files) ----
+main.c (USER_CODE):void intMasterEnable(void);                                             /* 打开总中断                   */
+main.c (USER_CODE):	intMasterEnable();        /* 使能中断总开关               */  
+main.c (USER_CODE):__asm void intMasterEnable() {

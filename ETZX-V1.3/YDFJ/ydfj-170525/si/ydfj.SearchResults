@@ -1,0 +1,15 @@
+---- SetLEDMode Matches (14 in 3 files) ----
+main.c:  		SetLEDMode(1);
+main.c:								SetLEDMode(0);
+main.c:								SetLEDMode(1);
+main.c:								SetLEDMode(0);
+main.c:			SetLEDMode(0);
+main.c:	SetLEDMode(1);
+main.c:	SetLEDMode(0);
+main.c:		SetLEDMode(0);
+main.c:  	SetLEDMode(1);
+main.c:		if (i>120) {i--;SetLEDMode(0);}
+main.c:		SetLEDMode(1);
+main.c:  	SetLEDMode(1);
+main.h:#define SetLEDMode(x) {if(x)GPIOA->DDR|=IO_SW3;else GPIOA->DDR&=~IO_SW3;}
+TAGS.txt:SetLEDMode	main.h	62;"	macro

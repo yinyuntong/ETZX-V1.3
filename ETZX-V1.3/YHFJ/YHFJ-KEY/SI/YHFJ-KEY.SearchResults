@@ -1,0 +1,4 @@
+---- Send_Data Matches (3 in 3 files) ----
+Config.h (usr):extern void Send_Data(uint8 *Databuf,uint8 l);
+Main.c (usr):void Send_Data(uint8 *Databuf,uint8 l)
+SingleBus.c (usr):	Send_Data(byBus0SendData,7); 	//将接收到的数据发给PC机

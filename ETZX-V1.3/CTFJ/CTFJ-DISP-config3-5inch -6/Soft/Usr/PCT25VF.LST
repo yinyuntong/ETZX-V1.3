@@ -1,0 +1,1590 @@
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE PCT25VF
+OBJECT MODULE PLACED IN PCT25VF.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE PCT25VF.C LARGE BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*Software Driver
+   2          
+   3          SST25VF040B 4 Mbit(512K x 8) Serial Flash Memory
+   4          
+   5          November 4th, 2005, Rev. 1.0
+   6          
+   7          ABOUT THE SOFTWARE
+   8          This application note provides software driver examples for SST25VF040B,
+   9          Serial Flash. Extensive comments are included in each routine to describe 
+  10          the function of each routine.  The interface coding uses polling method 
+  11          rather than the SPI protocol to interface with these serial devices.  The
+  12          functions are differentiated below in terms of the communication protocols
+  13          (uses Mode 0) and specific device operation instructions. This code has been 
+  14          designed to compile using the Keil compiler.
+  15          
+  16          
+  17          ABOUT THE SST25VF040B
+  18          
+  19          Companion product datasheets for the SST25VF040B should be reviewed in 
+  20          conjunction with this application note for a complete understanding 
+  21          of the device.
+  22          
+  23          
+  24          Device Communication Protocol(pinout related) functions:
+  25          
+  26          Functions                       Function
+  27          ------------------------------------------------------------------
+  28          init          Initializes clock to set up mode 0.
+  29          Send_Byte       Sends one byte using SI pin to send and 
+  30                      shift out 1-bit per clock rising edge
+  31          Get_Byte        Receives one byte using SO pin to receive and shift 
+  32                      in 1-bit per clock falling edge
+  33          Poll_SO         Used in the polling for RY/BY# of SO during AAI programming
+  34          CE_High         Sets Chip Enable pin of the serial flash to high
+  35          CE_Low          Clears Chip Enable of the serial flash to low
+  36          Hold_Low        Clears Hold pin to make serial flash hold
+  37          Unhold          Unholds the serial flash
+  38          WP_Low          Clears WP pin to make serial flash write protected
+  39          UnWP          Disables write protection pin
+  40          
+  41          Note:  The pin names of the SST25VF040B are used in this application note. The associated test code
+  42          will not compile unless these pinouts (SCK, SI, SO, SO, CE, WP, Hold) are pre-defined on your
+  43          software which should reflect your hardware interfaced.    
+  44          
+  45          
+  46          Device Operation Instruction functions:
+  47          
+  48          Functions                       Function
+  49          ------------------------------------------------------------------
+  50          Read_Status_Register  Reads the status register of the serial flash
+  51          EWSR          Enables the Write Status Register
+  52          WRSR          Performs a write to the status register
+  53          WREN          Write enables the serial flash
+  54          WRDI          Write disables the serial flash
+  55          EBSY          Enable SO to output RY/BY# status during AAI programming
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 2   
+
+  56          DBSY          Disable SO to output RY/BY# status during AAI programming
+  57          Read_ID         Reads the manufacturer ID and device ID
+  58          Jedec_ID_Read     Reads the Jedec ID
+  59          Read          Reads one byte from the serial flash and returns byte(max of 25 MHz CLK frequency)
+  60          Read_Cont       Reads multiple bytes(max of 25 MHz CLK frequency)
+  61          HighSpeed_Read      Reads one byte from the serial flash and returns byte(max of 50 MHz CLK frequency)
+  62          HighSpeed_Read_Cont   Reads multiple bytes(max of 50 MHz CLK frequency)
+  63          Byte_Program      Program one byte to the serial flash
+  64          Auto_Add_IncA     Initial Auto Address Increment process
+  65          Auto_Add_IncB     Successive Auto_Address_Increment process after AAI initiation
+  66          Auto_Add_IncA_EBSY    Initial Auto Address Increment process with EBSY
+  67          Auto_Add_IncB_EBSY    Successive Auto_Address_Increment process after AAI initiation with EBSY and WRDI/DBSY
+  68          Chip_Erase        Erases entire serial flash
+  69          Sector_Erase      Erases one sector (4 KB) of the serial flash
+  70          Block_Erase_32K     Erases 32 KByte block memory of the serial flash
+  71          Block_Erase_64K     Erases 64 KByte block memory of the serial flash
+  72          Wait_Busy       Polls status register until busy bit is low
+  73          Wait_Busy_AAI     Polls status register until busy bit is low for AAI programming
+  74          WREN_Check        Checks to see if WEL is set
+  75          WREN_AAI_Check      Checks to see if WEL and AAI mode is set
+  76          
+  77          */
+  78          
+  79                                                                               
+  80          /*"C" LANGUAGE DRIVERS */
+  81          
+  82          /********************************************************************/
+  83          /* Copyright Silicon Storage Technology, Inc. (SST), 1994-2005      */
+  84          /* Example "C" language Driver of SST25VF040B Serial Flash      */
+  85          /* Conrado Canio, Silicon Storage Technology, Inc.                  */
+  86          /*                                                                  */
+  87          /* Revision 1.0, November 4th, 2005                   */   
+  88          /*                                                                  */
+  89          /*                                  */
+  90          /********************************************************************/
+  91          
+  92          #define _IN_SST25VF_
+  93          #include "config.h"
+  94            
+  95          
+  96          uint8 xdata manID,devID;
+  97          
+  98          /* Function Prototypes */
+  99          
+ 100          void SST25VF_Init();
+ 101          void Send_Byte(unsigned char out);
+ 102          unsigned char Get_Byte();
+ 103          void Poll_SO();
+ 104          void CE_High();
+ 105          void CE_Low();
+ 106          void Hold_Low();
+ 107          void Unhold();
+ 108          void WP_Low();
+ 109          void UnWP();
+ 110          unsigned char Read_Status_Register();
+ 111          void EWSR();
+ 112          void WRSR(byte);
+ 113          void WREN();
+ 114          void WRDI();
+ 115          void EBSY();
+ 116          void DBSY();
+ 117          unsigned char Read_ID(ID_addr);
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 3   
+
+ 118          unsigned long Jedec_ID_Read(); 
+ 119          unsigned char Read(unsigned long Dst);
+ 120          void Read_Cont(uint8 *pBuffer,unsigned long Dst, unsigned long no_bytes);
+ 121          unsigned char HighSpeed_Read(unsigned long Dst); 
+ 122          void HighSpeed_Read_Cont(unsigned long Dst, unsigned long no_bytes,uint8 *pBuffer);
+ 123          void Byte_Program(unsigned long Dst, unsigned char byte);
+ 124          void Auto_Add_IncA(unsigned long Dst, unsigned char byte1, unsigned char byte2);
+ 125          void Auto_Add_IncB(unsigned char byte1, unsigned char byte2);
+ 126          void Auto_Add_IncA_EBSY(unsigned long Dst, unsigned char byte1, unsigned char byte2);
+ 127          void Auto_Add_IncB_EBSY(unsigned char byte1, unsigned char byte2);
+ 128          void Chip_Erase();
+ 129          void Sector_Erase(unsigned long Dst);
+ 130          void Block_Erase_32K(unsigned long Dst);
+ 131          void Block_Erase_64K(unsigned long Dst);
+ 132          void Wait_Busy();
+ 133          void Wait_Busy_AAI();
+ 134          void WREN_Check();
+ 135          void WREN_AAI_Check();
+ 136          
+ 137          void Verify(unsigned char byte, unsigned char cor_byte);
+ 138          void Byte_Write(unsigned long Dst, unsigned char byte);
+ 139          void AAI_Write(unsigned long Dst, uint8 *p,uint16 no_bytes);
+ 140          void delay_nus(unsigned int i);
+ 141          void delay_nms(unsigned int i);
+ 142          
+ 143          
+ 144          
+ 145          //unsigned char idata upper_128[128];   /* global array to store read data */
+ 146                              /* to upper RAM area from 80H - FFH */
+ 147          
+ 148          /************************************************************************/
+ 149          /* PROCEDURE: init                            */
+ 150          /*                                    */
+ 151          /* This procedure initializes the SCK to low. Must be called prior to   */
+ 152          /* setting up mode 0.                         */
+ 153          /*                                    */
+ 154          /* Input:                               */
+ 155          /*    None                              */
+ 156          /*                                    */
+ 157          /* Output:                                */
+ 158          /*    SCK                               */
+ 159          /************************************************************************/
+ 160          void SST25VF_Init()
+ 161          {
+ 162   1      //  SCLK = 0; /* set clock to low initial state */
+ 163   1        
+ 164   1        Send_Data_Byte(Read_Status_Register());
+ 165   1      
+ 166   1        EWSR();
+ 167   1        Delayms(1);
+ 168   1        WRSR(0x00);   //不写保护
+ 169   1        Delayms(1);
+ 170   1      
+ 171   1        Send_Data_Byte(Read_Status_Register());
+ 172   1      }
+ 173          
+ 174          /************************************************************************/
+ 175          /* PROCEDURE: Send_Byte                         */
+ 176          /*                                    */
+ 177          /* This procedure outputs a byte shifting out 1-bit per clock rising  */
+ 178          /* edge on the the SI pin(LSB 1st).                   */
+ 179          /*                                    */
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 4   
+
+ 180          /* Input:                               */
+ 181          /*    out                               */
+ 182          /*                                    */
+ 183          /* Output:                                */
+ 184          /*    SI                                */
+ 185          /************************************************************************/
+ 186          void Send_Byte(unsigned char out)
+ 187          {
+ 188   1        
+ 189   1        //unsigned char i = 0;
+ 190   1        //for (i = 0; i < 8; i++)
+ 191   1        //{
+ 192   1        //  
+ 193   1        //  if ((out & 0x80) == 0x80) /* check if MSB is high */
+ 194   1        //    MOSI = 1;
+ 195   1        //  else
+ 196   1        //    MOSI = 0;         /* if not, set to low */
+ 197   1        //  SCLK = 1;         /* toggle clock high */
+ 198   1        //  out = (out << 1);     /* shift 1 place for next bit */
+ 199   1        //  SCLK = 0;         /* toggle clock low */
+ 200   1        //}
+ 201   1        SPI_WriteByte(out);
+ 202   1      }
+ 203          
+ 204          /************************************************************************/
+ 205          /* PROCEDURE: Get_Byte                          */
+ 206          /*                                    */
+ 207          /* This procedure inputs a byte shifting in 1-bit per clock falling   */
+ 208          /* edge on the SO pin(LSB 1st).                     */
+ 209          /*                                    */
+ 210          /* Input:                               */
+ 211          /*    SO                                */
+ 212          /*                                    */
+ 213          /* Output:                                */
+ 214          /*    None                              */
+ 215          /************************************************************************/
+ 216          unsigned char Get_Byte()
+ 217          {
+ 218   1        //unsigned char i = 0, in = 0, temp = 0;
+ 219   1        //for (i = 0; i < 8; i++)
+ 220   1        //{
+ 221   1        //  in = (in << 1);   /* shift 1 place to the left or shift in 0 */
+ 222   1        //  temp = MISO;      /* save input */
+ 223   1        //  SCLK = 1;     /* toggle clock high */
+ 224   1        //  if (temp == 1)      /* check to see if bit is high */
+ 225   1        //    in = in | 0x01;   /* if high, make bit high */
+ 226   1      
+ 227   1        //  SCLK = 0;     /* toggle clock low */
+ 228   1      
+ 229   1        //}
+ 230   1        //return in;
+ 231   1      
+ 232   1        uint8 xdata in;
+ 233   1        in=SPI_WriteByte(0x00); //输入8个时钟
+ 234   1        return in;
+ 235   1      }
+ 236          
+ 237          /************************************************************************/
+ 238          /* PROCEDURE: Poll_SO                         */
+ 239          /*                                    */
+ 240          /* This procedure polls for the SO line during AAI programming      */
+ 241          /* waiting for SO to transition to 1 which will indicate AAI programming*/
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 5   
+
+ 242          /* is completed                             */
+ 243          /*                                    */
+ 244          /* Input:                               */
+ 245          /*    SO                                */
+ 246          /*                                    */
+ 247          /* Output:                                */
+ 248          /*    None                              */
+ 249          /************************************************************************/
+ 250          void Poll_SO()
+ 251          {
+ 252   1        uint16 xdata i =0xffff;
+ 253   1        
+ 254   1        unsigned char temp = 0;
+ 255   1        CE_Low();
+ 256   1        while (temp == 0x00)  /* waste time until not busy */
+ 257   1        {
+ 258   2          temp = MISO;
+ 259   2          delay_nus(1);
+ 260   2          if( --i == 0x00) break;
+ 261   2        }
+ 262   1        CE_High();
+ 263   1        WDT_CONTR = 0x3e; //喂狗
+ 264   1      }
+ 265          
+ 266          /************************************************************************/
+ 267          /* PROCEDURE: CE_High                         */
+ 268          /*                                    */
+ 269          /* This procedure set CE = High.                    */
+ 270          /*                                    */
+ 271          /* Input:                               */
+ 272          /*    None                              */
+ 273          /*                                    */
+ 274          /* Output:                                */
+ 275          /*    CE                                */
+ 276          /*                                    */
+ 277          /************************************************************************/
+ 278          void CE_High() 
+ 279          {
+ 280   1        SST25VF_CS = 1;       /* set CE high */
+ 281   1      }
+ 282          
+ 283          /************************************************************************/
+ 284          /* PROCEDURE: CE_Low                          */
+ 285          /*                                    */
+ 286          /* This procedure drives the CE of the device to low.           */
+ 287          /*                                    */
+ 288          /* Input:                               */
+ 289          /*    None                              */
+ 290          /*                                    */
+ 291          /* Output:                                */
+ 292          /*    CE                                */
+ 293          /*                                    */
+ 294          /************************************************************************/
+ 295          void CE_Low() 
+ 296          { 
+ 297   1        SST25VF_CS = 0;       /* clear CE low */
+ 298   1      }
+ 299          
+ 300          /************************************************************************/
+ 301          /* PROCEDURE: Hold()                          */
+ 302          /*                                    */
+ 303          /* This procedure clears the Hold pin to low.             */
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 6   
+
+ 304          /*                                    */
+ 305          /* Input:                               */
+ 306          /*    None                              */
+ 307          /*                                    */
+ 308          /* Output:                                */
+ 309          /*    Hold                              */
+ 310          /************************************************************************/
+ 311          void Hold_Low()
+ 312          {
+ 313   1      
+ 314   1      //  Hold = 0;     /* clear Hold pin */
+ 315   1        
+ 316   1      }
+ 317          
+ 318          /************************************************************************/
+ 319          /* PROCEDURE: Unhold()                          */
+ 320          /*                                    */
+ 321          /* This procedure sets the Hold pin to high.              */
+ 322          /*                                    */
+ 323          /* Input:                               */
+ 324          /*    None                              */
+ 325          /*                                    */
+ 326          /* Output:                                */
+ 327          /*    Hold                              */
+ 328          /************************************************************************/
+ 329          void Unhold()
+ 330          {
+ 331   1      
+ 332   1      //  Hold = 1;     /* set Hold pin */
+ 333   1        
+ 334   1      }
+ 335          
+ 336          /************************************************************************/
+ 337          /* PROCEDURE: WP()                            */
+ 338          /*                                    */
+ 339          /* This procedure clears the WP pin to low.               */
+ 340          /*                                    */
+ 341          /* Input:                               */
+ 342          /*    None                              */
+ 343          /*                                    */
+ 344          /* Output:                                */
+ 345          /*    WP                                */
+ 346          /************************************************************************/
+ 347          void WP_Low()
+ 348          {
+ 349   1      
+ 350   1      //  WP = 0;       /* clear WP pin */
+ 351   1      
+ 352   1      }
+ 353          
+ 354          /************************************************************************/
+ 355          /* PROCEDURE: UnWP()                          */
+ 356          /*                                    */
+ 357          /* This procedure sets the WP pin to high.                */
+ 358          /*                                    */
+ 359          /* Input:                               */
+ 360          /*    None                              */
+ 361          /*                                    */
+ 362          /* Output:                                */
+ 363          /*    WP                                */
+ 364          /************************************************************************/
+ 365          void UnWP()
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 7   
+
+ 366          {
+ 367   1      
+ 368   1      //  WP = 1;       /* set WP pin */
+ 369   1      
+ 370   1      }
+ 371          
+ 372          /************************************************************************/
+ 373          /* PROCEDURE: Read_Status_Register                    */
+ 374          /*                                    */
+ 375          /* This procedure read the status register and returns the byte.    */
+ 376          /*                                    */
+ 377          /* Input:                               */
+ 378          /*    None                              */
+ 379          /*                                    */
+ 380          /* Returns:                               */
+ 381          /*    byte                              */
+ 382          /************************************************************************/
+ 383          unsigned char Read_Status_Register()
+ 384          {
+ 385   1        unsigned char byte = 0;
+ 386   1        CE_Low();       /* enable device */
+ 387   1        Send_Byte(0x05);    /* send RDSR command */
+ 388   1        byte = Get_Byte();    /* receive byte */
+ 389   1        CE_High();        /* disable device */
+ 390   1        return byte;
+ 391   1      }
+ 392          
+ 393          
+ 394          
+ 395          /************************************************************************/
+ 396          
+ 397          
+ 398          /************************************************************************/
+ 399          /* PROCEDURE: EWSR                            */
+ 400          /*                                    */
+ 401          /* This procedure Enables Write Status Register.              */
+ 402          /*                                    */
+ 403          /* Input:                               */
+ 404          /*    None                              */
+ 405          /*                                    */
+ 406          /* Returns:                               */
+ 407          /*    Nothing                             */
+ 408          /************************************************************************/
+ 409          void EWSR()
+ 410          {
+ 411   1        CE_Low();       /* enable device */
+ 412   1        Send_Byte(0x50);    /* enable writing to the status register */
+ 413   1        CE_High();        /* disable device */
+ 414   1      }
+ 415          
+ 416          /************************************************************************/
+ 417          /* PROCEDURE: WRSR                            */
+ 418          /*                                    */
+ 419          /* This procedure writes a byte to the Status Register.         */
+ 420          /*                                    */
+ 421          /* Input:                               */
+ 422          /*    byte                              */
+ 423          /*                                    */
+ 424          /* Returns:                               */
+ 425          /*    Nothing                             */
+ 426          /************************************************************************/
+ 427          void WRSR(byte)
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 8   
+
+ 428          {
+ 429   1        CE_Low();       /* enable device */
+ 430   1        Send_Byte(0x01);    /* select write to status register */
+ 431   1        Send_Byte(byte);    /* data that will change the status of BPx 
+ 432   1                       or BPL (only bits 2,3,4,5,7 can be written) */
+ 433   1        CE_High();        /* disable the device */
+ 434   1      }
+ 435          
+ 436          
+ 437          
+ 438          void W25QXX_WRSR(unsigned int status)
+ 439          {
+ 440   1        CE_Low();       /* enable device */
+ 441   1        Send_Byte(0x01);    /* select write to status register */
+ 442   1        Send_Byte(status);    // data that will change the status of BPx 
+ 443   1        Send_Byte(status>>8);   // or BPL (only bits 2,3,4,5,7 can be written) */
+ 444   1        CE_High();       /* disable the device */
+ 445   1      }
+ 446          
+ 447          
+ 448          /************************************************************************/
+ 449          /* PROCEDURE: WREN                            */
+ 450          /*                                    */
+ 451          /* This procedure enables the Write Enable Latch.  It can also be used  */
+ 452          /* to Enables Write Status Register.                  */
+ 453          /*                                    */
+ 454          /* Input:                               */
+ 455          /*    None                              */
+ 456          /*                                    */
+ 457          /* Returns:                               */
+ 458          /*    Nothing                             */
+ 459          /************************************************************************/
+ 460          void WREN()
+ 461          {
+ 462   1        CE_Low();       /* enable device */
+ 463   1        Send_Byte(0x06);    /* send WREN command */
+ 464   1        CE_High();        /* disable device */
+ 465   1        Wait_Busy();
+ 466   1      }
+ 467          
+ 468          /************************************************************************/
+ 469          /* PROCEDURE: WRDI                            */
+ 470          /*                                    */
+ 471          /* This procedure disables the Write Enable Latch.            */
+ 472          /*                                    */
+ 473          /* Input:                               */
+ 474          /*    None                              */
+ 475          /*                                    */
+ 476          /* Returns:                               */
+ 477          /*    Nothing                             */
+ 478          /************************************************************************/
+ 479          void WRDI()
+ 480          {
+ 481   1        CE_Low();       /* enable device */
+ 482   1        Send_Byte(0x04);    /* send WRDI command */
+ 483   1        CE_High();        /* disable device */
+ 484   1      }
+ 485          
+ 486          /************************************************************************/
+ 487          /* PROCEDURE: EBSY                            */
+ 488          /*                                    */
+ 489          /* This procedure enable SO to output RY/BY# status during AAI      */
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 9   
+
+ 490          /* programming.                             */
+ 491          /*                                    */
+ 492          /* Input:                               */
+ 493          /*    None                              */
+ 494          /*                                    */
+ 495          /* Returns:                               */
+ 496          /*    Nothing                             */
+ 497          /************************************************************************/
+ 498          void EBSY()
+ 499          {
+ 500   1        CE_Low();       /* enable device */
+ 501   1        Send_Byte(0x70);    /* send EBSY command */
+ 502   1        CE_High();        /* disable device */
+ 503   1      }
+ 504          
+ 505          /************************************************************************/
+ 506          /* PROCEDURE: DBSY                            */
+ 507          /*                                    */
+ 508          /* This procedure disable SO as output RY/BY# status signal during AAI  */
+ 509          /* programming.                             */
+ 510          /*                                    */
+ 511          /* Input:                               */
+ 512          /*    None                              */
+ 513          /*                                    */
+ 514          /* Returns:                               */
+ 515          /*    Nothing                             */
+ 516          /************************************************************************/
+ 517          void DBSY()
+ 518          {
+ 519   1        CE_Low();       /* enable device */
+ 520   1        Send_Byte(0x80);    /* send DBSY command */
+ 521   1        CE_High();        /* disable device */
+ 522   1      } 
+ 523          
+ 524          
+ 525          /************************************************************************/
+ 526          /* PROCEDURE: init                            */
+ 527          /*                                    */
+ 528          /* This procedure initializes the SCK to low. Must be called prior to   */
+ 529          /* setting up mode 0.                         */
+ 530          /*                                    */
+ 531          /* Input:                               */
+ 532          /*    None                              */
+ 533          /*                                    */
+ 534          /* Output:                                */
+ 535          /*    SCK                               */
+ 536          /************************************************************************/
+ 537          void W25QXX_Lock(void)
+ 538          {
+ 539   1        EWSR();
+ 540   1        Wait_Busy();
+ 541   1      //  W25QXX_WRSR(0x38);    //保护底部1/2(   字库空间)
+ 542   1        W25QXX_WRSR(0x3c);    //保护全部空间
+ 543   1        Wait_Busy();
+ 544   1      }
+ 545          
+ 546          
+ 547          void SST25VF_Lock(void)
+ 548          {
+ 549   1        EWSR();
+ 550   1        Delayms(1);
+ 551   1        WRSR(0x1c);   //全部保护
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 10  
+
+ 552   1        Delayms(1);
+ 553   1      }
+ 554          
+ 555          
+ 556          void W25QXX_UnLock(void)
+ 557          {
+ 558   1        EWSR();
+ 559   1        Wait_Busy();
+ 560   1        W25QXX_WRSR(0x00);    //不保护全部空间
+ 561   1        Wait_Busy();
+ 562   1      }
+ 563          
+ 564          
+ 565          void SST25VF_UnLock(void)
+ 566          {
+ 567   1        EWSR();
+ 568   1        Delayms(1);
+ 569   1        WRSR(0x00);   //全部不保护  
+ 570   1        Delayms(1);
+ 571   1      }
+ 572          
+ 573          
+ 574          void Flash_Lock(void)
+ 575          {
+ 576   1        if(manID == WINBOND_FLASH)
+ 577   1        {
+ 578   2          W25QXX_Lock();
+ 579   2        }
+ 580   1        else if(manID == SST_FLASH)
+ 581   1        {
+ 582   2          SST25VF_Lock();
+ 583   2        }
+ 584   1      
+ 585   1      }
+ 586          
+ 587          
+ 588          void Flash_Unlock(void)
+ 589          {
+ 590   1      
+ 591   1        if(manID == WINBOND_FLASH)
+ 592   1        {
+ 593   2          W25QXX_UnLock();
+ 594   2        }
+ 595   1        else if(manID == SST_FLASH)
+ 596   1        {
+ 597   2          SST25VF_UnLock();
+ 598   2        }
+ 599   1      }
+ 600          
+ 601          
+ 602          
+ 603          
+ 604          /************************************************************************/
+ 605          /* PROCEDURE: Read_ID                         */
+ 606          /*                                    */
+ 607          /* This procedure Reads the manufacturer's ID and device ID.  It will   */
+ 608          /* use 90h or ABh as the command to read the ID (90h in this sample).   */
+ 609          /* It is up to the user to give the last byte ID_addr to determine      */
+ 610          /* whether the device outputs manufacturer's ID first, or device ID   */
+ 611          /* first.  Please see the product datasheet for details.  Returns ID in */
+ 612          /* variable byte.                           */
+ 613          /*                                    */
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 11  
+
+ 614          /* Input:                               */
+ 615          /*    ID_addr                             */
+ 616          /*                                    */
+ 617          /* Returns:                               */
+ 618          /*    byte: ID1(Manufacture's ID = BFh or Device ID = 8Dh)      */
+ 619          /*                                    */
+ 620          /************************************************************************/
+ 621          unsigned char Read_ID(ID_addr)
+ 622          {
+ 623   1        unsigned char byte;
+ 624   1        CE_Low();       /* enable device */
+ 625   1        Send_Byte(0x90);    /* send read ID command (90h or ABh) */
+ 626   1          Send_Byte(0x00);    /* send address */
+ 627   1        Send_Byte(0x00);    /* send address */
+ 628   1        Send_Byte(ID_addr);   /* send address - either 00H or 01H */
+ 629   1        byte = Get_Byte();    /* receive byte */
+ 630   1        CE_High();        /* disable device */
+ 631   1        return byte;
+ 632   1      }
+ 633          
+ 634          /************************************************************************/
+ 635          /* PROCEDURE: Jedec_ID_Read                       */
+ 636          /*                                    */
+ 637          /* This procedure Reads the manufacturer's ID (BFh), memory type (25h)  */
+ 638          /* and device ID (8Dh).  It will use 9Fh as the JEDEC ID command.     */
+ 639          /* Please see the product datasheet for details.            */
+ 640          /*                                    */
+ 641          /* Input:                               */
+ 642          /*    None                              */
+ 643          /*                                    */
+ 644          /* Returns:                               */
+ 645          /*    IDs_Read:ID1(Manufacture's ID = BFh, Memory Type (25h),     */
+ 646          /*     and Device ID (8Dh)                      */
+ 647          /*                                    */
+ 648          /************************************************************************/
+ 649          unsigned long Jedec_ID_Read() 
+ 650          {
+ 651   1        unsigned long temp;
+ 652   1        
+ 653   1        temp = 0;
+ 654   1      
+ 655   1        CE_Low();        /* enable device */
+ 656   1        Send_Byte(0x9F);     /* send JEDEC ID command (9Fh) */
+ 657   1          temp = (temp | Get_Byte()) << 8;   /* receive byte */
+ 658   1        temp = (temp | Get_Byte()) << 8;  
+ 659   1        temp = (temp | Get_Byte());    /* temp value = 0xBF258D */
+ 660   1        CE_High();        /* disable device */
+ 661   1      
+ 662   1        return temp;
+ 663   1      }
+ 664          
+ 665          /************************************************************************/
+ 666          /* PROCEDURE: Read                          */
+ 667          /*                                    */    
+ 668          /* This procedure reads one address of the device.  It will return the  */
+ 669          /* byte read in variable byte.                      */
+ 670          /*                                    */
+ 671          /*                                    */
+ 672          /*                                    */
+ 673          /* Input:                               */
+ 674          /*    Dst:  Destination Address 000000H - 07FFFFH         */
+ 675          /*          SST25VF020:Dst: Destination Address 000000H - 03FFFFH               */           
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 12  
+
+ 676          /*                                      */
+ 677          /*                                    */
+ 678          /* Returns:                               */
+ 679          /*    byte                              */
+ 680          /*                                    */
+ 681          /************************************************************************/
+ 682          unsigned char Read(unsigned long Dst) 
+ 683          {
+ 684   1        unsigned char byte = 0; 
+ 685   1      
+ 686   1        CE_Low();       /* enable device */
+ 687   1        Send_Byte(0x03);    /* read command */
+ 688   1        Send_Byte(((Dst & 0xFFFFFF) >> 16));  /* send 3 address bytes */
+ 689   1        Send_Byte(((Dst & 0xFFFF) >> 8));
+ 690   1        Send_Byte(Dst & 0xFF);
+ 691   1        byte = Get_Byte();
+ 692   1        CE_High();        /* disable device */
+ 693   1        return byte;      /* return one byte read */
+ 694   1      }
+ 695          
+ 696          /************************************************************************/
+ 697          /* PROCEDURE: Read_Cont                       */
+ 698          /*                                    */    
+ 699          /* This procedure reads multiple addresses of the device and stores   */
+ 700          /* data into 128 byte buffer. Maximum byte that can be read is 128 bytes*/
+ 701          /*                                    */
+ 702          /* Input:                               */
+ 703          /*    Dst:    Destination Address 000000H - 07FFFFH       */
+ 704          /*          SST25VF020:Dst: Destination Address 000000H - 03FFFFH               */
+ 705          /*      no_bytes  Number of bytes to read (max = 128)         */
+ 706          /*                                    */
+ 707          /* Returns:                               */
+ 708          /*    Nothing                             */
+ 709          /*                                    */
+ 710          /************************************************************************/
+ 711          void Read_Cont(uint8 *pBuffer,unsigned long Dst, unsigned long no_bytes)
+ 712          {
+ 713   1        unsigned long i = 0;
+ 714   1        CE_Low();         /* enable device */
+ 715   1        Send_Byte(0x03);      /* read command */
+ 716   1        Send_Byte(((Dst & 0xFFFFFF) >> 16));  /* send 3 address bytes */
+ 717   1        Send_Byte(((Dst & 0xFFFF) >> 8));
+ 718   1        Send_Byte(Dst & 0xFF);
+ 719   1        for (i = 0; i < no_bytes; i++)    /* read until no_bytes is reached */
+ 720   1        {
+ 721   2          pBuffer[i] = Get_Byte();  /* receive byte and store at address 80H - FFH */
+ 722   2        }
+ 723   1        CE_High();          /* disable device */
+ 724   1      
+ 725   1      }
+ 726          
+ 727          /************************************************************************/
+ 728          /* PROCEDURE: HighSpeed_Read                      */
+ 729          /*                                    */    
+ 730          /* This procedure reads one address of the device.  It will return the  */
+ 731          /* byte read in variable byte.                      */
+ 732          /*                                    */
+ 733          /*                                    */
+ 734          /*                                    */
+ 735          /* Input:                               */
+ 736          /*    Dst:  Destination Address 000000H - 07FFFFH         */
+ 737          /*          SST25VF020:Dst: Destination Address 000000H - 03FFFFH               */
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 13  
+
+ 738          /*                                      */
+ 739          /*                                    */
+ 740          /* Returns:                               */
+ 741          /*    byte                              */
+ 742          /*                                    */
+ 743          /************************************************************************/
+ 744          unsigned char HighSpeed_Read(unsigned long Dst) 
+ 745          {
+ 746   1        unsigned char byte = 0; 
+ 747   1      
+ 748   1        CE_Low();       /* enable device */
+ 749   1        Send_Byte(0x0B);    /* read command */
+ 750   1        Send_Byte(((Dst & 0xFFFFFF) >> 16));  /* send 3 address bytes */
+ 751   1        Send_Byte(((Dst & 0xFFFF) >> 8));
+ 752   1        Send_Byte(Dst & 0xFF);
+ 753   1        Send_Byte(0xFF);    /*dummy byte*/
+ 754   1        byte = Get_Byte();
+ 755   1        CE_High();        /* disable device */
+ 756   1        return byte;      /* return one byte read */
+ 757   1      }
+ 758          
+ 759          /************************************************************************/
+ 760          /* PROCEDURE: HighSpeed_Read_Cont                   */
+ 761          /*                                    */    
+ 762          /* This procedure reads multiple addresses of the device and stores   */
+ 763          /* data into 128 byte buffer. Maximum byte that can be read is 128 bytes*/
+ 764          /*                                    */
+ 765          /* Input:                               */
+ 766          /*    Dst:    Destination Address 000000H - 07FFFFH       */
+ 767          /*      no_bytes  Number of bytes to read (max = 128)         */
+ 768          /*                                    */
+ 769          /* Returns:                               */
+ 770          /*    Nothing                             */
+ 771          /*                                    */
+ 772          /************************************************************************/
+ 773          void HighSpeed_Read_Cont(unsigned long Dst, unsigned long no_bytes,uint8 *pBuffer)
+ 774          {
+ 775   1        unsigned long i = 0;
+ 776   1        CE_Low();         /* enable device */
+ 777   1        Send_Byte(0x0B);      /* read command */
+ 778   1        Send_Byte(((Dst & 0xFFFFFF) >> 16));  /* send 3 address bytes */
+ 779   1        Send_Byte(((Dst & 0xFFFF) >> 8));
+ 780   1        Send_Byte(Dst & 0xFF);
+ 781   1        Send_Byte(0xFF);      /*dummy byte*/
+ 782   1        for (i = 0; i < no_bytes; i++)    /* read until no_bytes is reached */
+ 783   1        {
+ 784   2          pBuffer[i] = Get_Byte();  /* receive byte and store at address 80H - FFH */
+ 785   2        }
+ 786   1        CE_High();          /* disable device */
+ 787   1      }
+ 788          
+ 789          /************************************************************************/
+ 790          /* PROCEDURE: Byte_Program                      */
+ 791          /*                                    */
+ 792          /* This procedure programs one address of the device.         */
+ 793          /* Assumption:  Address being programmed is already erased and is NOT */
+ 794          /*        block protected.                    */
+ 795          /*                                    */
+ 796          /*                                    */
+ 797          /*                                    */
+ 798          /* Input:                               */
+ 799          /*    Dst:    Destination Address 000000H - 07FFFFH       */
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 14  
+
+ 800          /*    byte:   byte to be programmed               */
+ 801          /*                                      */
+ 802          /*                                    */
+ 803          /* Returns:                               */
+ 804          /*    Nothing                             */
+ 805          /*                                    */
+ 806          /************************************************************************/
+ 807          void Byte_Program(unsigned long Dst, unsigned char byte)
+ 808          {
+ 809   1        CE_Low();         /* enable device */
+ 810   1        Send_Byte(0x02);      /* send Byte Program command */
+ 811   1        Send_Byte(((Dst & 0xFFFFFF) >> 16));  /* send 3 address bytes */
+ 812   1        Send_Byte(((Dst & 0xFFFF) >> 8));
+ 813   1        Send_Byte(Dst & 0xFF);
+ 814   1        Send_Byte(byte);      /* send byte to be programmed */
+ 815   1        CE_High();          /* disable device */
+ 816   1      }
+ 817          
+ 818          /************************************************************************/
+ 819          /* PROCEDURE: Auto_Add_IncA                     */
+ 820          /*                                    */
+ 821          /* This procedure programs consecutive addresses of 2 bytes of data into*/
+ 822          /* the device:  1st data byte will be programmed into the initial   */
+ 823          /* address [A23-A1] and with A0 = 0.  The 2nd data byte will be be    */
+ 824          /* programmed into initial address [A23-A1] and with A0  = 1.  This   */
+ 825          /* is used to to start the AAI process.  It should be followed by     */
+ 826          /* Auto_Add_IncB.                           */
+ 827          /* Assumption:  Address being programmed is already erased and is NOT */
+ 828          /*        block protected.                    */
+ 829          /*                                    */
+ 830          /*                                    */
+ 831          /* Note: Only RDSR command can be executed once in AAI mode with SO   */
+ 832          /*   disable to output RY/BY# status.  Use WRDI to exit AAI mode    */
+ 833          /*   unless AAI is programming the last address or last address of    */
+ 834          /*   unprotected block, which automatically exits AAI mode.       */
+ 835          /*                                    */
+ 836          /* Input:                               */
+ 837          /*    Dst:    Destination Address 000000H - 07FFFFH       */
+ 838          /*          SST25VF020:Dst: Destination Address 000000H - 03FFFFH               */
+ 839          /*    byte1:    1st byte to be programmed             */
+ 840          /*      byte1:    2nd byte to be programmed             */
+ 841          /*                                    */
+ 842          /* Returns:                               */
+ 843          /*    Nothing                             */
+ 844          /*                                    */
+ 845          /************************************************************************/
+ 846          void Auto_Add_IncA(unsigned long Dst, unsigned char byte1, unsigned char byte2)
+ 847          {
+ 848   1        CE_Low();         /* enable device */
+ 849   1        Send_Byte(0xAD);      /* send AAI command */
+ 850   1        Send_Byte(((Dst & 0xFFFFFF) >> 16));  /* send 3 address bytes */
+ 851   1        Send_Byte(((Dst & 0xFFFF) >> 8));
+ 852   1        Send_Byte(Dst & 0xFF);
+ 853   1        Send_Byte(byte1);     /* send 1st byte to be programmed */  
+ 854   1        Send_Byte(byte2);     /* send 2nd byte to be programmed */
+ 855   1        CE_High();          /* disable device */
+ 856   1      }
+ 857          
+ 858          /************************************************************************/
+ 859          /* PROCEDURE: Auto_Add_IncB                     */
+ 860          /*                                    */
+ 861          /* This procedure programs consecutive addresses of 2 bytes of data into*/
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 15  
+
+ 862          /* the device:  1st data byte will be programmed into the initial     */
+ 863          /* address [A23-A1] and with A0 = 0.  The 2nd data byte will be be    */
+ 864          /* programmed into initial address [A23-A1] and with A0  = 1.    This   */
+ 865          /* is used after Auto_Address_IncA.                   */
+ 866          /* Assumption:  Address being programmed is already erased and is NOT */
+ 867          /*        block protected.                    */
+ 868          /*                                    */
+ 869          /* Note: Only WRDI and AAI command can be executed once in AAI mode   */
+ 870          /*   with SO enabled as RY/BY# status.  When the device is busy     */
+ 871          /*   asserting CE# will output the status of RY/BY# on SO.  Use WRDI  */
+ 872          /*   to exit AAI mode unless AAI is programming the last address or   */
+ 873          /*   last address of unprotected block, which automatically exits     */
+ 874          /*   AAI mode.                              */
+ 875          /*                                    */
+ 876          /* Input:                               */
+ 877          /*                                    */
+ 878          /*    byte1:    1st byte to be programmed             */
+ 879          /*    byte2:    2nd byte to be programmed             */
+ 880          /*                                      */
+ 881          /*                                    */
+ 882          /* Returns:                               */
+ 883          /*    Nothing                             */
+ 884          /*                                    */
+ 885          /************************************************************************/
+ 886          void Auto_Add_IncB(unsigned char byte1, unsigned char byte2)
+ 887          {
+ 888   1        CE_Low();         /* enable device */
+ 889   1        Send_Byte(0xAD);      /* send AAI command */
+ 890   1        Send_Byte(byte1);     /* send 1st byte to be programmed */
+ 891   1        Send_Byte(byte2);     /* send 2nd byte to be programmed */
+ 892   1        CE_High();          /* disable device */
+ 893   1      } 
+ 894          
+ 895          /************************************************************************/
+ 896          /* PROCEDURE: Auto_Add_IncA_EBSY                    */
+ 897          /*                                    */
+ 898          /* This procedure is the same as procedure Auto_Add_IncA except that it */
+ 899          /* uses EBSY and Poll_SO functions to check for RY/BY. It programs    */
+ 900          /* consecutive addresses of the device.  The 1st data byte will be    */
+ 901          /* programmed into the initial address [A23-A1] and with A0 = 0.  The   */
+ 902          /* 2nd data byte will be programmed into initial address [A23-A1] and   */
+ 903          /* with A0  = 1.  This is used to to start the AAI process.  It should  */
+ 904          /* be followed by Auto_Add_IncB_EBSY.                 */
+ 905          /* Assumption:  Address being programmed is already erased and is NOT */
+ 906          /*        block protected.                    */
+ 907          /*                                    */
+ 908          /*                                    */
+ 909          /* Note: Only WRDI and AAI command can be executed once in AAI mode   */
+ 910          /*   with SO enabled as RY/BY# status.  When the device is busy     */
+ 911          /*   asserting CE# will output the status of RY/BY# on SO.  Use WRDI  */
+ 912          /*   to exit AAI mode unless AAI is programming the last address or   */
+ 913          /*   last address of unprotected block, which automatically exits   */
+ 914          /*   AAI mode.                              */
+ 915          /*                                    */
+ 916          /* Input:                               */
+ 917          /*    Dst:    Destination Address 000000H - 07FFFFH       */
+ 918          /*    byte1:    1st byte to be programmed             */
+ 919          /*      byte1:    2nd byte to be programmed             */
+ 920          /*                                    */
+ 921          /* Returns:                               */
+ 922          /*    Nothing                             */
+ 923          /*                                    */
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 16  
+
+ 924          /************************************************************************/
+ 925          void Auto_Add_IncA_EBSY(unsigned long Dst, unsigned char byte1, unsigned char byte2)
+ 926          {
+ 927   1        EBSY();         /* enable RY/BY# status for SO in AAI */  
+ 928   1      
+ 929   1        CE_Low();       /* enable device */
+ 930   1        Send_Byte(0xAD);      /* send AAI command */
+ 931   1        Send_Byte(((Dst & 0xFFFFFF) >> 16));  /* send 3 address bytes */
+ 932   1        Send_Byte(((Dst & 0xFFFF) >> 8));
+ 933   1        Send_Byte(Dst & 0xFF);
+ 934   1        Send_Byte(byte1);     /* send 1st byte to be programmed */  
+ 935   1        Send_Byte(byte2);     /* send 2nd byte to be programmed */
+ 936   1        CE_High();        /* disable device */
+ 937   1        
+ 938   1        Poll_SO();        /* polls RY/BY# using SO line */
+ 939   1      
+ 940   1      }
+ 941          
+ 942          /************************************************************************/
+ 943          /* PROCEDURE: Auto_Add_IncB_EBSY                    */
+ 944          /*                                    */
+ 945          /* This procedure is the same as Auto_Add_IncB excpet that it uses    */
+ 946          /* Poll_SO to poll for RY/BY#.  It demonstrate on how to use DBSY after */
+ 947          /* AAI programmming is completed.  It programs consecutive addresses of */
+ 948          /* the device.  The 1st data byte will be programmed into the initial   */
+ 949          /* address [A23-A1] and with A0 = 0.  The 2nd data byte will be     */
+ 950          /* programmed into initial address [A23-A1] and with A0  = 1.  This is  */
+ 951          /* used after Auto_Address_IncA.                    */
+ 952          /* Assumption:  Address being programmed is already erased and is NOT */
+ 953          /*        block protected.                    */
+ 954          /*                                    */
+ 955          /* Note: Only WRDI and AAI command can be executed once in AAI mode   */
+ 956          /*   with SO enabled as RY/BY# status.  When the device is busy     */
+ 957          /*   asserting CE# will output the status of RY/BY# on SO.  Use WRDI  */
+ 958          /*   to exit AAI mode unless AAI is programming the last address or   */
+ 959          /*   last address of unprotected block, which automatically exits     */
+ 960          /*   AAI mode.                              */
+ 961          /*                                    */
+ 962          /* Input:                               */
+ 963          /*                                    */
+ 964          /*    byte1:    1st byte to be programmed             */
+ 965          /*    byte2:    2nd byte to be programmed             */
+ 966          /*                                      */
+ 967          /*                                    */
+ 968          /* Returns:                               */
+ 969          /*    Nothing                             */
+ 970          /*                                    */
+ 971          /************************************************************************/
+ 972          void Auto_Add_IncB_EBSY(unsigned char byte1, unsigned char byte2)
+ 973          {
+ 974   1        CE_Low();         /* enable device */
+ 975   1        Send_Byte(0xAD);      /* send AAI command */
+ 976   1        Send_Byte(byte1);     /* send 1st byte to be programmed */
+ 977   1        Send_Byte(byte2);     /* send 2nd byte to be programmed */
+ 978   1        CE_High();          /* disable device */
+ 979   1      
+ 980   1        Poll_SO();          /* polls RY/BY# using SO line */
+ 981   1        
+ 982   1        WRDI();           /* Exit AAI before executing DBSY */
+ 983   1        DBSY();           /* disable SO as RY/BY# output if in AAI */
+ 984   1      } 
+ 985          
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 17  
+
+ 986          /************************************************************************/
+ 987          /* PROCEDURE: Chip_Erase                        */
+ 988          /*                                    */
+ 989          /* This procedure erases the entire Chip.               */
+ 990          /*                                    */
+ 991          /* Input:                               */
+ 992          /*    None                              */
+ 993          /*                                    */
+ 994          /* Returns:                               */
+ 995          /*    Nothing                             */
+ 996          /************************************************************************/
+ 997          void Chip_Erase()
+ 998          {           
+ 999   1        CE_Low();         /* enable device */
+1000   1        Send_Byte(0x60);      /* send Chip Erase command (60h or C7h) */
+1001   1        CE_High();          /* disable device */
+1002   1      }
+1003          
+1004          /************************************************************************/
+1005          /* PROCEDURE: Sector_Erase                        */
+1006          /*                                    */
+1007          /* This procedure Sector Erases the Chip.               */
+1008          /*                                    */
+1009          /* Input:                               */
+1010          /*    Dst:    Destination Address 000000H - 07FFFFH       */
+1011          /*                                    */
+1012          /* Returns:                               */
+1013          /*    Nothing                             */
+1014          /************************************************************************/
+1015          void Sector_Erase(unsigned long Dst)
+1016          {
+1017   1      
+1018   1      
+1019   1        CE_Low();         /* enable device */
+1020   1        Send_Byte(0x20);      /* send Sector Erase command */
+1021   1        Send_Byte(((Dst & 0xFFFFFF) >> 16));  /* send 3 address bytes */
+1022   1        Send_Byte(((Dst & 0xFFFF) >> 8));
+1023   1        Send_Byte(Dst & 0xFF);
+1024   1        CE_High();          /* disable device */
+1025   1      }
+1026          
+1027          /************************************************************************/
+1028          /* PROCEDURE: Block_Erase_32K                     */
+1029          /*                                    */
+1030          /* This procedure Block Erases 32 KByte of the Chip.          */
+1031          /*                                    */
+1032          /* Input:                               */
+1033          /*    Dst:    Destination Address 000000H - 07FFFFH       */
+1034          /*                                    */
+1035          /* Returns:                               */
+1036          /*    Nothing                             */
+1037          /************************************************************************/
+1038          void Block_Erase_32K(unsigned long Dst)
+1039          {
+1040   1        CE_Low();         /* enable device */
+1041   1        Send_Byte(0x52);      /* send 32 KByte Block Erase command */
+1042   1        Send_Byte(((Dst & 0xFFFFFF) >> 16));  /* send 3 address bytes */
+1043   1        Send_Byte(((Dst & 0xFFFF) >> 8));
+1044   1        Send_Byte(Dst & 0xFF);
+1045   1        CE_High();          /* disable device */
+1046   1      } 
+1047          
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 18  
+
+1048          /************************************************************************/
+1049          /* PROCEDURE: Block_Erase_64K                     */
+1050          /*                                    */
+1051          /* This procedure Block Erases 64 KByte of the Chip.          */
+1052          /*                                    */
+1053          /* Input:                               */
+1054          /*    Dst:    Destination Address 000000H - 07FFFFH       */
+1055          /*                                    */
+1056          /* Returns:                               */
+1057          /*    Nothing                             */
+1058          /************************************************************************/
+1059          void Block_Erase_64K(unsigned long Dst)
+1060          {
+1061   1        CE_Low();         /* enable device */
+1062   1        Send_Byte(0xD8);      /* send 64KByte Block Erase command */
+1063   1        Send_Byte(((Dst & 0xFFFFFF) >> 16));  /* send 3 address bytes */
+1064   1        Send_Byte(((Dst & 0xFFFF) >> 8));
+1065   1        Send_Byte(Dst & 0xFF);
+1066   1        CE_High();          /* disable device */
+1067   1      }
+1068          
+1069          /************************************************************************/
+1070          /* PROCEDURE: Wait_Busy                         */
+1071          /*                                    */
+1072          /* This procedure waits until device is no longer busy (can be used by  */
+1073          /* Byte-Program, Sector-Erase, Block-Erase, Chip-Erase).        */
+1074          /*                                    */
+1075          /* Input:                               */
+1076          /*    None                              */
+1077          /*                                    */
+1078          /* Returns:                               */
+1079          /*    Nothing                             */
+1080          /************************************************************************/
+1081          void Wait_Busy()
+1082          {
+1083   1        uint16 xdata i;
+1084   1        i = 60000;
+1085   1      
+1086   1        while ((Read_Status_Register()&0x01) == 0x01) /* waste time until not busy */
+1087   1        {
+1088   2      
+1089   2          delay_nus(1);
+1090   2          if(--i ==0) break;    //等待最长时间10ms    
+1091   2        }
+1092   1        WDT_CONTR = 0x3e; //喂狗  
+1093   1      }
+1094          
+1095          /************************************************************************/
+1096          /* PROCEDURE: Wait_Busy_AAI                       */
+1097          /*                                    */
+1098          /* This procedure waits until device is no longer busy for AAI mode.  */
+1099          /*                                    */
+1100          /* Input:                               */
+1101          /*    None                              */
+1102          /*                                    */
+1103          /* Returns:                               */
+1104          /*    Nothing                             */
+1105          /************************************************************************/
+1106          void Wait_Busy_AAI()
+1107          {
+1108   1        uint16 xdata i;
+1109   1        i = 1000;
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 19  
+
+1110   1      
+1111   1        while ((Read_Status_Register()&0x40) == 0x40) /* waste time until not busy */
+1112   1        {
+1113   2          Delayms(1);
+1114   2          if(--i ==0) break;    //等待最长时间1s
+1115   2      
+1116   2        }
+1117   1        WDT_CONTR = 0x3e; //喂狗  
+1118   1      }
+1119          
+1120          /************************************************************************/
+1121          /* PROCEDURE: WREN_Check                        */
+1122          /*                                    */
+1123          /* This procedure checks to see if WEL bit set before program/erase.  */
+1124          /*                                    */
+1125          /* Input:                               */
+1126          /*    None                              */
+1127          /*                                    */
+1128          /* Returns:                               */
+1129          /*    Nothing                             */
+1130          /************************************************************************/
+1131          void WREN_Check()
+1132          {
+1133   1        uint16 xdata i;
+1134   1        i = 0xffff;
+1135   1      
+1136   1        while ((Read_Status_Register() & 0x02)!= 0x02)        /* verify that WEL bit is set */
+1137   1        {
+1138   2          delay_nus(10);
+1139   2          if(--i ==0) break;    //等待最长时间655.36ms
+1140   2      
+1141   2        }
+1142   1        WDT_CONTR = 0x3e; //喂狗  
+1143   1      }
+1144          
+1145          /************************************************************************/
+1146          /* PROCEDURE: WREN_AAI_Check                      */
+1147          /*                                    */
+1148          /* This procedure checks for AAI and WEL bit once in AAI mode.      */
+1149          /*                                    */
+1150          /* Input:                               */
+1151          /*    None                              */
+1152          /*                                    */
+1153          /* Returns:                               */
+1154          /*    Nothing                             */
+1155          /************************************************************************/
+1156          void WREN_AAI_Check()
+1157          {
+1158   1        uint16 xdata i;
+1159   1        i = 1000;
+1160   1      
+1161   1        while((Read_Status_Register()&0x42) != 0x42)        /* verify that AAI and WEL bit is set */
+1162   1        { 
+1163   2          Delayms(1);
+1164   2          if(--i ==0) break;    //等待最长时间1s
+1165   2      
+1166   2        }
+1167   1        WDT_CONTR = 0x3e; //喂狗  
+1168   1      }
+1169          
+1170          
+1171          
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 20  
+
+1172          
+1173          void Byte_Write(unsigned long Dst, unsigned char byte)
+1174          {
+1175   1        
+1176   1        Flash_Unlock();
+1177   1      
+1178   1        //只有从扇区起始地址写数据才执行探险操作
+1179   1        if((DATA_TYPE_SIZE == 0x1000) &&(Dst%DATA_TYPE_SIZE ==0))
+1180   1        {
+1181   2          WREN();
+1182   2          Sector_Erase(Dst);
+1183   2          Wait_Busy();
+1184   2        }
+1185   1        else  if((DATA_TYPE_SIZE == 0x8000) &&(Dst%DATA_TYPE_SIZE ==0))
+1186   1        {
+1187   2          WREN(); 
+1188   2          Block_Erase_32K(Dst);
+1189   2          Wait_Busy();    
+1190   2        }
+1191   1        else  if((DATA_TYPE_SIZE == 0x10000) &&(Dst%DATA_TYPE_SIZE ==0))  
+1192   1        {
+1193   2          WREN();
+1194   2          Block_Erase_64K(Dst);
+1195   2          Wait_Busy();    
+1196   2        }
+1197   1      
+1198   1      
+1199   1      
+1200   1        WREN();
+1201   1        Byte_Program(Dst,byte);
+1202   1        Wait_Busy();
+1203   1      
+1204   1        Flash_Lock();
+1205   1      }
+1206          
+1207          
+1208          
+1209          
+1210          
+1211          /******************************************************************************************
+1212          *函数名：FLASH_PageWrite()
+1213          * 参数：u8* pBuffer, u32 WriteAddr, u16 NumByteToWrite 数据指针，写入地址，写入的个数
+1214          * 返回值：void
+1215          * 功能：SPIFLASH页写入数据函数，外部调用
+1216          *********************************************************************************************/
+1217          void FLASH_PageWrite(uint8* pBuffer, uint32 WriteAddr, uint16 NumByteToWrite)
+1218          {
+1219   1      
+1220   1        WREN();//使能写入
+1221   1        CE_Low(); 
+1222   1      
+1223   1        Send_Byte(W25X_PageProgram);
+1224   1        Send_Byte((WriteAddr & 0xFF0000) >> 16);
+1225   1        Send_Byte((WriteAddr & 0xFF00) >> 8);
+1226   1        Send_Byte(WriteAddr & 0xFF);
+1227   1      
+1228   1        //检测写入的数据是否超出页的容量大小
+1229   1        if(NumByteToWrite > FLASH_PerWritePageSize)
+1230   1        {
+1231   2         NumByteToWrite = FLASH_PerWritePageSize;
+1232   2        }
+1233   1        
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 21  
+
+1234   1        while (NumByteToWrite--)
+1235   1        {
+1236   2          Send_Byte(*pBuffer);
+1237   2          pBuffer++;
+1238   2        }
+1239   1        CE_High();            /* disable device */
+1240   1        WDT_CONTR = 0x3e; //喂狗
+1241   1      
+1242   1        /* 等待写完成*/
+1243   1        Wait_Busy();
+1244   1      }
+1245          
+1246          
+1247          
+1248          
+1249          /******************************************************************************************
+1250          *函数名：FLASH_BufferWrite()
+1251          * 参数：u8* pBuffer, u32 WriteAddr, u16 NumByteToWrite 数据指针，写入地址，写入的个数
+1252          * 返回值：void
+1253          * 功能：SPIFLASH多个数据函数，外部调用
+1254          *********************************************************************************************/
+1255          void FLASH_BufferWrite(uint8* pBuffer, uint32 WriteAddr, uint16 NumByteToWrite)
+1256          {
+1257   1        uint8 NumOfPage = 0, NumOfSingle = 0, Addr = 0, count = 0, temp = 0;
+1258   1        Addr = WriteAddr % FLASH_PageSize;                           //计算写入的页的对应初始地址
+1259   1        count = FLASH_PageSize - Addr;
+1260   1        NumOfPage =  NumByteToWrite / FLASH_PageSize;                //计算总共要写的页数
+1261   1        NumOfSingle = NumByteToWrite % FLASH_PageSize;               //计算剩余单个页写的数据个数
+1262   1        if (Addr == 0) // 如果要写入的页地址为0，说明正好整页写数据，没有偏移
+1263   1        {
+1264   2          if (NumOfPage == 0) // 如果计算的写入页数为0，说明数据量在一个页的范围内，可直接进行页的写
+1265   2          {
+1266   3            FLASH_PageWrite(pBuffer, WriteAddr, NumByteToWrite);      //进行页写数据
+1267   3          }
+1268   2          else // 如果要写的页数大于0
+1269   2          { 
+1270   3            //先将开头数据进行整页写入
+1271   3            while (NumOfPage--)
+1272   3            {   
+1273   4              FLASH_PageWrite(pBuffer, WriteAddr, FLASH_PageSize);//整页写入    
+1274   4              WriteAddr +=  FLASH_PageSize;  //地址偏移 
+1275   4              pBuffer += FLASH_PageSize;    //数据指针偏移
+1276   4            }
+1277   3            WDT_CONTR = 0x3e; //喂狗
+1278   3            //将剩余数据个数写入
+1279   3            FLASH_PageWrite(pBuffer, WriteAddr, NumOfSingle);
+1280   3          }
+1281   2        }
+1282   1        else //如果写入的地址不在页的开头位置
+1283   1        {
+1284   2          if (NumOfPage == 0) //如果写入数据页的个数为0，即数据小于一页容量
+1285   2          {
+1286   3            if (NumOfSingle > count) //如果剩余数据大于当前页的剩余容量
+1287   3            {
+1288   4              temp = NumOfSingle - count;     //计算超出的数据个数
+1289   4              FLASH_PageWrite(pBuffer, WriteAddr, count); //写满当前页
+1290   4              WriteAddr +=  count;    //设置地址偏移
+1291   4              pBuffer += count;       //设置数据指针偏移
+1292   4              FLASH_PageWrite(pBuffer, WriteAddr, temp); //将剩余量写入新的页
+1293   4            }
+1294   3            else  //如果剩余数据小于当前页的剩余容量
+1295   3            {
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 22  
+
+1296   4              FLASH_PageWrite(pBuffer, WriteAddr, NumByteToWrite); //直接写入当前页
+1297   4            }
+1298   3          }
+1299   2          else //如果写入数据页的个数大于0，即数据大于一页容量
+1300   2          {
+1301   3            NumByteToWrite -= count;         //总数据减去当前页剩余的容量
+1302   3            NumOfPage =  NumByteToWrite / FLASH_PageSize;  //计算要写的整页个数
+1303   3            NumOfSingle = NumByteToWrite % FLASH_PageSize; //计算剩余数据个数
+1304   3            //将开头数据写入当前页剩余字节个数
+1305   3            FLASH_PageWrite(pBuffer, WriteAddr, count);
+1306   3            WriteAddr +=  count;   //设置地址偏移
+1307   3            pBuffer += count;   //设置数据指针偏移
+1308   3            //开始剩下数据的整页写入
+1309   3            while (NumOfPage--)
+1310   3            {
+1311   4              //写入一个页的字节数
+1312   4              FLASH_PageWrite(pBuffer, WriteAddr, FLASH_PageSize);
+1313   4              //设置地址偏移
+1314   4              WriteAddr +=  FLASH_PageSize;
+1315   4              //设置指针偏移
+1316   4              pBuffer += FLASH_PageSize;
+1317   4            }
+1318   3            WDT_CONTR = 0x3e; //喂狗
+1319   3            //如果剩余数据大于0，将剩余的个数写入下一个页
+1320   3            if (NumOfSingle != 0)
+1321   3            {
+1322   4              FLASH_PageWrite(pBuffer, WriteAddr, NumOfSingle);
+1323   4            }
+1324   3          }
+1325   2        }
+1326   1      }
+1327          
+1328          
+1329          
+1330          
+1331          //Dst:必须为偶地址
+1332          void AAI_Write(unsigned long Dst, uint8 *p,uint16 no_bytes)
+1333          {
+1334   1        if(no_bytes%2==1) 
+1335   1        {//奇数个数据
+1336   2          *(p+no_bytes) = 0xff; //不对原存储空间产生任何破坏。  
+1337   2          no_bytes++; 
+1338   2      
+1339   2        }
+1340   1        WREN();
+1341   1        Auto_Add_IncA_EBSY(Dst,*p,*(p+1));
+1342   1      
+1343   1        no_bytes -=2;
+1344   1        p +=2;
+1345   1      
+1346   1        for(;no_bytes>2;)
+1347   1        {
+1348   2          CE_Low();         
+1349   2          Send_Byte(0xAD);      
+1350   2          Send_Byte(*p);      
+1351   2          Send_Byte(*(p+1));      
+1352   2          CE_High();          
+1353   2          
+1354   2          Poll_SO();          
+1355   2          no_bytes -=2;
+1356   2          p +=2;
+1357   2        }
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 23  
+
+1358   1        Auto_Add_IncB_EBSY(*p,*(p+1));    //退出AAI模式
+1359   1      
+1360   1      }
+1361          
+1362          
+1363          
+1364          
+1365          void Write_Cont(unsigned long Dst, uint8 *p,uint16 no_bytes)
+1366          {
+1367   1        uint8 i;
+1368   1        Flash_Unlock();
+1369   1      
+1370   1        //只有从扇区起始地址写数据才执行探险操作
+1371   1        if((DATA_TYPE_SIZE == 0x1000) &&(Dst%DATA_TYPE_SIZE ==0))
+1372   1        {
+1373   2          WREN();
+1374   2          Sector_Erase(Dst);
+1375   2          Wait_Busy();
+1376   2        }
+1377   1        else  if((DATA_TYPE_SIZE == 0x8000) &&(Dst%DATA_TYPE_SIZE ==0))
+1378   1        {
+1379   2          WREN(); 
+1380   2          Block_Erase_32K(Dst);
+1381   2          Wait_Busy();    
+1382   2        }
+1383   1        else  if((DATA_TYPE_SIZE == 0x10000) &&(Dst%DATA_TYPE_SIZE ==0))  
+1384   1        {
+1385   2          WREN();
+1386   2          Block_Erase_64K(Dst);
+1387   2          Wait_Busy();    
+1388   2        }
+1389   1        
+1390   1      
+1391   1          
+1392   1        if(manID == SST_FLASH && devID == SST25VF032)
+1393   1        {
+1394   2          if((Dst%2 ==0)&&(no_bytes>=6))
+1395   2          {
+1396   3            AAI_Write(Dst,p,no_bytes);
+1397   3          }
+1398   2          else goto slow_write;
+1399   2        }
+1400   1        else if(manID == WINBOND_FLASH)
+1401   1        {
+1402   2          FLASH_BufferWrite(p,Dst,no_bytes);
+1403   2        }
+1404   1        
+1405   1        else
+1406   1        {
+1407   2        //执行最原始、最慢的单字节写入操作
+1408   2      slow_write:
+1409   2          for(;no_bytes>0;no_bytes--)
+1410   2          {
+1411   3            WREN();
+1412   3            Byte_Program(Dst,*p);
+1413   3            Wait_Busy();
+1414   3            Dst++;
+1415   3            p++;
+1416   3          }
+1417   2        }
+1418   1      
+1419   1        Flash_Lock(); //存储空间保护
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 24  
+
+1420   1      }
+*** WARNING C280 IN LINE 1367 OF PCT25VF.C: 'i': unreferenced local variable
+1421          
+1422          
+1423          void FRAM_TEST(void)
+1424          {
+1425   1         unsigned int i;
+1426   1      
+1427   1         Flash_Unlock();
+1428   1         WREN();
+1429   1         Sector_Erase(FRAME_TEST_ADD);
+1430   1         Wait_Busy();
+1431   1         Flash_Lock();
+1432   1        
+1433   1         for(i=0;i<101;i++)  GT23_Rec_Data[i]=i;
+1434   1         Write_Cont(FRAME_TEST_ADD,GT23_Rec_Data,101);
+1435   1      
+1436   1         Read_Cont(GT23_Rec_Data,FRAME_TEST_ADD,102);
+1437   1         Send_Data(GT23_Rec_Data,102);
+1438   1      
+1439   1         
+1440   1           for(i=0;i<99;i++)  GT23_Rec_Data[i]=99-i;
+1441   1         Write_Cont(FRAME_TEST_ADD+101,GT23_Rec_Data,99);
+1442   1         Read_Cont(GT23_Rec_Data,FRAME_TEST_ADD+101,99);
+1443   1         Send_Data(GT23_Rec_Data,99);
+1444   1      
+1445   1         for(i=0;i<30;i++)  GT23_Rec_Data[i]=20+i;
+1446   1         FLASH_BufferWrite(GT23_Rec_Data,FRAME_TEST_ADD+200,30);
+1447   1         Read_Cont(GT23_Rec_Data,FRAME_TEST_ADD+200,30);
+1448   1         Send_Data(GT23_Rec_Data,30);
+1449   1      
+1450   1         
+1451   1        for(i=0;i<5;i++)  GT23_Rec_Data[i]=20+i;
+1452   1        
+1453   1      /*  for(i=0;i<5;i++)
+1454   1        {
+1455   1          WREN();
+1456   1          Byte_Program(FRAME_TEST_ADD+200+i,GT23_Rec_Data[i]);
+1457   1          Wait_Busy();
+1458   1        }*/
+1459   1         Write_Cont(FRAME_TEST_ADD+200,GT23_Rec_Data,5);
+1460   1         Read_Cont(GT23_Rec_Data,FRAME_TEST_ADD+200,5);
+1461   1         Send_Data(GT23_Rec_Data,5);
+1462   1      
+1463   1      }
+1464          
+1465          /**********************************************************
+1466          *函数名称     :delay_nms  
+1467          *函数描述         :毫秒级延时操作
+1468          *输入参数       :i:延时的ms数
+1469          *返回值       :     
+1470          *全局变量     :
+1471          *调用模块       :
+1472          ***********************************************************
+1473          *创建人           :尹运同
+1474          *创建日期     :2008-9-22
+1475          ***********************************************************
+1476          *修改人         :
+1477          *修改日期       :
+1478          *注释           :
+1479          **********************************************************/
+1480          void delay_nms(unsigned int i)
+C51 COMPILER V9.00   PCT25VF                                                               02/15/2019 10:08:09 PAGE 25  
+
+1481          {
+1482   1        unsigned int j;
+1483   1      
+1484   1        for(;i>0;i--)
+1485   1        {
+1486   2          for(j=900;j>0;j--);
+1487   2        }
+1488   1         
+1489   1      }
+1490          
+1491          
+1492          /**********************************************************
+1493          *函数名称     :delay_nus  
+1494          *函数描述         :纳秒级延时操作
+1495          *输入参数       :i:延时的us数
+1496          *返回值       :     
+1497          *全局变量     :
+1498          *调用模块       :
+1499          ***********************************************************
+1500          *创建人           :尹运同
+1501          *创建日期     :2008-9-22
+1502          ***********************************************************
+1503          *修改人         :
+1504          *修改日期       :
+1505          *注释           :
+1506          **********************************************************/
+1507          void delay_nus(unsigned int i)
+1508          {
+1509   1        unsigned char j;
+1510   1      
+1511   1        for(;i>0;i--)
+1512   1        {
+1513   2          for(j=2;j>0;j--);
+1514   2        }
+1515   1         
+1516   1      }
+1517          
+1518          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3508    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      2     138
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

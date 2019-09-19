@@ -1,0 +1,33 @@
+---- bIndicatingOther Matches (32 in 3 files) ----
+Key.c (Usr):			if((bNurseIn&bIndicatingOther))
+SingleBus.c (Usr):	else if((bEnSoundNote&bNurseIn&bIndicatingOther))
+SingleBus.c (Usr):	bIndicatingOther=0;		
+SingleBus.c (Usr):		if(bIndicatingOther)
+SingleBus.c (Usr):				if(bIndicatingOther)
+SingleBus.c (Usr):					bIndicatingOther = 0; 					
+SingleBus.c (Usr):				if(bIndicatingOther)
+SingleBus.c (Usr):					bIndicatingOther = 0;				
+SingleBus.c (Usr):				if(bIndicatingOther)
+SingleBus.c (Usr):					bIndicatingOther = 0;
+SingleBus.c (Usr):				if(bIndicatingOther)
+SingleBus.c (Usr):					bIndicatingOther = 0;
+SingleBus.c (Usr):					bIndicatingOther =1;
+SingleBus.c (Usr)://					bIndicatingOther = 1;
+SingleBus.c (Usr):						bIndicatingOther = 1;					
+SingleBus.c (Usr):				if(bIndicatingOther)
+SingleBus.c (Usr):					bIndicatingOther = 0;
+SingleBus.c (Usr):			if(bIndicatingOther)
+SingleBus.c (Usr):				bIndicatingOther = 0;
+SingleBus.c (Usr):				if(bIndicatingOther &&
+SingleBus.c (Usr):					bIndicatingOther = 0;
+SingleBus.c (Usr):			bIndicatingOther=0;		
+SingleBus.c (Usr):			if(bIndicatingOther)
+SingleBus.c (Usr):				bIndicatingOther = 0; 
+SingleBus.c (Usr):			if(bIndicatingOther)
+SingleBus.c (Usr):				bIndicatingOther = 0;
+SingleBus.c (Usr):			else if(bIndicatingOther &&
+SingleBus.c (Usr):				bIndicatingOther = 0;
+SingleBus.c (Usr):			if(bIndicatingOther)
+SingleBus.c (Usr):						bIndicatingOther = 0;				
+SingleBus.h (Usr):sbit	bIndicatingOther	=	byDevState1^1;				//指示其它分机呼叫标志
+SingleBus.h (Usr):extern	bit		bIndicatingOther;

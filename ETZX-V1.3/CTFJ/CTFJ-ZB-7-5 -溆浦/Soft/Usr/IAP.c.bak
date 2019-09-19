@@ -1,0 +1,133 @@
+/*
+**********************************Copyright (c) ****************************
+*	  								 cwg
+*			       			 All Rights Reserved
+*			     			     QQ:7084394
+*
+*---------------------------------File Info---------------------------------
+*File Name     		:IAP.c
+*Descriptor    		:写Flash驱动
+*Create By     		:陈卫国
+*Create Date   		:2008-9-22
+*Version       		:V1.0
+*Note	     		:
+*
+*---------------------------------------------------------------------------
+*Modified By  		:
+*Modified Date  	:
+*Version        	:
+*Note	     		:
+*
+****************************************************************************
+*/
+#define _IN_IAP_
+#include "config.h"	
+/***************************************************************************
+*Function Name		:EnableIAP	
+*Description        :允许IAP操作
+*Input parameters   :
+*Return Values:   	:
+*Global Variables 	:
+*Calling Modules  	:
+***
+*Create By	      	:陈卫国
+*Create Tate	 	:2008-9-22
+***
+*Modified By	  	:
+*Modified Date    	:
+*Note		      	:
+****************************************************************************/
+void EnableIAP(uint8 byCmd)
+{
+	ISP_CONTR = (IAP_WAIT_TIME|0x80);
+	ISP_CMD = byCmd;
+}
+/***************************************************************************
+*Function Name		:DisableIAP	
+*Description        :禁止IAP操作
+*Input parameters   :
+*Return Values:   	:
+*Global Variables 	:
+*Calling Modules  	:
+***
+*Create By	      	:陈卫国
+*Create Tate	 	:2008-9-22
+***
+*Modified By	  	:
+*Modified Date    	:
+*Note		      	:
+****************************************************************************/
+void DisableIAP(void)
+{
+	ISP_CONTR = 0x00;
+	ISP_CMD = 0x00;
+	ISP_TRIG = 0x00;
+}
+/***************************************************************************
+*Function Name		:IapWriteByte	
+*Description        :写一个字节数据到指定地址
+*Input parameters   :
+*Return Values:   	:
+*Global Variables 	:
+*Calling Modules  	:
+***
+*Create By	      	:陈卫国
+*Create Tate	 	:2008-9-22
+***
+*Modified By	  	:
+*Modified Date    	:
+*Note		      	:
+****************************************************************************/
+void IapWriteByte(uint16 uiAddr, uint8 byData)
+{
+	ISP_DATA = byData; 								//送入数据
+	ISP_ADDRH = (uint8)(uiAddr >> 8);
+	ISP_ADDRL = (uint8)(uiAddr);					//送入地址
+	ISP_TRIG = 0x46;
+	ISP_TRIG = 0xb9;								//送入触发命令
+}
+/***************************************************************************
+*Function Name		:IapReadByte	
+*Description        :读指定地址的一个字节数据
+*Input parameters   :
+*Return Values:   	:
+*Global Variables 	:
+*Calling Modules  	:
+***
+*Create By	      	:陈卫国
+*Create Tate	 	:2008-9-22
+***
+*Modified By	  	:
+*Modified Date    	:
+*Note		      	:
+****************************************************************************/
+uint8 IapReadByte(uint16 uiAddr)
+{ 
+	ISP_ADDRH = (uint8)(uiAddr >> 8);
+	ISP_ADDRL = (uint8)(uiAddr);					//送入地址
+	ISP_TRIG = 0x46;
+	ISP_TRIG = 0xb9;								//送入触发命令 
+	return(ISP_DATA);
+}
+/***************************************************************************
+*Function Name		:IapErase	
+*Description        :擦除指定地址所在的扇区
+*Input parameters   :
+*Return Values:   	:
+*Global Variables 	:
+*Calling Modules  	:
+***
+*Create By	      	:陈卫国
+*Create Tate	 	:2008-9-22
+***
+*Modified By	  	:
+*Modified Date    	:
+*Note		      	:
+****************************************************************************/
+void IapErase(uint16 uiAddr)
+{ 	
+	ISP_ADDRH = (uint8)(uiAddr >> 8);
+	ISP_ADDRL = (uint8)(uiAddr);					//送入地址
+	ISP_TRIG = 0x46;
+	ISP_TRIG = 0xb9;								//送入触发命令 
+}

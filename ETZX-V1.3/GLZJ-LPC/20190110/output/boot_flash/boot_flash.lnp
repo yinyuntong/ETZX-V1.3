@@ -1,0 +1,5 @@
+--cpu Cortex-M3 ".\output\boot_flash\core_cm3.o" ".\output\boot_flash\startup_lpc17xx.o" ".\output\boot_flash\system_lpc17xx.o" ".\output\boot_flash\main.o" ".\output\boot_flash\led.o" ".\output\boot_flash\global.o" ".\output\boot_flash\uart.o" ".\output\boot_flash\interrupt.o" ".\output\boot_flash\timer.o" ".\output\boot_flash\extint.o" ".\output\boot_flash\rtc.o" ".\output\boot_flash\key.o" ".\output\boot_flash\rf1101.o" ".\output\boot_flash\wth080.o" ".\output\boot_flash\fm62429.o" ".\output\boot_flash\sst25vfxxx.o" ".\output\boot_flash\mt8870.o" ".\output\boot_flash\function.o" ".\output\boot_flash\wdt.o" ".\output\boot_flash\inflash.o" ".\output\boot_flash\view_table.o" ".\output\boot_flash\aes.o" ".\output\boot_flash\genpassword.o" ".\output\boot_flash\ds1302.o" ".\output\boot_flash\ds3231.o" ".\output\boot_flash\i2cint.o" ".\output\boot_flash\ds3231_iic.o" 
+--strict --scatter ".\output\boot_flash\boot_flash.sct" 
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\output\boot_flash\list\boot_flash.map" -o .\output\boot_flash\boot_flash.axf

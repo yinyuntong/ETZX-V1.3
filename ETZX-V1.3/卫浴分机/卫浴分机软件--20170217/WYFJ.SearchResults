@@ -1,0 +1,24 @@
+---- CBYTE Matches (23 in 2 files) ----
+Key.c (usr):		stLocalControl.stEepromCfgData.byFlag=CBYTE[0x2803];
+Key.c (usr):		stLocalControl.stEepromCfgData.byPrio=CBYTE[0x2804];
+Key.c (usr):		stLocalControl.stEepromCfgData.byReserve1=CBYTE[0x2805];
+Key.c (usr):		stLocalControl.stEepromCfgData.byReserve2=CBYTE[0x2806];
+Key.c (usr):		stLocalControl.stEepromCfgData.byReserve3=CBYTE[0x2807];
+Key.c (usr):		stLocalControl.stEepromCfgData.bySerialNum1=CBYTE[0x2808];
+Key.c (usr):		stLocalControl.stEepromCfgData.bySerialNum2=CBYTE[0x2809];
+Key.c (usr):		stLocalControl.stEepromCfgData.bySerialNum3=CBYTE[0x280A];
+Key.c (usr):		stLocalControl.stEepromCfgData.byVersionHi=CBYTE[0x280B];
+Key.c (usr):		stLocalControl.stEepromCfgData.byVersionLo=CBYTE[0x280C];
+Main.c (usr):	    stLocalControl.stEepromCfgData.bySelfSecAddr=CBYTE[0x2800];
+Main.c (usr):		stLocalControl.stEepromCfgData.bySelfRoomAddr=CBYTE[0x2801];
+Main.c (usr):		stLocalControl.stEepromCfgData.bySelfBedAddr=CBYTE[0x2802];
+Main.c (usr):		stLocalControl.stEepromCfgData.byFlag=CBYTE[0x2803];
+Main.c (usr):		stLocalControl.stEepromCfgData.byPrio=CBYTE[0x2804];
+Main.c (usr):		stLocalControl.stEepromCfgData.byReserve1=CBYTE[0x2805];
+Main.c (usr):		stLocalControl.stEepromCfgData.byReserve2=CBYTE[0x2806];
+Main.c (usr):		stLocalControl.stEepromCfgData.byReserve3=CBYTE[0x2807];
+Main.c (usr):		stLocalControl.stEepromCfgData.bySerialNum1=CBYTE[0x2808];
+Main.c (usr):		stLocalControl.stEepromCfgData.bySerialNum2=CBYTE[0x2809];
+Main.c (usr):		stLocalControl.stEepromCfgData.bySerialNum3=CBYTE[0x280A];
+Main.c (usr):		stLocalControl.stEepromCfgData.byVersionHi=CBYTE[0x280B];
+Main.c (usr):		stLocalControl.stEepromCfgData.byVersionLo=CBYTE[0x280C];

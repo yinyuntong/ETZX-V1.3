@@ -1,0 +1,2657 @@
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE LCD
+OBJECT MODULE PLACED IN LCD.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE LCD.c LARGE BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *            ºþÄÏÒ»ÌØµç×Ó¹É·ÝÓÐÏÞ¹«Ë¾
+   4          *             All Rights Reserved
+   5          *              
+   6          *
+   7          *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8          *ÎÄ¼þÃû³Æ         :TFT.c
+   9          *ÎÄ¼þÃèÊö       :TFT²ÊÆÁÇý¶¯³ÌÐò
+  10          *´´½¨ÈË         :ÒüÔËÍ¬
+  11          *´´½¨ÈÕÆÚ       :2008-9-22
+  12          *°æ±¾ºÅ           :V1.0
+  13          *×¢ÊÍ                   
+  14          *----------------------------------------------------------
+  15          *ÐÞ¸ÄÈË       :
+  16          *ÐÞ¸ÄÈÕÆÚ       :
+  17          *°æ±¾ºÅ           :
+  18          *×¢ÊÍ         :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_LCD_
+  22          #include "config.h"
+  23          #include "math.h"
+  24          
+  25          
+  26          uint8 xdata fontbuf1,fontbuf2,fontbuf3;
+  27          uint8 xdata BedDataBuff[SEGMENT_DATA_LEN];
+  28          uint8 xdata ASCIIBuff[5];
+  29          
+  30          
+  31          uint16 code ColorArray[8]={BLACK,RED,GREEN,BLUE,YELLOW,PURPLE,CYAN,WHITE};
+  32          
+  33          uint16 x;
+  34          uint16 y;
+  35          uint8 size;
+  36          uint8 mul_row;
+  37          uint8 mul_col;
+  38          uint16 fcolor;
+  39          uint16 bcolor;
+  40          uint8 *pDispData;
+  41          uint8 page=0;
+  42          uint16 start_x;
+  43          uint16 start_y;
+  44          uint16 end_x;
+  45          uint16 end_y;
+  46          uint8 Length;
+  47          uint8 DotWidth;
+  48          
+  49          bit fTitle_TextAtLine=0;  //ÕýÎÄÓë±êÌâÔÚÍ¬Ò»ÐÐ±êÖ¾
+  50          
+  51          uint8 dot_number=0;
+  52          uint8  current_size=0;  //µ±Ç°×Ö·û³ß´ç
+  53          uint8  current_vert_spac=0;//µ±Ç°ÐÐ¼ä¾à
+  54          
+  55          
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 2   
+
+  56          
+  57          STItemForm code default_bed_form[14]= 
+  58          { 
+  59                {0x01,{4,10}, {164,170},0x09,0x08,0},
+  60                {0x0a,{4,178},{164,231},0x09,0x08,0},
+  61                {0x02,{4,239},{164,292},RED_CODE,BLACK_CODE,0},
+  62                {0x03,{4,300},{164,353},GREEN_CODE,BLACK_CODE,0},
+  63                {0x04,{4,361},{164,414},PURPLE_CODE,BLACK_CODE,0},
+  64                {0x05,{4,422},{164,470},BLUE3_CODE,WHITE_CODE,0},
+  65                {0x07,{172,10},{790,170},0x09,0x08,0},
+  66                {0x08,{172,178},{468,231},0x09,0x08,0},
+  67                {0x09,{476,178},{790,231},0x09,0x08,0},
+  68                {0x0f,{172,239},{468,292},0x09,0x08,0x28},
+  69                {0x10,{476,239},{790,292},0x09,0x08,0x28},
+  70                {0x0e,{172,300},{790,353},0x09,0x08,0},
+  71                {0x0d,{172,361},{790,414},0x09,0x08,0},
+  72                {0x1c,{172,422},{790,470},0x09,0x08,0}
+  73                
+  74          };
+  75          
+  76          STItemData code default_bed_data[13]=
+  77          {
+  78          //{0x01,2,"20"},
+  79          {0x0a,8,"16-05-18"},
+  80          {0x02,4,"²¡ÖØ"},
+  81          {0x03,6,"ÐÂÅ©ºÏ"},
+  82          {0x04,8,"Ò»¼¶»¤Àí"},
+  83          {0x05,4,"Á÷Ê³"},
+  84          {0x07,6,"HÑ©Ç¿"},
+  85          {0x08,2,"Å®"},
+  86          {0x09,4,"65Ëê"},
+  87          {0x0f,4,"ÖÜ³Ï"},
+  88          {0x10,4,"ÐìÞ±"},
+  89          {0x0e,10,"ÇàÃ¹ËØ¹ýÃô"},
+  90          {0x0d,12,"·À×¹´²·ÀµøÂä"},
+  91          {0x1c,0,""}
+  92          };
+  93          
+  94          
+  95          
+  96          
+  97          void DispManager(void);
+  98          
+  99          void Send_Ssd1963_Command(uint8 ssd1963_command);
+ 100          void Send_Ssd1963_Data(uint8 ssd1963_data);
+ 101          void InitSSD1963(void);
+ 102          void Set_Display_Area(uint16 start_x,uint16 end_x,uint16 start_y,uint16 end_y);
+ 103          void Display_Dot(void);
+ 104          void Display_HLine(uint16  width);
+ 105          void Display_VLine(uint16  height);
+ 106          void Lcd_Clear(void);
+ 107          
+ 108          
+ 109          
+ 110          void ShowBroadFace(uint8 byRoomAddr, uint8 byBedAddr, bit bSelf);
+ 111          void ShowCallFace(uint8 byRoomAddr, uint8 byBedAddr, uint8 byCallType);
+ 112          void ShowTalkFace(uint8 byRoomAddr, uint8 byBedAddr);
+ 113          void ShowBedFace(void);
+ 114          
+ 115          void ShowStartInfusionCall();
+ 116          void ShowStartServiceCall();
+ 117          void ShowStartEmergencyCall();
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 3   
+
+ 118          void ShowStartHelpCall();
+ 119          void ShowCallSuccess();
+ 120          
+ 121          void lcd_fangda_dis_text(uint8 type_x_wide, uint8 type_y_height);
+ 122          void DisplayDigitString(void);
+ 123          void DisplayString(void);
+ 124          void DisplayStringLen(void);
+ 125          void DisplayOneChar(uint8 byChar);
+ 126          
+ 127          
+ 128          
+ 129          void ShowPatientBaseInfo(void);
+ 130          
+ 131          
+ 132          void BL_OFF(void);
+ 133          void BL_ON(void);
+ 134          void ShowPowerUpFace(void); //Ð´ÔÚµÚ0Ò³
+ 135          void Set_VisualPage(void);
+ 136          void ShowBedFaceForm(void);
+ 137          
+ 138          
+ 139          void ShowItem(uint8 ItemCode);
+ 140          void Display_ASCII(uint8 code *p);
+ 141          uint8 GetTitleLength(uint8 ItemCode);
+ 142          uint8* GetTitle(uint8 ItemCode);
+ 143          
+ 144          void Display_ASCII_2(uint8 *p);
+ 145          
+ 146          void get_dot_number();
+ 147          void get_basesize_mul();
+ 148          
+ 149          int8 get_size_mul_start_xy(uint8 item_code,uint8 disp_mode);
+ 150          
+ 151          
+ 152          
+ 153          #define WriteData8(sdata) {DataPortL=(sdata); SSD1963_WR=0; SSD1963_WR=1;}  
+ 154            
+ 155          #define WriteData16(sdata) {DataPortL=(sdata); DataPortH=(sdata)>>8;SSD1963_WR=0; SSD1963_WR=1;} 
+ 156          
+ 157          /*---------------------------------------------------------------------------
+ 158          º¯ÊýÔ­ÐÍ: void Send_Ssd1963_Command(uint8 xdata ssd1963_command)
+ 159          ²ÎÊýËµÃ÷: ssd1963_command:ÐèÒªÐ´µÄÃüÁî
+ 160          ·µ »Ø Öµ: ÎÞ
+ 161          º¯Êý¹¦ÄÜ: Ð´ÃüÁî
+ 162          ----------------------------------------------------------------------------*/
+ 163          void Send_Ssd1963_Command(uint8 ssd1963_command)
+ 164          {
+ 165   1        SSD1963_CD=0;
+ 166   1        SSD1963_CS=0;
+ 167   1        DataPortL=ssd1963_command;
+ 168   1        SSD1963_WR=0; 
+ 169   1        SSD1963_WR=1;
+ 170   1        SSD1963_CS=1;
+ 171   1        SSD1963_CD=1;  
+ 172   1        
+ 173   1      }
+ 174          /*---------------------------------------------------------------------------
+ 175          º¯ÊýÔ­ÐÍ: void Send_Ssd1963_Data(uint8 xdata ssd1963_data)
+ 176          ²ÎÊýËµÃ÷: ssd1963_data:ÐèÒªÐ´µÄÊý¾Ý
+ 177          ·µ »Ø Öµ: ÎÞ
+ 178          º¯Êý¹¦ÄÜ: Ð´Êý¾Ý
+ 179          ----------------------------------------------------------------------------*/
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 4   
+
+ 180          void Send_Ssd1963_Data(uint8 ssd1963_data)
+ 181          {
+ 182   1        SSD1963_CS=0;
+ 183   1        DataPortL=ssd1963_data;
+ 184   1        SSD1963_WR=0;
+ 185   1        SSD1963_WR=1;
+ 186   1        SSD1963_CS=1;
+ 187   1      
+ 188   1      }
+ 189          
+ 190          
+ 191          void SSD1963Data_16(uint16 sdata)
+ 192          
+ 193          {
+ 194   1        SSD1963_CS=0;
+ 195   1        DataPortL=sdata;//temp.UByte[1];
+ 196   1        DataPortH=sdata>>8;//temp.UByte[0];
+ 197   1        SSD1963_WR=0;
+ 198   1        SSD1963_WR=1;
+ 199   1        SSD1963_CS=1;
+ 200   1      }
+ 201          
+ 202          
+ 203          /*---------------------------------------------------------------------------
+ 204          º¯ÊýÔ­ÐÍ: void Read_Ssd1963_Data()
+ 205          ²ÎÊýËµÃ÷: 
+ 206          ·µ »Ø Öµ: ÎÞ
+ 207          º¯Êý¹¦ÄÜ: ¶Á²ÎÊý
+ 208          ----------------------------------------------------------------------------*/
+ 209          uint8 Read_Ssd1963_Data()
+ 210          {
+ 211   1        uint8 RdData;
+ 212   1        SSD1963_CS=0;
+ 213   1        SSD1963_RD=0;
+ 214   1        SSD1963_RD=1; 
+ 215   1        RdData=DataPortL;
+ 216   1        SSD1963_CS=1;
+ 217   1        return(RdData);
+ 218   1      
+ 219   1      }
+ 220          
+ 221          
+ 222          void SetScrollArea(uint16 top, uint16 scroll, uint16 bottom)
+ 223          {
+ 224   1      
+ 225   1        Send_Ssd1963_Command(cmd_set_scroll_area);
+ 226   1        Send_Ssd1963_Data(top>>8);
+ 227   1        Send_Ssd1963_Data(top);
+ 228   1        Send_Ssd1963_Data(scroll>>8);
+ 229   1        Send_Ssd1963_Data(scroll);
+ 230   1        Send_Ssd1963_Data(bottom>>8);
+ 231   1        Send_Ssd1963_Data(bottom);
+ 232   1      }
+ 233          
+ 234          void SetScrollStart(uint16 line)
+ 235          {
+ 236   1        Send_Ssd1963_Command(cmd_set_scroll_start);
+ 237   1        Send_Ssd1963_Data(line>>8);
+ 238   1        Send_Ssd1963_Data(line); 
+ 239   1      }
+ 240          
+ 241          void Set_VisualPage(void)
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 5   
+
+ 242          {
+ 243   1        SetScrollStart(page*LCD_PIX_Y);
+ 244   1      }
+ 245          
+ 246          /*---------------------------------------------------------------------------
+ 247          º¯ÊýÔ­ÐÍ: void InitSSD1963(void)
+ 248          ²ÎÊýËµÃ÷: ÎÞ
+ 249          ·µ »Ø Öµ: ÎÞ
+ 250          º¯Êý¹¦ÄÜ: ³õÊ¼»¯LCD¿ØÖÆÆ÷
+ 251          ----------------------------------------------------------------------------*/
+ 252          void InitSSD1963(void)
+ 253          {
+ 254   1        //-------------------------
+ 255   1        SSD1963_TE=1;
+ 256   1        SSD1963_RD=1;
+ 257   1        SSD1963_CS=0;
+ 258   1        //-------------------------
+ 259   1        SSD1963_RST=1;         //Ó²¼þ¸´Î»
+ 260   1        Delayms(50);
+ 261   1        SSD1963_RST=0;
+ 262   1        Delayms(200);
+ 263   1        SSD1963_RST=1;
+ 264   1        Delayms(50);
+ 265   1      
+ 266   1        
+ 267   1        //Éè¶¨PLL·ÖÆµÏµÊý
+ 268   1        //pll: n= 34 m= 3
+ 269   1        Send_Ssd1963_Command(cmd_set_pll_mn);      
+ 270   1        Send_Ssd1963_Data(0x3B); //±¶ÆµÏµÊýÎª60 ¾§ÕñÎª6M ±¶ÆµºóÎª360M VCO
+ 271   1        Send_Ssd1963_Data(0x02); //·ÖÆµÏµÊýÎª3 ¹¤×÷ÆµÂÊÎª360M/3=42M
+ 272   1        Send_Ssd1963_Data(0x54); //¹Ì¶¨Öµ 
+ 273   1      
+ 274   1        Send_Ssd1963_Command(cmd_set_pll); //ÔÊÐíPLL
+ 275   1        Send_Ssd1963_Data(0x01);   
+ 276   1        //ÑÓÊ±1Ms
+ 277   1        Delayms(1);
+ 278   1        Send_Ssd1963_Command(cmd_set_pll);     //Ëø¶¨PLL
+ 279   1        Send_Ssd1963_Data(0x03);
+ 280   1      
+ 281   1      
+ 282   1        //software reset    
+ 283   1      
+ 284   1        Send_Ssd1963_Command(cmd_soft_reset);
+ 285   1        
+ 286   1        //Éè¶¨ÏñËØÊ±ÖÓ  
+ 287   1        //ÆÁÄ»Îª4.3Ê±(928x525)£¬Ö¡ÆµÎª60FPSÊ±   ÏñËØÊ±ÖÓÎª29.232M
+ 288   1        //¸ù¾Ý¹«Ê½£º FPR = 2^20*29.232/120-1 = 255432 = 0x3e5c8
+ 289   1        Send_Ssd1963_Command(cmd_set_lshift_freq);      
+ 290   1        Send_Ssd1963_Data(0x03); 
+ 291   1        Send_Ssd1963_Data(0xe5); 
+ 292   1        Send_Ssd1963_Data(0xc8); 
+ 293   1      
+ 294   1        
+ 295   1        //Ãæ°å²ÎÊýÉè¶¨       
+ 296   1        Send_Ssd1963_Command(cmd_set_lcd_mode);
+ 297   1        Send_Ssd1963_Data(0x18);  //ÏÔÊ¾18bit×ÜÏß ÔÊÐíFRC ÏÂ½µÑØ¼°µÍµçÆ½ÓÐÐ§
+ 298   1        Send_Ssd1963_Data(0x20);  //TFT RGB×ÜÏß ÔÊÐí¿ØÖÆÐÅºÅ
+ 299   1        Send_Ssd1963_Data((DISP_HOR_RESOLUTION-1)>>8);
+ 300   1        Send_Ssd1963_Data(DISP_HOR_RESOLUTION-1);  //Ë®Æ½ÏñËØ480
+ 301   1        Send_Ssd1963_Data((DISP_VER_RESOLUTION-1)>>8); 
+ 302   1        Send_Ssd1963_Data(DISP_VER_RESOLUTION-1);  //Hor ÏñËØ272
+ 303   1        Send_Ssd1963_Data(0x00);  //ÏñËØÐòÁÐRGB
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 6   
+
+ 304   1      
+ 305   1      
+ 306   1          
+ 307   1        //Ë®Æ½Í¬²½ÐÅºÅÉè¶¨
+ 308   1        Send_Ssd1963_Command(cmd_set_hori_period);     
+ 309   1           
+ 310   1      #define HT (DISP_HOR_RESOLUTION+DISP_HOR_PULSE_WIDTH+DISP_HOR_BACK_PORCH+DISP_HOR_FRONT_PORCH)
+ 311   1        Send_Ssd1963_Data((HT-1)>>8);
+ 312   1        Send_Ssd1963_Data(HT-1); //Ë®Æ½ÖÜÆÚ 503¸öÊ±ÖÓÖÜÆÚ (°üº¬ÏÔÊ¾ÖÜÆÚÓë·ÇÏÔÊ¾ÖÜÆÚ)
+ 313   1      #define HPS (DISP_HOR_PULSE_WIDTH+DISP_HOR_BACK_PORCH)
+ 314   1        Send_Ssd1963_Data((HPS-1)>>8); 
+ 315   1        Send_Ssd1963_Data(HPS-1); //Ë®Æ½·ÇÏÔÊ¾ÖÜÆÚÊ±ÖÓ¸öÊýÎª42
+ 316   1        Send_Ssd1963_Data(DISP_HOR_PULSE_WIDTH-1); //Ë®Æ½Í¬²½ÐÅºÅ¿í¶ÈÊ±ÖÓ¸öÊýÎª3
+ 317   1        Send_Ssd1963_Data(0x00); 
+ 318   1        Send_Ssd1963_Data(0x00); //Ë®Æ½Í¬²½ÐÅºÅ¿ªÊ¼Î»ÖÃ
+ 319   1        Send_Ssd1963_Data(0x00);
+ 320   1        
+ 321   1        //vsync setting
+ 322   1        Send_Ssd1963_Command(cmd_set_vert_period); 
+ 323   1        
+ 324   1      #define VT (DISP_VER_PULSE_WIDTH+DISP_VER_BACK_PORCH+DISP_VER_FRONT_PORCH+DISP_VER_RESOLUTION)    
+ 325   1        Send_Ssd1963_Data((VT-1)>>8);  //
+ 326   1        Send_Ssd1963_Data(VT-1);  //preiod width=  295
+ 327   1      #define VSP (DISP_VER_PULSE_WIDTH+DISP_VER_BACK_PORCH)
+ 328   1        Send_Ssd1963_Data((VSP-1)>>8);
+ 329   1        Send_Ssd1963_Data(VSP-1);  //no-preiod width=10
+ 330   1        Send_Ssd1963_Data(DISP_VER_PULSE_WIDTH-1);  //plus width=3
+ 331   1        Send_Ssd1963_Data(0x00);
+ 332   1        Send_Ssd1963_Data(0x00);
+ 333   1      
+ 334   1          //ÏÔÊ¾ÏñËØ¸ñÊ½Éè¶¨
+ 335   1        Send_Ssd1963_Command(cmd_set_pixel_format);     
+ 336   1      #ifndef DATA_BUS8
+ 337   1        Send_Ssd1963_Data(0x50); //16bit
+ 338   1      #else
+                Send_Ssd1963_Data(RGB_DATA_FORMAT_18); //24bit
+              #endif
+ 341   1      
+ 342   1        //Êý¾Ý×ÜÏß½Ó¿ÚÉè¶¨
+ 343   1        
+ 344   1        Send_Ssd1963_Command(cmd_set_pixel_data_interface);
+ 345   1      #ifndef DATA_BUS8      
+ 346   1        Send_Ssd1963_Data(0x03);   //16BIT RGB565
+ 347   1      #else
+                Send_Ssd1963_Data(0x00);   //8BIT
+              #endif
+ 350   1      
+ 351   1        //ÉèÖÃRGBÑÕÉ«Ë³Ðò
+ 352   1        Send_Ssd1963_Command(0x36);
+ 353   1        Send_Ssd1963_Data(0x08);   //RGB 
+ 354   1      
+ 355   1      #ifdef USE_SSD1963_PWM  
+                Send_Ssd1963_Command(0xbe);//ÉèÖÃPWM 
+                Send_Ssd1963_Data(0X0E);
+                Send_Ssd1963_Data(0XFF);
+                Send_Ssd1963_Data(0X09);
+                Send_Ssd1963_Data(0XFF);
+                Send_Ssd1963_Data(0X00);
+                Send_Ssd1963_Data(0X00); 
+                //(Define the threshold value)
+                Send_Ssd1963_Command(cmd_set_dbc_th); 
+                Send_Ssd1963_Data(0X00);
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 7   
+
+                Send_Ssd1963_Data(0X09);
+                Send_Ssd1963_Data(0X90);
+                Send_Ssd1963_Data(0X00);
+                Send_Ssd1963_Data(0X17);
+                Send_Ssd1963_Data(0XE8);
+                Send_Ssd1963_Data(0X00); 
+                Send_Ssd1963_Data(0X39);
+                Send_Ssd1963_Data(0X60); 
+                
+                Send_Ssd1963_Command(cmd_set_dbc_conf);
+                Send_Ssd1963_Data(0x0d);
+              #endif
+ 378   1        Send_Ssd1963_Command(0xB8);       // Set all GPIOs to output, controlled by host
+ 379   1        Send_Ssd1963_Data(0x01);        // Set GPIO0 as output
+ 380   1        Send_Ssd1963_Data(0x01);        // GPIO[3:0] used as normal GPIOs
+ 381   1        Send_Ssd1963_Command(0xBA);       // Set all GPIOs Value
+ 382   1        Send_Ssd1963_Data(0x01);        // Set GPIO0 to high
+ 383   1      
+ 384   1        SetScrollArea(0,480,0);
+ 385   1      
+ 386   1      
+ 387   1      /*  Send_Ssd1963_Command(0xBC);
+ 388   1        Send_Ssd1963_Data(0x40);//¶Ô±È¶ÈÖµ
+ 389   1        Send_Ssd1963_Data(0x10);//ÁÁ¶ÈÖµ  
+ 390   1        Send_Ssd1963_Data(0x40);//±¥ºÍ¶ÈÖµ 
+ 391   1        Send_Ssd1963_Data(0x01);//´¦Àí»úÔÊÐí
+ 392   1      */
+ 393   1      
+ 394   1      
+ 395   1      
+ 396   1      
+ 397   1      // set pwm enable by host
+ 398   1        P3M0 |= Bin(0,0,1,0,0,0,0,0); //¿ªÂ©Êä³ö
+ 399   1        P3M1 |= Bin(0,0,1,0,0,0,0,0);
+ 400   1        BL_SW=1;
+ 401   1        Send_Ssd1963_Command(0xBE); //SET_PWM_CONF
+ 402   1        Send_Ssd1963_Data(0x0e);//set pwm freq
+ 403   1      //  Send_Ssd1963_Data(0x3f);//set pwm duty cycle  
+ 404   1        Send_Ssd1963_Data(0xf0);//set pwm duty cycle  
+ 405   1      
+ 406   1        Send_Ssd1963_Data(0x01);//enable pwm by host
+ 407   1        Send_Ssd1963_Data(0xff);//DBC manu brightness 
+ 408   1        Send_Ssd1963_Data(0x00);//DBC mini brightness
+ 409   1        Send_Ssd1963_Data(0x00);//brightness prescaler  
+ 410   1      
+ 411   1      /*  Send_Ssd1963_Command(0xBF); //gET_PWM_CONF  
+ 412   1        while(stUsartCfg.uiSndLen);
+ 413   1        Send_Data_Byte(Read_Ssd1963_Data());
+ 414   1        while(stUsartCfg.uiSndLen);
+ 415   1        Send_Data_Byte(Read_Ssd1963_Data());
+ 416   1        while(stUsartCfg.uiSndLen);
+ 417   1        Send_Data_Byte(Read_Ssd1963_Data());
+ 418   1        while(stUsartCfg.uiSndLen);
+ 419   1        Send_Data_Byte(Read_Ssd1963_Data());
+ 420   1        while(stUsartCfg.uiSndLen);
+ 421   1        Send_Data_Byte(Read_Ssd1963_Data());
+ 422   1        while(stUsartCfg.uiSndLen);
+ 423   1        Send_Data_Byte(Read_Ssd1963_Data());
+ 424   1        while(stUsartCfg.uiSndLen);
+ 425   1        Send_Data_Byte(Read_Ssd1963_Data());
+ 426   1      */
+ 427   1      
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 8   
+
+ 428   1      
+ 429   1        
+ 430   1        //¿ªÏÔÊ¾
+ 431   1        Send_Ssd1963_Command(cmd_set_display_on);
+ 432   1      
+ 433   1      
+ 434   1      /*
+ 435   1        //Ç¿ÍÆÍìÊä³ö
+ 436   1        P3M0 |= (Bin(0,0,1,0,0,0,0,0));
+ 437   1        P3M1 &= (~Bin(0,0,1,0,0,0,0,0));
+ 438   1        //´ò¿ª±³¹â
+ 439   1        BL_SW=1;
+ 440   1      */
+ 441   1      }
+ 442          
+ 443          
+ 444          void BL_OFF(void)
+ 445          {
+ 446   1          Send_Ssd1963_Command(0xBE); //SET_PWM_CONF
+ 447   1          Send_Ssd1963_Data(0x0e);//set pwm freq
+ 448   1        //  Send_Ssd1963_Data(0x3f);//set pwm duty cycle  
+ 449   1          Send_Ssd1963_Data(0x00);//set pwm duty cycle  
+ 450   1        
+ 451   1          Send_Ssd1963_Data(0x01);//enable pwm by host
+ 452   1          Send_Ssd1963_Data(0xff);//DBC manu brightness 
+ 453   1          Send_Ssd1963_Data(0x00);//DBC mini brightness
+ 454   1          Send_Ssd1963_Data(0x00);//brightness prescaler  
+ 455   1      
+ 456   1          Send_Ssd1963_Command(cmd_set_display_off);
+ 457   1      
+ 458   1      }
+ 459          
+ 460          
+ 461          void BL_ON(void)
+ 462          {
+ 463   1          Send_Ssd1963_Command(0xBE); //SET_PWM_CONF
+ 464   1          Send_Ssd1963_Data(0x0e);//set pwm freq
+ 465   1        //  Send_Ssd1963_Data(0x3f);//set pwm duty cycle  
+ 466   1          Send_Ssd1963_Data(0xf0);//set pwm duty cycle  
+ 467   1        
+ 468   1          Send_Ssd1963_Data(0x01);//enable pwm by host
+ 469   1          Send_Ssd1963_Data(0xff);//DBC manu brightness 
+ 470   1          Send_Ssd1963_Data(0x00);//DBC mini brightness
+ 471   1          Send_Ssd1963_Data(0x00);//brightness prescaler
+ 472   1      
+ 473   1          Send_Ssd1963_Command(cmd_set_display_on);
+ 474   1      }
+ 475          
+ 476          uint16 GetColor(uint8 srgb)
+ 477          {
+ 478   1        if(srgb==BLACK_CODE)  return(BLACK);
+ 479   1        else if(srgb==RED_CODE) return(RED);
+ 480   1        else if(srgb==GREEN_CODE) return(GREEN);  
+ 481   1        else if(srgb==POWDER_BLUE_CODE) return(POWDER_BLUE);
+ 482   1        else if(srgb==BLUE_CODE)  return(BLUE);
+ 483   1        else if(srgb==YELLOW_CODE)  return(YELLOW);
+ 484   1        else if(srgb==PURPLE_CODE)  return(PURPLE);
+ 485   1        else if(srgb==CYAN_CODE)  return(CYAN);   
+ 486   1        else if(srgb==WHITE_CODE) return(WHITE);
+ 487   1        else if(srgb==BLUE3_CODE) return(BLUE3_VALUE);
+ 488   1        else if(srgb==BLUE4_CODE) return(BLUE4_VALUE);
+ 489   1        else return(WHITE); 
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 9   
+
+ 490   1      }
+ 491          
+ 492          /*--------------------------------------------------------------------------------------------
+ 493          º¯ÊýÔ­ÐÍ: void Set_Display_Area(uint16 xdata start_x,uint16 xdata end_x,uint16 xdata start_y,uint16 xdata 
+             -end_y) 
+ 494          ²ÎÊýËµÃ÷: start_x:µãµÄXÆðÊ¼×ø±ê
+ 495                    end_x:µãµÄX½áÊø×ø±ê
+ 496                start_y:µãµÄYÆðÊ¼×ø±ê
+ 497                    end_y:µãµÄY½áÊø×ø±ê
+ 498          ·µ »Ø Öµ: ÎÞ
+ 499          º¯Êý¹¦ÄÜ: ÉèÖÃÆÁÄ»ÇøÓò
+ 500          ----------------------------------------------------------------------------------------------*/
+ 501          
+ 502          void Set_Display_Area(uint16  start_x,uint16  end_x,uint16 start_y,uint16  end_y)
+ 503          {
+ 504   1        uint8 xdata shigh_x1,slow_x1,shigh_x2,slow_x2;
+ 505   1        uint8 xdata shigh_y1,slow_y1,shigh_y2,slow_y2;
+ 506   1      
+ 507   1        start_y += page*LCD_PIX_Y;
+ 508   1        end_y +=  page *LCD_PIX_Y;
+ 509   1        
+ 510   1        shigh_x1=start_x/256;
+ 511   1        slow_x1=start_x%256;
+ 512   1        shigh_x2=end_x/256;
+ 513   1        slow_x2=end_x%256;
+ 514   1        shigh_y1=start_y/256;
+ 515   1        slow_y1=start_y%256;
+ 516   1        shigh_y2=end_y/256;
+ 517   1        slow_y2=end_y%256;
+ 518   1        Send_Ssd1963_Command(0x2A);
+ 519   1        Send_Ssd1963_Data(shigh_x1);
+ 520   1        Send_Ssd1963_Data(slow_x1);
+ 521   1        Send_Ssd1963_Data(shigh_x2);
+ 522   1        Send_Ssd1963_Data(slow_x2);
+ 523   1        Send_Ssd1963_Command(0x2B);
+ 524   1        Send_Ssd1963_Data(shigh_y1);
+ 525   1        Send_Ssd1963_Data(slow_y1);
+ 526   1        Send_Ssd1963_Data(shigh_y2);
+ 527   1        Send_Ssd1963_Data(slow_y2);
+ 528   1      }
+ 529          
+ 530          
+ 531          /*--------------------------------------------------------------------------------------------
+ 532          º¯ÊýÔ­ÐÍ: void Lcd_Clear(uint32 xdata color)
+ 533          ²ÎÊýËµÃ÷: color:ÇåÆÁµÄÑÕÉ«
+ 534          ·µ »Ø Öµ: ÎÞ
+ 535          º¯Êý¹¦ÄÜ: ÇåÆÁ
+ 536          ----------------------------------------------------------------------------------------------*/
+ 537          void Lcd_Clear(void)
+ 538          {
+ 539   1        uint16 xdata k,j;
+ 540   1      
+ 541   1        Set_Display_Area(0,LCD_PIX_X-1,0,LCD_PIX_Y-1);
+ 542   1        Send_Ssd1963_Command(0x2C);
+ 543   1        SSD1963_CS=0;
+ 544   1        for(k=0;k<LCD_PIX_X;k++)
+ 545   1          {
+ 546   2           for(j=0;j<LCD_PIX_Y;j++)
+ 547   2           {
+ 548   3          WriteData16(fcolor);
+ 549   3         }
+ 550   2          }
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 10  
+
+ 551   1        SSD1963_CS=1;
+ 552   1      }
+ 553          
+ 554          /*------------------------------------------------------------------------------
+ 555          º¯ÊýÔ­ÐÍ: void Display_Dot(uint16 xdata x,uint16 xdata y,uint32 xdata color)   
+ 556          ²ÎÊýËµÃ÷: x:µãµÄX×ø±ê,y:µãµÄY×ø±ê,color:µãµÄÑÕÉ«
+ 557          ·µ »Ø Öµ: ÎÞ
+ 558          º¯Êý¹¦ÄÜ: ÔÚÆÁÄ»ÉÏÏÔÊ¾µã
+ 559          -------------------------------------------------------------------------------*/
+ 560          void Display_Dot(void)  
+ 561          {  
+ 562   1      
+ 563   1        Set_Display_Area(x,x,y,y);
+ 564   1        Send_Ssd1963_Command(0x2C);
+ 565   1        SSD1963_CS=0;
+ 566   1        WriteData16(fcolor);
+ 567   1        SSD1963_CS=1;
+ 568   1      }
+ 569          
+ 570          
+ 571          /*-------------------------------------------------------------------------------------------------
+ 572          º¯ÊýÔ­ÐÍ: void Display_HLine(uint16 xdata x,uint16 xdata y,uint16 xdata width,uint32 xdata color) 
+ 573          ²ÎÊýËµÃ÷: x:µãµÄX×ø±ê,y:µãµÄY×ø±ê,width:Ë®Æ½Ö±ÏßµÄ³¤¶È,color:µãµÄÑÕÉ«
+ 574          ·µ »Ø Öµ: ÎÞ
+ 575          º¯Êý¹¦ÄÜ: ÔÚÆÁÄ»ÉÏÏÔÊ¾Ë®Æ½Ö±Ïß
+ 576          --------------------------------------------------------------------------------------------------*/
+ 577          void Display_HLine(uint16  width)
+ 578          {
+ 579   1      
+ 580   1        Set_Display_Area(x,x+width-1,y,y);
+ 581   1        Send_Ssd1963_Command(0x2C);
+ 582   1        SSD1963_CS=0;
+ 583   1        while(width--)
+ 584   1        {
+ 585   2          WriteData16(fcolor);
+ 586   2        }
+ 587   1         SSD1963_CS=1;
+ 588   1      }
+ 589          
+ 590          /*--------------------------------------------------------------------------------------------------
+ 591          º¯ÊýÔ­ÐÍ: void Display_VLine(uint16 xdata x,uint16 xdata y,uint16 xdata height,uint32 xdata color)
+ 592          ²ÎÊýËµÃ÷: x:µãµÄX×ø±ê,y:µãµÄY×ø±ê,height:´¹Ö±Ö±ÏßµÄ³¤¶È,color:µãµÄÑÕÉ«
+ 593          ·µ »Ø Öµ: ÎÞ
+ 594          º¯Êý¹¦ÄÜ: ÔÚÆÁÄ»ÉÏÏÔÊ¾´¹Ö±Ö±Ïß
+ 595          ----------------------------------------------------------------------------------------------------*/
+ 596          void Display_VLine(uint16  height)
+ 597          {
+ 598   1      
+ 599   1        Set_Display_Area(x,x,y,y+height-1);
+ 600   1        Send_Ssd1963_Command(0x2C);
+ 601   1        SSD1963_CS=0;
+ 602   1        while(height--)
+ 603   1        {
+ 604   2        WriteData16(fcolor);
+ 605   2        }
+ 606   1        SSD1963_CS=1;
+ 607   1      } 
+ 608          
+ 609          
+ 610          //ÏÔÊ¾Ò»¸ö·½¿ò
+ 611          void DisplayFrame(void)
+ 612          {
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 11  
+
+ 613   1        
+ 614   1        x=start_x;
+ 615   1        y=start_y;
+ 616   1        Display_HLine(end_x-start_x+1);
+ 617   1      
+ 618   1        x=start_x;
+ 619   1        y=end_y;
+ 620   1        Display_HLine(end_x-start_x+1);
+ 621   1      
+ 622   1      
+ 623   1        x=start_x;
+ 624   1        y=start_y;  
+ 625   1        Display_VLine(end_y-start_y+1);
+ 626   1      
+ 627   1        x=end_x;
+ 628   1        y=start_y;  
+ 629   1        Display_VLine(end_y-start_y+1); 
+ 630   1      }
+ 631          
+ 632          
+ 633          
+ 634          
+ 635          //ÏÔÊ¾Ò»¸öÑÕÉ«¿é
+ 636          void DisplayBlock(void)
+ 637          {
+ 638   1        uint16 xdata width,height;
+ 639   1        uint16 i,j;
+ 640   1      
+ 641   1        if(end_x >= LCD_PIX_X || end_y >=LCD_PIX_Y) return;
+ 642   1        if(start_x>=end_x || start_y>= end_y) return;
+ 643   1      
+ 644   1        Set_Display_Area(start_x,end_x,start_y,end_y);
+ 645   1        Send_Ssd1963_Command(0x2C);
+ 646   1      
+ 647   1      
+ 648   1        width=end_x-start_x+1;
+ 649   1      
+ 650   1        height=end_y-start_y+1;
+ 651   1      
+ 652   1        SSD1963_CS=0;
+ 653   1        for(j=0;j<height;j++)
+ 654   1        {
+ 655   2          for(i=0;i<width;i++)
+ 656   2          {
+ 657   3            WriteData16(bcolor);
+ 658   3          }
+ 659   2        } 
+ 660   1        SSD1963_CS=1;
+ 661   1      }
+ 662          
+ 663          /*--------------------------------------------------------------------------------------------------------
+             -------------------------------
+ 664           º¯ÊýÔ­ÐÍ: void Display_ASCII(uint16 xdata x,uint16 xdata y,uint8 xdata *p,uint32 xdata fcolor,uint32 xdat
+             -a bcolor)
+ 665           ²ÎÊýËµÃ÷: x:×Ö·ûµÄX×ø±ê,y:×Ö·ûµÄY×ø±ê,frcolor:×Ö·ûµÄÑÕÉ«£¬brcolor:×Ö·ûµÄ±³¾°ÑÕÉ«
+ 666           ·µ »Ø Öµ: ÎÞ
+ 667           º¯Êý¹¦ÄÜ: ÔÚÆÁÄ»ÉÏÏÔÊ¾×Ö·û
+ 668           ---------------------------------------------------------------------------------------------------------
+             --------------------------------*/
+ 669          void Display_ASCII_Mul(void)
+ 670          {
+ 671   1      
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 12  
+
+ 672   1        switch(size)
+ 673   1        {     
+ 674   2           case 1: //8*16
+ 675   2            lcd_fangda_dis_text(8,16);     
+ 676   2             break;
+ 677   2           case 2: //12*24
+ 678   2           default:
+ 679   2             lcd_fangda_dis_text(16,24);
+ 680   2             break;
+ 681   2           case 3: //16*32
+ 682   2             lcd_fangda_dis_text(16,32);
+ 683   2             break;
+ 684   2      
+ 685   2           case A128x80Aria:
+ 686   2              Display_ASCII( &(FontDots[*pDispData-0x30][0]));
+ 687   2              break;
+ 688   2      
+ 689   2        }
+ 690   1      
+ 691   1      }
+ 692          
+ 693          
+ 694          
+ 695          
+ 696           /*-------------------------------------------------------------------------------------------------------
+             --------------------------------
+ 697           º¯ÊýÔ­ÐÍ: void Display_ASCII(uint16 xdata x,uint16 xdata y,uint8 xdata *p,uint32 xdata fcolor,uint32 xdat
+             -a bcolor)
+ 698           ²ÎÊýËµÃ÷: x:×Ö·ûµÄX×ø±ê,y:×Ö·ûµÄY×ø±ê,frcolor:×Ö·ûµÄÑÕÉ«£¬brcolor:×Ö·ûµÄ±³¾°ÑÕÉ«
+ 699           ·µ »Ø Öµ: ÎÞ
+ 700           º¯Êý¹¦ÄÜ: ÔÚÆÁÄ»ÉÏÏÔÊ¾×Ö·û
+ 701           ---------------------------------------------------------------------------------------------------------
+             --------------------------------*/
+ 702          void Display_ASCII(uint8 code *p)   //¡¡128x80µÄ×ÖÌå´æ´¢ÔÚROMÖÐ
+ 703          {
+ 704   1      
+ 705   1        uint16 xdata i;
+ 706   1        uint8 xdata j;
+ 707   1      
+ 708   1        switch(size)
+ 709   1        {
+ 710   2      
+ 711   2           case A128x80Aria:
+ 712   2               Set_Display_Area(x,x+79,y,y+127);
+ 713   2             i=1280;        
+ 714   2              break;
+ 715   2      
+ 716   2           default:
+ 717   2              return;
+ 718   2            
+ 719   2        }
+ 720   1      
+ 721   1        Send_Ssd1963_Command(0x2C);
+ 722   1      
+ 723   1        SSD1963_CS=0;
+ 724   1        for(;i>0;i--)
+ 725   1        {
+ 726   2           for(j=0;j<8;j++)
+ 727   2           {
+ 728   3            if(*p&(0x80>>j))
+ 729   3            {
+ 730   4              WriteData16(fcolor);
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 13  
+
+ 731   4            }
+ 732   3            else
+ 733   3            {
+ 734   4              WriteData16(bcolor);
+ 735   4      
+ 736   4            }
+ 737   3      
+ 738   3           }
+ 739   2           p++;
+ 740   2        }
+ 741   1        SSD1963_CS=1;
+ 742   1      }
+ 743          
+ 744          
+ 745          
+ 746          /*--------------------------------------------------------------------------------------------------------
+             -------------------------------
+ 747           º¯ÊýÔ­ÐÍ: void Display_ASCII_2(uint8 *p)
+ 748           ²ÎÊýËµÃ÷: x:×Ö·ûµÄX×ø±ê,y:×Ö·ûµÄY×ø±ê,frcolor:×Ö·ûµÄÑÕÉ«£¬brcolor:×Ö·ûµÄ±³¾°ÑÕÉ«
+ 749           ·µ »Ø Öµ: ÎÞ
+ 750           º¯Êý¹¦ÄÜ: ÔÚÆÁÄ»ÉÏÏÔÊ¾×Ö·û
+ 751           ---------------------------------------------------------------------------------------------------------
+             --------------------------------*/
+ 752          void Display_ASCII_2(uint8 *p)
+ 753          {
+ 754   1      
+ 755   1        uint16 xdata i;
+ 756   1        uint8 xdata j;
+ 757   1      
+ 758   1        switch(size)
+ 759   1        {
+ 760   2           case 1: //8*16
+ 761   2             Set_Display_Area(x,x+7,y,y+15);
+ 762   2             i=16;
+ 763   2             break;
+ 764   2           case 2: //12*24
+ 765   2             Set_Display_Area(x,x+15,y,y+23);
+ 766   2             i=48;
+ 767   2             break;
+ 768   2           case 3: //16*32
+ 769   2             Set_Display_Area(x,x+15,y,y+31);
+ 770   2             i=64;
+ 771   2             break;
+ 772   2      
+ 773   2           default:
+ 774   2               return;
+ 775   2            
+ 776   2        }
+ 777   1      
+ 778   1        Send_Ssd1963_Command(0x2C);
+ 779   1      
+ 780   1        SSD1963_CS=0;
+ 781   1        for(;i>0;i--)
+ 782   1        {
+ 783   2           for(j=0;j<8;j++)
+ 784   2           {
+ 785   3            if(*p&(0x80>>j))
+ 786   3            {
+ 787   4              WriteData16(fcolor);
+ 788   4            }
+ 789   3            else
+ 790   3            {
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 14  
+
+ 791   4              WriteData16(bcolor);
+ 792   4      
+ 793   4            }
+ 794   3      
+ 795   3           }
+ 796   2           p++;
+ 797   2        }
+ 798   1        SSD1963_CS=1;
+ 799   1      }
+ 800          
+ 801          
+ 802          /*-----------------------------------------------------------------------------
+ 803          º¯ÊýÔ­ÐÍ: void Display_Chinese(uint x,uint y,uchar *p,ulong fcolor,ulong bcolor)
+ 804          ²ÎÊýËµÃ÷: x:ºº×ÖµÄX×ø±ê,y:ºº×ÖµÄY×ø±ê,fcolor:ºº×ÖµÄÑÕÉ«£¬bcolor£ººº×ÖµÄ±³¾°ÑÕÉ«
+ 805          ·µ »Ø Öµ: ÎÞ
+ 806          º¯Êý¹¦ÄÜ: ÔÚÆÁÄ»ÉÏÏÔÊ¾ºº×Ö
+ 807          ----------------------------------------------------------------------------*/
+ 808          void Display_Chinese_Mul(void)
+ 809          {
+ 810   1        switch(current_size)
+ 811   1        {
+ 812   2          
+ 813   2        case 1: //16*16
+ 814   2        case 3: //48*48
+ 815   2        case 5: //80*80
+ 816   2        default:
+ 817   2          lcd_fangda_dis_text(16,16);
+ 818   2            break; 
+ 819   2          
+ 820   2        case 2: //32*32
+ 821   2        case 4: //64*64
+ 822   2        case 6: //96*96
+ 823   2        case 7: //128*128
+ 824   2        case 8: //160*160
+ 825   2          lcd_fangda_dis_text(32,32);
+ 826   2            break;
+ 827   2             
+ 828   2        }
+ 829   1      
+ 830   1       }
+ 831          
+ 832          
+ 833          
+ 834          
+ 835          //Ð´Ç°ËùÐ´ÇøÓò´¦Àí
+ 836          uint8 WriteAreaHandlerMul(uint8 type)
+ 837          {
+ 838   1        uint16 old_x =x;
+ 839   1        uint16 old_y =y;
+ 840   1        
+ 841   1        if(type==0) //°ë½ÇÊý¾Ý
+ 842   1        {
+ 843   2          if(x+dot_number/2-1 > end_x)
+ 844   2          {//³¬¹ýÓÒ±ß½ç,´ÓÍ·¿ªÊ¼
+ 845   3            x=start_x;
+ 846   3            if(y+2*dot_number+current_vert_spac-1>end_y)    goto fail;  //³¬³öËùÐ´ÇøÓò
+ 847   3            else
+ 848   3            {
+ 849   4              y += (dot_number+current_vert_spac);  //»»µ½ÏÂÒ»ÐÐ
+ 850   4              if(x+dot_number/2-1 > end_x)  goto fail;    //´ÓÐÂÐÐ¿ªÊ¼£¬»¹ÊÇ1¸ö×Ö·û¶¼·Å²»ÏÂ
+ 851   4              else return 1;
+ 852   4            }
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 15  
+
+ 853   3          }
+ 854   2          else return 1;
+ 855   2      
+ 856   2        }
+ 857   1        else if(type==1)  //È«½ÇÊý¾Ý
+ 858   1        {
+ 859   2        
+ 860   2          if(x+dot_number-1 >end_x)
+ 861   2          {//³¬¹ýÓÒ±ß½ç,´ÓÍ·¿ªÊ¼
+ 862   3            x=start_x;
+ 863   3            if(y+2*dot_number+current_vert_spac-1>end_y)    goto fail;  //³¬³öËùÐ´ÇøÓò
+ 864   3            else
+ 865   3            {
+ 866   4              y += (dot_number+current_vert_spac);  //»»µ½ÏÂÒ»ÐÐ
+ 867   4              if(x+dot_number-1 > end_x)  goto fail;    //´ÓÐÂÐÐ¿ªÊ¼£¬»¹ÊÇ1¸öºº×Ö¶¼·Å²»ÏÂ
+ 868   4              else return 1;
+ 869   4            }
+ 870   3          }
+ 871   2          else return 1;
+ 872   2        }
+ 873   1      
+ 874   1        fail:
+ 875   1          x=old_x;
+ 876   1          y=old_y;
+ 877   1          return 0;
+ 878   1      } 
+ 879          
+ 880          
+ 881          //x,y:ÆðÊ¼µãµÄ×ø±ê
+ 882          //type_x_wide:Ô­×ÓÌåXÖáµÄ¿í¶È, type_y_height:Ô­×ÓÌåYÖáµÄ¸ß¶È
+ 883          //mul_row:×ÝÏò·Å´ó±¶Êý,   mul_col:ºáÏò·Å´óÒ»±¶
+ 884          //cbc_filter:¹ýÂË²ÎÊý 1:¹ýÂË±³¾°É«
+ 885          //p:ÒªÏÔÊ¾µÄÍ¼Æ¬Êý¾ÝÖ¸Õë
+ 886          
+ 887          void lcd_fangda_dis_text(uint8 type_x_wide, uint8 type_y_height)
+ 888          {
+ 889   1      
+ 890   1        unsigned char  i,j,k,m,n;
+ 891   1      
+ 892   1      
+ 893   1        Set_Display_Area(x,x+type_x_wide*mul_col-1,y,y+type_y_height*mul_row-1);
+ 894   1        Send_Ssd1963_Command(0x2C);
+ 895   1      
+ 896   1      
+ 897   1        SSD1963_CS=0; 
+ 898   1      
+ 899   1        for (i=0;i<type_y_height;i++) //Ô­×ÖÌåÓÐ¶àÉÙÐÐ
+ 900   1        {
+ 901   2      
+ 902   2          for(n=0;n<mul_row;n++)  //×Ý×ø±êµÄ·Å´ó±¶Êý
+ 903   2          {
+ 904   3      
+ 905   3            for(j=0;j<type_x_wide/8;j++)  //Ò»ºáÓÐ¼¸¸ö×Ö½Ú,Àý16*16 ÐÐÏò2¸ö×Ö½Ú
+ 906   3            {
+ 907   4      
+ 908   4              for(k=0;k<8;k++)  //1¸ö×Ö½Ú8µã
+ 909   4              {
+ 910   5      
+ 911   5                for(m=0;m<mul_col;m++)  //ºá×ø±ê·Å´ó±¶Êý
+ 912   5                {
+ 913   6                  //if(((x+8*j*mul_col+k*mul_col+m)<LCD_PIX_X)&&((y+i*mul_row+n)<LCD_PIX_Y))  //ÔÚÇøÓò·¶Î§ÄÚ
+ 914   6                  //{
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 16  
+
+ 915   6      
+ 916   6                    if ((GT23_Rec_Data[i*(type_x_wide/8)+j]>>(7-k))&0x1)
+ 917   6                    {
+ 918   7                      WriteData16(fcolor);
+ 919   7                    }
+ 920   6      
+ 921   6                    else 
+ 922   6                    {
+ 923   7                      WriteData16(bcolor);                
+ 924   7                    }
+ 925   6                    
+ 926   6                  //}
+ 927   6                }
+ 928   5              }
+ 929   4            }
+ 930   3          }
+ 931   2        }
+ 932   1        SSD1963_CS=1;
+ 933   1      }
+ 934          
+ 935          
+ 936          
+ 937          
+ 938          
+ 939          //px,py  Ð´Èë×Ö·û´®µÄÆðÊ¼x,y×ø±ê
+ 940          //size:  ×ÖÌå´óÐ¡
+ 941          //mul_row,mul_col:ÐÐÁÐ·Å´ó±¶Êý
+ 942          //fcolor,bcolor:Ç°¾°É«£¬±³¾°É«
+ 943          //pDigit:ÒªÐ´ÈëµÄ×Ö·û´®
+ 944          //page: Ð´ÈëµÄÒ³Ãæ
+ 945          //s_x,s_y:Ð´ÈëÇøÓòµÄÆðÊ¼µã×ø±ê
+ 946          //end_x,end_y:Ð´ÈëÇøÓòµÄ½áÊøµã×ø±ê
+ 947          
+ 948          
+ 949          void DisplayString(void)
+ 950          {
+ 951   1        
+ 952   1        while(*pDispData)
+ 953   1        { 
+ 954   2          if((*pDispData>=0x81)&&(*pDispData<=0xfe))  //¸ß×Ö½Ú·ûºÏºº×ÖÄÚÂëÌõ¼þ
+ 955   2          {
+ 956   3            pDispData++;
+ 957   3            if(*pDispData>=0x40)
+ 958   3            {
+ 959   4            
+ 960   4              pDispData--;
+ 961   4              Get_GT23_Data(pDispData,size);  
+ 962   4      
+ 963   4              //ÏÈ½øÐÐÐ´¿Õ¼ä´¦Àí
+ 964   4              if(WriteAreaHandlerMul(1)==0)   break;  //³¬³öÇøÓòÍË³ö
+ 965   4      
+ 966   4              Display_Chinese_Mul();
+ 967   4      
+ 968   4              x += dot_number;
+ 969   4              
+ 970   4              pDispData=pDispData+2;  //Ò»¸öºº×ÖÄÚÂëÕ¼Á½¸ö×Ö½Ú
+ 971   4      
+ 972   4            }
+ 973   3            else
+ 974   3            {//µÍ×Ö½Ú²»·ûºÏºº×ÖÌõ¼þ
+ 975   4              break;
+ 976   4            }
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 17  
+
+ 977   3          }
+ 978   2          else if((*pDispData>=0x20)&&(*pDispData<=0x7e)) //·ûºÏASCII×Ö·ûÌõ¼þ
+ 979   2          {
+ 980   3            Get_GT23_Data(pDispData,size);
+ 981   3                  
+ 982   3            //ÏÈ½øÐÐÐ´¿Õ¼ä´¦Àí
+ 983   3            if(WriteAreaHandlerMul(0)==0)   break;  //³¬³öÇøÓòÍË³ö
+ 984   3            
+ 985   3            Display_ASCII_Mul();
+ 986   3      
+ 987   3            x += dot_number/2;
+ 988   3      
+ 989   3            pDispData++;
+ 990   3          }
+ 991   2          else //·Ç·¨×Ö·û
+ 992   2          {
+ 993   3            pDispData++;
+ 994   3          }
+ 995   2      
+ 996   2        }
+ 997   1        WDT_CONTR = 0x3e; //Î¹¹·  
+ 998   1      }
+ 999              
+1000          
+1001          
+1002          //px,py  Ð´Èë×Ö·û´®µÄÆðÊ¼x,y×ø±ê
+1003          //size:  ×ÖÌå´óÐ¡
+1004          //mul_row,mul_col:ÐÐÁÐ·Å´ó±¶Êý
+1005          //fcolor,bcolor:Ç°¾°É«£¬±³¾°É«
+1006          //pDigit:ÒªÐ´ÈëµÄ×Ö·û´®
+1007          //page: Ð´ÈëµÄÒ³Ãæ
+1008          //s_x,s_y:Ð´ÈëÇøÓòµÄÆðÊ¼µã×ø±ê
+1009          //end_x,end_y:Ð´ÈëÇøÓòµÄ½áÊøµã×ø±ê
+1010          //lenth:Êý×Ö³¤¶È
+1011          
+1012          void DisplayDigitString(void)
+1013          {
+1014   1        uint8 Digit;
+1015   1        for(;Length>0;Length--)
+1016   1        { 
+1017   2          Digit = *pDispData;
+1018   2          if(*pDispData<10)
+1019   2          {
+1020   3            Digit += 0x30;
+1021   3            Get_GT23_Data(&Digit,size);
+1022   3          }
+1023   2          else 
+1024   2          {
+1025   3            Digit += 55;
+1026   3            Get_GT23_Data(&Digit,size); //Ê®Áù½øÖÆÖÐµÄABC....
+1027   3          }
+1028   2          if(WriteAreaHandlerMul(0)==0) return;
+1029   2          Display_ASCII_Mul();
+1030   2      
+1031   2          x += dot_number;
+1032   2          
+1033   2          pDispData++;
+1034   2        } 
+1035   1      } 
+1036          
+1037          
+1038          //¸ù¾Ý³¤¶ÈÐ´Èë×Ö·û
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 18  
+
+1039          //px,py  Ð´Èë×Ö·û´®µÄÆðÊ¼x,y×ø±ê
+1040          //size:  ×ÖÌå´óÐ¡
+1041          //mul_row,mul_col:ÐÐÁÐ·Å´ó±¶Êý
+1042          //fcolor,bcolor:Ç°¾°É«£¬±³¾°É«
+1043          //pDigit:ÒªÐ´ÈëµÄ×Ö·û´®
+1044          //page: Ð´ÈëµÄÒ³Ãæ
+1045          //s_x,s_y:Ð´ÈëÇøÓòµÄÆðÊ¼µã×ø±ê
+1046          //end_x,end_y:Ð´ÈëÇøÓòµÄ½áÊøµã×ø±ê
+1047          
+1048          
+1049          void DisplayStringLen(void)
+1050          {
+1051   1        for(;Length>0;)
+1052   1        { 
+1053   2          if((*pDispData>=0x81)&&(*pDispData<=0xfe))  //¸ß×Ö½Ú·ûºÏºº×ÖÄÚÂëÌõ¼þ
+1054   2          {
+1055   3            pDispData++;
+1056   3            if(*pDispData>=0x40)
+1057   3            {
+1058   4              if(Length>=2)
+1059   4              {//·ÀÖ¹»ìÂÒÊý¾Ý´®Ê±Êý¾Ý³¤¶ÈÏò0  Òç³ö      
+1060   5                pDispData--;
+1061   5                Get_GT23_Data(pDispData,size);  
+1062   5      
+1063   5                //ÏÈ½øÐÐÐ´¿Õ¼ä´¦Àí
+1064   5                if(WriteAreaHandlerMul(1)==0)   break;  //³¬³öÇøÓòÍË³ö
+1065   5      
+1066   5                Display_Chinese_Mul();
+1067   5      
+1068   5                x += dot_number;
+1069   5                pDispData=pDispData+2;  //Ò»¸öºº×ÖÄÚÂëÕ¼Á½¸ö×Ö½Ú
+1070   5                Length -=2;
+1071   5              }
+1072   4              else
+1073   4              {//³¤¶È²»×ã2
+1074   5                Length--;       
+1075   5              }
+1076   4            }
+1077   3            else
+1078   3            {//µÍ×Ö½Ú²»·ûºÏºº×ÖÌõ¼þ
+1079   4              break;
+1080   4            }
+1081   3          }
+1082   2          else if((*pDispData>=0x20)&&(*pDispData<=0x7e)) //·ûºÏASCII×Ö·ûÌõ¼þ
+1083   2          {
+1084   3            Get_GT23_Data(pDispData,size);
+1085   3            //ÏÈ½øÐÐÐ´¿Õ¼ä´¦Àí
+1086   3            if(WriteAreaHandlerMul(0)==0)   break;  //³¬³öÇøÓòÍË³ö
+1087   3            
+1088   3            Display_ASCII_Mul();
+1089   3      
+1090   3            x += dot_number/2;
+1091   3            pDispData++;
+1092   3            Length--;
+1093   3          }
+1094   2          else  //ÆäËü²»Ïà¹ØÊý¾Ý
+1095   2          {
+1096   3            pDispData++;
+1097   3            Length--;   
+1098   3          }   
+1099   2      
+1100   2        }
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 19  
+
+1101   1        WDT_CONTR = 0x3e;
+1102   1        
+1103   1      }
+1104                  
+1105          
+1106          uchar * Digit2ASCII(uint8 byChar)   
+1107          {
+1108   1        ASCIIBuff[0]=byChar/100;
+1109   1        ASCIIBuff[1]=(byChar%100)/10;
+1110   1        ASCIIBuff[2]=(byChar%100)%10;
+1111   1        ASCIIBuff[3]=0;
+1112   1      
+1113   1        if(ASCIIBuff[0])
+1114   1        {
+1115   2          ASCIIBuff[0] += 0X30;
+1116   2          ASCIIBuff[1] += 0X30;
+1117   2          ASCIIBuff[2] += 0x30;
+1118   2          return(ASCIIBuff);
+1119   2        
+1120   2        }
+1121   1        else 
+1122   1        {
+1123   2          if(ASCIIBuff[1])
+1124   2          {
+1125   3            ASCIIBuff[1] += 0X30;
+1126   3            ASCIIBuff[2] += 0x30;
+1127   3            return(&(ASCIIBuff[1]));    
+1128   3          }
+1129   2          else 
+1130   2          {
+1131   3            ASCIIBuff[2] += 0x30;
+1132   3            return(&(ASCIIBuff[2]));
+1133   3      
+1134   3          }
+1135   2        }
+1136   1            
+1137   1      }
+1138          
+1139          
+1140          
+1141          void DisplayOneChar(uint8 byChar)   
+1142          {
+1143   1        BedDataBuff[0]=byChar/100;
+1144   1        BedDataBuff[1]=(byChar%100)/10;
+1145   1        BedDataBuff[2]=(byChar%100)%10;
+1146   1        BedDataBuff[3]=0;
+1147   1      
+1148   1        if(BedDataBuff[0])
+1149   1        {
+1150   2          pDispData=BedDataBuff;
+1151   2          Length =3;
+1152   2          DisplayDigitString();
+1153   2        
+1154   2        }
+1155   1        else 
+1156   1        {
+1157   2          if(BedDataBuff[1])
+1158   2          {
+1159   3            pDispData=&(BedDataBuff[1]);
+1160   3            Length =2;
+1161   3            DisplayDigitString();
+1162   3          }
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 20  
+
+1163   2          else 
+1164   2          {
+1165   3            pDispData=&(BedDataBuff[2]);
+1166   3            Length =1;        
+1167   3            DisplayDigitString();
+1168   3          }
+1169   2        }
+1170   1            
+1171   1      }
+1172          
+1173          
+1174          
+1175          void ShowAddBedCallFace(uint8 byBedAddr)
+1176          {
+1177   1        uint8 i;
+1178   1        for(i=0;i<SEGMENT_DATA_LEN;i++)   BedDataBuff[i]=0;
+1179   1        
+1180   1        strcat(BedDataBuff,"¼Ó");
+1181   1        strcat(BedDataBuff,Digit2ASCII(byBedAddr));
+1182   1        strcat(BedDataBuff, "´²ºô½Ð");
+1183   1        pDispData = BedDataBuff;
+1184   1        Length=strlen(pDispData);
+1185   1          
+1186   1        ShowItem(MESSAGE2);
+1187   1      
+1188   1      }
+1189          
+1190          
+1191          
+1192          void DisSendPinBugFace(void)
+1193          {
+1194   1        uint8 i;
+1195   1        for(i=0;i<SEGMENT_DATA_LEN;i++)   BedDataBuff[i]=0;
+1196   1        
+1197   1        strcat(BedDataBuff,"±¾»ú¹ÊÕÏ!");
+1198   1        pDispData = BedDataBuff;
+1199   1        Length=strlen(pDispData);
+1200   1        ShowItem(MESSAGE2);
+1201   1      //  BL_SW=1;  //±³¹Ø´ò¿ª
+1202   1        BL_ON();
+1203   1        
+1204   1      }
+1205          
+1206          
+1207          void ShowCallFace(uint8 byRoomAddr, uint8 byBedAddr, uint8 byCallType)
+1208          {
+1209   1        uint8 i;
+1210   1        for(i=0;i<SEGMENT_DATA_LEN;i++)   BedDataBuff[i]=0;
+1211   1          byRoomAddr &= 0x7f;
+1212   1        switch(byCallType)
+1213   1        {
+1214   2          case CMD_INFUSION_CALL:               //»¤Àíºô½Ð
+1215   2            strcat(BedDataBuff,Digit2ASCII(byRoomAddr));    
+1216   2            strcat(BedDataBuff,"·¿");
+1217   2            strcat(BedDataBuff,Digit2ASCII(byBedAddr));
+1218   2            strcat(BedDataBuff,"´²ºô½Ð");
+1219   2            break;
+1220   2      
+1221   2          case CMD_SERVICE_CALL:                //ÊäÒºÍê±Ïºô½Ð
+1222   2            strcat(BedDataBuff,Digit2ASCII(byRoomAddr));    
+1223   2            strcat(BedDataBuff,"·¿");
+1224   2            strcat(BedDataBuff,Digit2ASCII(byBedAddr));
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 21  
+
+1225   2            strcat(BedDataBuff,"ÊäÒºÍê±Ï");
+1226   2            break;
+1227   2            
+1228   2          case CMD_EMERGENCY_CALL:                //½ô¼±ºô½Ð
+1229   2            strcat(BedDataBuff,Digit2ASCII(byRoomAddr));    
+1230   2            strcat(BedDataBuff,"·¿ÎÀÉú¼äºô½Ð");         
+1231   2            break;
+1232   2      
+1233   2          default:
+1234   2            break;
+1235   2        }   
+1236   1        pDispData = BedDataBuff;
+1237   1        Length=strlen(pDispData);
+1238   1        
+1239   1        ShowItem(MESSAGE2);
+1240   1      }
+1241          
+1242          
+1243          /**********************************************************
+1244          *º¯ÊýÃû³Æ     :ShowTalkFace 
+1245          *º¯ÊýÃèÊö         :ÏÔÊ¾Í¨»°½çÃæ
+1246          *ÊäÈë²ÎÊý       :byRoomAddr:·¿µØÖ·,byBedAddr:´²µØÖ·
+1247          *·µ»ØÖµ       :     
+1248          *È«¾Ö±äÁ¿     :
+1249          *µ÷ÓÃÄ£¿é       :
+1250          ***********************************************************
+1251          *´´½¨ÈË           :
+1252          *´´½¨ÈÕÆÚ     :2009-3-16
+1253          ***********************************************************
+1254          *ÐÞ¸ÄÈË         :
+1255          *ÐÞ¸ÄÈÕÆÚ       :
+1256          *×¢ÊÍ           :
+1257          **********************************************************/
+1258          void ShowTalkFace(uint8 byRoomAddr, uint8 byBedAddr)
+1259          { 
+1260   1        uint8 i;
+1261   1        byRoomAddr=byRoomAddr;
+1262   1        byBedAddr=byBedAddr;
+1263   1        for(i=0;i<SEGMENT_DATA_LEN;i++)   BedDataBuff[i]=0;
+1264   1        
+1265   1        strcat(BedDataBuff,"±¾»úÕýÔÚÍ¨»°ÖÐ");
+1266   1        
+1267   1        pDispData = BedDataBuff;
+1268   1        Length=strlen(pDispData);
+1269   1          
+1270   1        ShowItem(MESSAGE2);
+1271   1      
+1272   1      }
+1273          
+1274          
+1275          
+1276          
+1277          /*********************************************************
+1278          º¯ÊýÃû³Æ      :ShowBroadFace  
+1279          *º¯ÊýÃèÊö         :ÏÔÊ¾Í¨»°½çÃæ
+1280          *ÊäÈë²ÎÊý       :byRoomAddr:·¿µØÖ·,byBedAddr:´²µØÖ·,bSelf:ÊÇ·ñ×ÔÉí¹ã²¥ÖÐ
+1281          *·µ»ØÖµ       :     
+1282          *È«¾Ö±äÁ¿     :
+1283          *µ÷ÓÃÄ£¿é       :
+1284          ***********************************************************
+1285          *´´½¨ÈË           :³ÂÎÀ¹ú
+1286          *´´½¨ÈÕÆÚ     :2009-4-14
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 22  
+
+1287          ***********************************************************
+1288          *ÐÞ¸ÄÈË         :
+1289          *ÐÞ¸ÄÈÕÆÚ       :
+1290          *×¢ÊÍ           :
+1291          **********************************************************/
+1292          void ShowBroadFace(uint8 byRoomAddr, uint8 byBedAddr, bit bSelf)
+1293          { 
+1294   1        uint8 i;
+1295   1        for(i=0;i<SEGMENT_DATA_LEN;i++)   BedDataBuff[i]=0;
+1296   1      
+1297   1        if(bSelf)
+1298   1        {   
+1299   2          strcat(BedDataBuff,"±¾»úÕýÔÚ¹ã²¥ÖÐ");
+1300   2          
+1301   2      
+1302   2        }
+1303   1        else
+1304   1        {
+1305   2          if(byRoomAddr==YHFJ_ROOM_ADDR)
+1306   2          {
+1307   3            strcat(BedDataBuff,Digit2ASCII(byBedAddr));   
+1308   3            strcat(BedDataBuff,"ºÅÒ½»¤·Ö»úÕýÔÚ¹ã²¥");
+1309   3                
+1310   3          }
+1311   2          else
+1312   2          { 
+1313   3            strcat(BedDataBuff,Digit2ASCII(byRoomAddr));    
+1314   3            strcat(BedDataBuff,"·¿");
+1315   3            strcat(BedDataBuff,Digit2ASCII(byBedAddr));   
+1316   3            strcat(BedDataBuff,"´²ÕýÔÚ¹ã²¥");     
+1317   3          }
+1318   2        }
+1319   1        pDispData = BedDataBuff;
+1320   1        Length=strlen(pDispData);
+1321   1        ShowItem(MESSAGE2); 
+1322   1       }
+1323          
+1324          
+1325          
+1326          void ShowStartInfusionCall(void)
+1327          {
+1328   1        uint8 i;
+1329   1        for(i=0;i<SEGMENT_DATA_LEN;i++)   BedDataBuff[i]=0;
+1330   1        
+1331   1        strcat(BedDataBuff,"¿ªÊ¼»¤Àíºô½Ð");
+1332   1        
+1333   1        pDispData = BedDataBuff;
+1334   1        Length=strlen(pDispData);
+1335   1          
+1336   1        ShowItem(MESSAGE2);
+1337   1      }
+1338          
+1339          
+1340          void ShowStartServiceCall(void)
+1341          {
+1342   1        uint8 i;
+1343   1        for(i=0;i<SEGMENT_DATA_LEN;i++)   BedDataBuff[i]=0;
+1344   1        
+1345   1        strcat(BedDataBuff,"¿ªÊ¼·þÎñºô½Ð");
+1346   1        
+1347   1        pDispData = BedDataBuff;
+1348   1        Length=strlen(pDispData);
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 23  
+
+1349   1          
+1350   1        ShowItem(MESSAGE2);
+1351   1      
+1352   1      }
+1353          
+1354          
+1355          void ShowStartEmergencyCall(void)
+1356          {
+1357   1        uint8 i;
+1358   1        for(i=0;i<SEGMENT_DATA_LEN;i++)   BedDataBuff[i]=0;
+1359   1        
+1360   1        strcat(BedDataBuff,"¿ªÊ¼½ô¼±ºô½Ð");
+1361   1        
+1362   1        pDispData = BedDataBuff;
+1363   1        Length=strlen(pDispData);
+1364   1          
+1365   1        ShowItem(MESSAGE2);
+1366   1      }
+1367          
+1368          void ShowStartHelpCall(void)
+1369          {
+1370   1        uint8 i;
+1371   1        for(i=0;i<SEGMENT_DATA_LEN;i++)   BedDataBuff[i]=0;
+1372   1        
+1373   1        strcat(BedDataBuff,"¿ªÊ¼ÇóÔ®ºô½Ð");
+1374   1        
+1375   1        pDispData = BedDataBuff;
+1376   1        Length=strlen(pDispData);
+1377   1          
+1378   1        ShowItem(MESSAGE2);
+1379   1      }
+1380          
+1381          void get_dot_number()
+1382          {
+1383   1        switch(current_size)
+1384   1        {
+1385   2          case 1: 
+1386   2              dot_number=16;
+1387   2                current_vert_spac = VERT_SPAC_16;
+1388   2              break;
+1389   2          case 2:
+1390   2              dot_number=32;
+1391   2              current_vert_spac = VERT_SPAC_32;
+1392   2              break;
+1393   2          case 3:
+1394   2              dot_number=48;
+1395   2              current_vert_spac = VERT_SPAC_48;
+1396   2              break;
+1397   2          case 4: 
+1398   2              dot_number=64;
+1399   2              current_vert_spac = VERT_SPAC_64;
+1400   2              break;
+1401   2          case 5:
+1402   2              dot_number=80;
+1403   2              current_vert_spac = VERT_SPAC_80;
+1404   2              break;
+1405   2          case 6:
+1406   2              dot_number=96;
+1407   2              current_vert_spac = VERT_SPAC_96;
+1408   2              break;
+1409   2              
+1410   2          case 7:
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 24  
+
+1411   2              dot_number=128;
+1412   2              current_vert_spac = VERT_SPAC_128;
+1413   2              break;
+1414   2          case 8:
+1415   2              dot_number=160;
+1416   2              current_vert_spac = VERT_SPAC_160;
+1417   2              break;
+1418   2              
+1419   2          default:
+1420   2              dot_number=16;
+1421   2                current_vert_spac = VERT_SPAC_16;     
+1422   2              break;
+1423   2            
+1424   2        }
+1425   1      
+1426   1      }
+1427          
+1428          void get_basesize_mul()
+1429          {
+1430   1        switch(current_size)
+1431   1        {
+1432   2          default:
+1433   2          case 1:  //16x16
+1434   2            size =1;
+1435   2            mul_col=1;
+1436   2            mul_row=1;
+1437   2            break;
+1438   2          case 2: //32x32
+1439   2            size =3;
+1440   2            mul_col=1;
+1441   2            mul_row=1;
+1442   2            break;
+1443   2          case 3: //48x48
+1444   2            size=1;
+1445   2            mul_col=3;
+1446   2            mul_row=3;
+1447   2            break;
+1448   2          case 4: //64x64
+1449   2            size=3;
+1450   2            mul_col=2;
+1451   2            mul_row=2;
+1452   2            break;
+1453   2          case 5: //80x80
+1454   2            size=1;
+1455   2            mul_col=5;
+1456   2            mul_row=5;
+1457   2            break;
+1458   2          case 6: //96x96
+1459   2            size=3;
+1460   2            mul_col=3;
+1461   2            mul_row=3;
+1462   2            break;
+1463   2          case 7: //128x128
+1464   2            size=3;
+1465   2            mul_col=4;
+1466   2            mul_row=4;
+1467   2            break;
+1468   2      
+1469   2          case 8: //160x160
+1470   2            size=3;
+1471   2            mul_col=5;
+1472   2            mul_row=5;
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 25  
+
+1473   2            break;      
+1474   2            
+1475   2        }
+1476   1      }
+1477          
+1478          
+1479          void ShowCallSuccess(void)
+1480          {
+1481   1        
+1482   1        pDispData = "ºô½Ð³É¹¦,ÇëµÈ´ý";
+1483   1        Length=strlen(pDispData);
+1484   1          
+1485   1        ShowItem(MESSAGE2);
+1486   1      }
+1487          
+1488          
+1489          void ShowItem(uint8 ItemCode)
+1490          {
+1491   1      
+1492   1        uint8 xdata position=0;
+1493   1        uint8 num=0;
+1494   1        uint8 i=0;
+1495   1      
+1496   1        page =0;
+1497   1        
+1498   1        mul_row=1;
+1499   1        mul_col=1;
+1500   1      
+1501   1        //¶ÁÈ¡½çÃæ¸ñÊ½×Ü³¤¶È
+1502   1        Read_Cont((uint8*)&(stLocalControl.uiBedFaceFormLen),BED_FACE_FORM_LENGTH_ADDR,2);  
+1503   1      
+1504   1      
+1505   1        //´Ó¸ñÊ½¶ÎÖÐÈ¥ÕÒ¿ªÊ¼Óë½áÊøµã
+1506   1        num= stLocalControl.uiBedFaceFormLen/sizeof(STItemForm);
+1507   1        if(num>=MAX_ITEM_CODE)
+1508   1        {//³¬ÏÞ
+1509   2          stLocalControl.uiBedFaceFormLen=0;
+1510   2          Write_Cont(BED_FACE_FORM_LENGTH_ADDR,&(stLocalControl.uiBedFaceFormLen),2);
+*** WARNING C182 IN LINE 1510 OF LCD.C: pointer to different objects
+1511   2          Write_Cont(BED_FACE_FORM_BAK,&(stLocalControl.uiBedFaceFormLen),2);
+*** WARNING C182 IN LINE 1511 OF LCD.C: pointer to different objects
+1512   2          return;
+1513   2        }
+1514   1      
+1515   1        i=0;
+1516   1        for(;num>0;num--)
+1517   1        {
+1518   2          if(Read(BED_FACE_FORM_START_ADDR+i*sizeof(STItemForm))== ItemCode) break; //ÕÒµ½ÏîÄ¿´úÂë
+1519   2          else i++;
+1520   2          
+1521   2        }
+1522   1        if(num!=0)
+1523   1        {//ÕÒµ½¶ÔÓ¦µÄ¸ñÊ½Ïî
+1524   2          Read_Cont(&(stLocalControl.stItemForm.ItemCode),BED_FACE_FORM_START_ADDR+i*sizeof(STItemForm),sizeof(STI
+             -temForm));//¶ÁÈ¡ÕûÏî¸ñÊ½Êý¾Ý
+1525   2          start_x=stLocalControl.stItemForm.StartPoint.x;
+1526   2          start_y=stLocalControl.stItemForm.StartPoint.y;
+1527   2      
+1528   2          end_x= stLocalControl.stItemForm.EndPoint.x;
+1529   2          end_y= stLocalControl.stItemForm.EndPoint.y;
+1530   2      
+1531   2          if((ItemCode == ILLNESS_LEVEL) ||(ItemCode == MEDICAL_LEVEL)||(ItemCode == NURSING_LEVEL)||(ItemCode == 
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 26  
+
+             -DIETARY_LEVEL))
+1532   2          {//ÌØÀý,±³¾°×ÖÌåÑÕÉ«´ÓÊý¾ÝÏîÖÐÈ¡
+1533   3            fcolor= GetColor(*(stLocalControl.stItemData.pData)); //×ÖÌå
+1534   3            bcolor= GetColor(*(stLocalControl.stItemData.pData+1));           
+1535   3          }
+1536   2          else
+1537   2          {
+1538   3            fcolor= GetColor(stLocalControl.stItemForm.fcolor);
+1539   3            bcolor= GetColor(stLocalControl.stItemForm.bcolor);
+1540   3          }
+1541   2      
+1542   2          DisplayBlock();//°ÑÔ­ÓÐµÄÏûÏ¢Çå¿Õ 
+1543   2        switch(ItemCode)
+1544   2          {
+1545   3            case OX_START:
+1546   3              BedDataBuff[0]=(stLocalControl.stSupplyOxStartTime.byHour/10)+0x30; //×ª»»³ÉASCIIÊý×Ö
+1547   3              BedDataBuff[1]=(stLocalControl.stSupplyOxStartTime.byHour%10)+0x30;
+1548   3              BedDataBuff[2]= 58;   //":"ºÅ
+1549   3              BedDataBuff[3]=(stLocalControl.stSupplyOxStartTime.byMin/10)+0x30;
+1550   3              BedDataBuff[4]=(stLocalControl.stSupplyOxStartTime.byMin%10)+0x30;
+1551   3              BedDataBuff[5]=0x00;
+1552   3      
+1553   3              pDispData = BedDataBuff;
+1554   3              Length = 5; 
+1555   3              if(get_size_mul_start_xy(ItemCode,stLocalControl.stItemForm.DispMode)==1) DisplayStringLen();
+1556   3              break;
+1557   3            case OX_END:
+1558   3              BedDataBuff[0]=(stLocalControl.stSupplyOxEndTime.byHour/10)+0x30; //×ª»»³ÉASCIIÊý×Ö
+1559   3              BedDataBuff[1]=(stLocalControl.stSupplyOxEndTime.byHour%10)+0x30;
+1560   3              BedDataBuff[2]= 58;   //":"ºÅ
+1561   3              BedDataBuff[3]=(stLocalControl.stSupplyOxEndTime.byMin/10)+0x30;
+1562   3              BedDataBuff[4]=(stLocalControl.stSupplyOxEndTime.byMin%10)+0x30;
+1563   3              BedDataBuff[5]=0x00;
+1564   3      
+1565   3              pDispData = BedDataBuff;
+1566   3              Length = 5;       
+1567   3              if(get_size_mul_start_xy(ItemCode,stLocalControl.stItemForm.DispMode)==1) DisplayStringLen();
+1568   3                
+1569   3              break;
+1570   3            case OX_SUBTOTAL:
+1571   3              x=stLocalControl.stSupplyOxSubtotalTime.uiHour%10000; //µÃÇ§Î»ÓàÊý
+1572   3              //BedDataBuff[0]=(x/1000)+0x30;   //µÃÇ§Î»Êý  ×ª»»³ÉASCIIÊý×Ö
+1573   3              y=x%1000;           //µÃ°ÙÎ»ÓàÊý
+1574   3              //BedDataBuff[1]=(y/100)+0x30;    //µÃ°ÙÎ»Êý
+1575   3              BedDataBuff[0]=((y%100)/10)+0x30;
+1576   3              BedDataBuff[1]=((y%100)%10)+0x30;   
+1577   3              BedDataBuff[2]= 58;   //":"ºÅ
+1578   3              BedDataBuff[3]=(stLocalControl.stSupplyOxSubtotalTime.byMin/10)+0x30;
+1579   3              BedDataBuff[4]=(stLocalControl.stSupplyOxSubtotalTime.byMin%10)+0x30;   
+1580   3              BedDataBuff[5]=0x00;
+1581   3              
+1582   3              pDispData = BedDataBuff;
+1583   3              Length = 5;       
+1584   3              if(get_size_mul_start_xy(ItemCode,stLocalControl.stItemForm.DispMode)==1) DisplayStringLen();
+1585   3              break;
+1586   3              
+1587   3            case OX_TOTAL:
+1588   3              //DisplayBlock();//°ÑÔ­ÓÐµÄÏûÏ¢Çå¿Õ 
+1589   3              x=stLocalControl.stSupplyOxTotalTime.uiHour%10000;  //Ç§Î»ÓàÊý
+1590   3              BedDataBuff[0]=(x/1000)+0x30;       //×ª»»³ÉASCIIÊý×Ö
+1591   3              y=x%1000;
+1592   3              BedDataBuff[1]=(y/100)+0x30;
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 27  
+
+1593   3              BedDataBuff[2]=((y%100)/10)+0x30;
+1594   3              BedDataBuff[3]=((y%100)%10)+0x30;   
+1595   3              BedDataBuff[4]= 58;   //":"ºÅ
+1596   3              BedDataBuff[5]=(stLocalControl.stSupplyOxTotalTime.byMin/10)+0x30;
+1597   3              BedDataBuff[6]=(stLocalControl.stSupplyOxTotalTime.byMin%10)+0x30;    
+1598   3              BedDataBuff[7]=0x00;
+1599   3              
+1600   3              pDispData = BedDataBuff;
+1601   3              Length = 7;       
+1602   3              if(get_size_mul_start_xy(ItemCode,stLocalControl.stItemForm.DispMode)==1) DisplayStringLen();
+1603   3              break;
+1604   3              
+1605   3            case BED_NUMBER:
+1606   3              BedDataBuff[0]=stLocalControl.stEepromCfgData.bySelfBedAddr/100+0x30;
+1607   3              BedDataBuff[1]=(stLocalControl.stEepromCfgData.bySelfBedAddr%100)/10+0x30;
+1608   3              BedDataBuff[2]=(stLocalControl.stEepromCfgData.bySelfBedAddr%100)%10+0x30;
+1609   3              BedDataBuff[3]=0;   
+1610   3      
+1611   3              if(BedDataBuff[0] ==0x30)
+1612   3              {
+1613   4                pDispData =  &(BedDataBuff[1]);
+1614   4                Length=2; //Ö»ÏÔÊ¾Á½¸öÊý×Ö
+1615   4              }
+1616   3              else
+1617   3              {
+1618   4                pDispData =  BedDataBuff;
+1619   4                Length=3; //ÏÔÊ¾3¸öÊý×Ö       
+1620   4              }
+1621   3              if(get_size_mul_start_xy(ItemCode,stLocalControl.stItemForm.DispMode)==1)  DisplayStringLen();    
+1622   3              break;  
+1623   3        
+1624   3            case OX_SUPPLY:
+1625   3              pDispData =NULL;
+1626   3              Length = 0;         
+1627   3              if(get_size_mul_start_xy(ItemCode,stLocalControl.stItemForm.DispMode)==1)  DisplayStringLen();
+1628   3              break;
+1629   3              
+1630   3            case ILLNESS_LEVEL:
+1631   3            case MEDICAL_LEVEL:
+1632   3            case NURSING_LEVEL:
+1633   3            case DIETARY_LEVEL:
+1634   3              pDispData = stLocalControl.stItemData.pData+2;
+1635   3              Length = stLocalControl.stItemData.DataLength-2;
+1636   3              if(get_size_mul_start_xy(ItemCode,stLocalControl.stItemForm.DispMode) ==1) DisplayStringLen();  
+1637   3              break;  
+1638   3              
+1639   3            case MESSAGE2:
+1640   3              if(get_size_mul_start_xy(ItemCode,stLocalControl.stItemForm.DispMode)==1) DisplayStringLen();         
+1641   3              break;
+1642   3              
+1643   3            default:        
+1644   3              pDispData = stLocalControl.stItemData.pData;
+1645   3              Length = stLocalControl.stItemData.DataLength;
+1646   3              if(get_size_mul_start_xy(ItemCode,stLocalControl.stItemForm.DispMode)==1) DisplayStringLen(); 
+1647   3              break;
+1648   3              
+1649   3          }
+1650   2        }
+1651   1        Set_VisualPage();
+1652   1        stLocalControl.byDisplayFace = BED_INFO_FACE;
+1653   1      }
+1654          
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 28  
+
+1655          
+1656          void ShowPatientBaseInfo(void)
+1657          { 
+1658   1        uint8 xdata position=0;
+1659   1        uint8 num=0;
+1660   1        uint8 i=0;
+1661   1        uint16 uiDataLen;
+1662   1        
+1663   1        page=0;
+1664   1        mul_row=1;
+1665   1        mul_col=1;
+1666   1      
+1667   1        //¶ÁÈ¡½çÃæ¸ñÊ½×Ü³¤¶È
+1668   1        Read_Cont((uint8*)&(stLocalControl.uiBedFaceFormLen),BED_FACE_FORM_LENGTH_ADDR,2);  
+1669   1      
+1670   1        //¶ÁÈ¡½çÃæÊý¾Ý×Ü³¤¶È
+1671   1        Read_Cont((uint8*)&(stLocalControl.uiBedFaceDataLen),BED_FACE_DATA_LENGTH_ADDR,2);
+1672   1      
+1673   1        uiDataLen = stLocalControl.uiBedFaceDataLen;
+1674   1      
+1675   1        //´Ó¸ñÊ½¶ÎÖÐÈ¥ÕÒ¿ªÊ¼Óë½áÊøµã
+1676   1        num= stLocalControl.uiBedFaceFormLen/sizeof(STItemForm);
+1677   1        if(num>=MAX_ITEM_CODE)
+1678   1        {//³¬ÏÞ
+1679   2          stLocalControl.uiBedFaceFormLen=0;
+1680   2          Write_Cont(BED_FACE_FORM_LENGTH_ADDR,&(stLocalControl.uiBedFaceFormLen),2);
+*** WARNING C182 IN LINE 1680 OF LCD.C: pointer to different objects
+1681   2          Write_Cont(BED_FACE_FORM_BAK,&(stLocalControl.uiBedFaceFormLen),2);
+*** WARNING C182 IN LINE 1681 OF LCD.C: pointer to different objects
+1682   2          return;
+1683   2      
+1684   2        }
+1685   1      
+1686   1        for(;uiDataLen>0;)
+1687   1        {
+1688   2      
+1689   2          Read_Cont(&(stLocalControl.stItemData.ItemCode),BED_FACE_DATA_START_ADDR+position,2);
+1690   2      
+1691   2          position +=2;
+1692   2          uiDataLen -=2;
+1693   2      
+1694   2          if(stLocalControl.stItemData.ItemCode== BED_NUMBER)   //²»ÏÔÊ¾´²ºÅÐÅÏ¢Ïî
+1695   2          {
+1696   3            position +=stLocalControl.stItemData.DataLength;
+1697   3            uiDataLen -= stLocalControl.stItemData.DataLength;  
+1698   3            continue;
+1699   3          }
+1700   2          if(stLocalControl.stItemData.DataLength)
+1701   2          {//ÓÐÊý¾Ý
+1702   3            if((stLocalControl.stItemData.DataLength<=SEGMENT_DATA_LEN)&&(stLocalControl.stItemData.ItemCode < MAX_
+             -ITEM_CODE))
+1703   3            {//Êý¾Ý¶ÎÊý¾Ý²»³¬³¤»òÕß¹¦ÄÜÂëÏà·û
+1704   4              i=0;
+1705   4              num= stLocalControl.uiBedFaceFormLen/sizeof(STItemForm);
+1706   4              for(;num>0;num--)
+1707   4              {
+1708   5                if(Read(BED_FACE_FORM_START_ADDR+i*sizeof(STItemForm))== stLocalControl.stItemData.ItemCode) break; /
+             -/ÕÒµ½ÏîÄ¿´úÂë
+1709   5                else i++;
+1710   5                
+1711   5              }
+1712   4              if(num!=0)
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 29  
+
+1713   4              {//ÕÒµ½¶ÔÓ¦µÄ¸ñÊ½Ïî
+1714   5                Read_Cont(&(stLocalControl.stItemForm.ItemCode),BED_FACE_FORM_START_ADDR+i*sizeof(STItemForm),sizeof(
+             -STItemForm));//¶ÁÈ¡ÕûÏî¸ñÊ½Êý¾Ý
+1715   5                if((stLocalControl.stItemForm.EndPoint.x > stLocalControl.stItemForm.StartPoint.x)&&
+1716   5                   (stLocalControl.stItemForm.EndPoint.y > stLocalControl.stItemForm.StartPoint.y))
+1717   5      
+1718   5                {//ÆðÊ¼µãX£¬Y×ø±ê·ûºÏÒªÇó
+1719   6                  start_x=stLocalControl.stItemForm.StartPoint.x;
+1720   6                  start_y=stLocalControl.stItemForm.StartPoint.y;
+1721   6      
+1722   6                  end_x= stLocalControl.stItemForm.EndPoint.x;
+1723   6                  end_y= stLocalControl.stItemForm.EndPoint.y;
+1724   6      
+1725   6      
+1726   6                  stLocalControl.stItemData.pData = BedDataBuff;
+1727   6                  Read_Cont(stLocalControl.stItemData.pData ,BED_FACE_DATA_START_ADDR+position,stLocalControl.stItemDa
+             -ta.DataLength);
+1728   6                  //Send_Data(stLocalControl.stItemData.pData,stLocalControl.stItemData.DataLength);
+1729   6                  //Send_Data_Byte('\n');
+1730   6      
+1731   6      
+1732   6                  if((stLocalControl.stItemData.ItemCode == ILLNESS_LEVEL) ||(stLocalControl.stItemData.ItemCode == ME
+             -DICAL_LEVEL)||(stLocalControl.stItemData.ItemCode == NURSING_LEVEL)||(stLocalControl.stItemData.ItemCode == DIETARY_LEVE
+             -L))
+1733   6                  {//ÌØÀý,±³¾°×ÖÌåÑÕÉ«´ÓÊý¾ÝÏîÖÐÈ¡
+1734   7                    fcolor= GetColor(*(stLocalControl.stItemData.pData)); //×ÖÌå
+1735   7                    bcolor= GetColor(*(stLocalControl.stItemData.pData+1));           
+1736   7                  }
+1737   6                  else
+1738   6                  {
+1739   7                    fcolor= GetColor(stLocalControl.stItemForm.fcolor);
+1740   7                    bcolor= GetColor(stLocalControl.stItemForm.bcolor);
+1741   7                  }
+1742   6                  
+1743   6                  DisplayBlock();//°ÑÔ­ÓÐµÄÏûÏ¢Çå¿Õ 
+1744   6                  if((stLocalControl.stItemData.ItemCode == ILLNESS_LEVEL) ||(stLocalControl.stItemData.ItemCode == ME
+             -DICAL_LEVEL)||(stLocalControl.stItemData.ItemCode == NURSING_LEVEL)||(stLocalControl.stItemData.ItemCode == DIETARY_LEVE
+             -L))
+1745   6                  {//ÌØÀý,ÕæÕýµÄÊý¾Ý´ÓµÚÈý¸ö×Ö½Ú¿ªÊ¼
+1746   7                    pDispData = stLocalControl.stItemData.pData+2;
+1747   7                    Length = stLocalControl.stItemData.DataLength-2;            
+1748   7                  }
+1749   6                  else
+1750   6                  {
+1751   7                    pDispData = stLocalControl.stItemData.pData;
+1752   7                    Length = stLocalControl.stItemData.DataLength;
+1753   7                  }
+1754   6                  if(get_size_mul_start_xy(stLocalControl.stItemForm.ItemCode,stLocalControl.stItemForm.DispMode)==1) 
+             - DisplayStringLen();
+1755   6                }
+1756   5              }
+1757   4            }
+1758   3            position +=stLocalControl.stItemData.DataLength;
+1759   3            uiDataLen -= stLocalControl.stItemData.DataLength;      
+1760   3          }  //ÓÐÊý¾ÝµÄÄ©Î²
+1761   2      
+1762   2        }
+1763   1      
+1764   1        Set_VisualPage();
+1765   1        stLocalControl.byDisplayFace= BED_INFO_FACE;
+1766   1      }
+1767          
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 30  
+
+1768          
+1769          
+1770          void ShowBedFace(void)
+1771          { 
+1772   1        uint8 i,j;
+1773   1        uint8 crc;
+1774   1        uint8 *p;
+1775   1        Read_Cont((uint8*)&(stLocalControl.uiBedFaceFormLen),BED_FACE_FORM_LENGTH_ADDR,2);  //¶Á¸ñÊ½Êý¾Ý×Ü¸öÊý
+1776   1      
+1777   1        if(StoreDataCheck(BED_FACE_FORM_LENGTH_ADDR,stLocalControl.uiBedFaceFormLen+2)) //½«Êý¾Ý³¤¶ÈÒ²°üº¬½øÈ¥
+1778   1        {
+1779   2          
+1780   2          ShowBedFaceForm();  
+1781   2          if(StoreDataCheck(BED_FACE_FORM_BAK,stLocalControl.uiBedFaceFormLen+2)!=1)
+1782   2          {//Èç¹û±¸·ÝÇø²»ÕýÈ·
+1783   3            for(i=0;i<5;i++)
+1784   3            {
+1785   4              SectorDataCopy(BED_FACE_FORM_BAK,BED_FACE_FORM_LENGTH_ADDR,stLocalControl.uiBedFaceFormLen+3);  //¿½±´Ö
+             -ÁÁíÒ»±¸·ÝÇø        
+1786   4              if(StoreDataCheck(BED_FACE_FORM_BAK,stLocalControl.uiBedFaceFormLen+2)==1)  break;  
+1787   4            }   
+1788   3          }
+1789   2        }
+1790   1        else
+1791   1        {//Ö÷¸ñÊ½²»ÕýÈ·
+1792   2          if(StoreDataCheck(BED_FACE_FORM_BAK,stLocalControl.uiBedFaceFormLen+2))
+1793   2          {//±¸·ÝÇøÕýÈ·
+1794   3            while(1)
+1795   3            {
+1796   4              SectorDataCopy(BED_FACE_FORM_LENGTH_ADDR,BED_FACE_FORM_BAK,stLocalControl.uiBedFaceFormLen+3);  //¿½±´Ö
+             -ÁÖ÷¸ñÊ½Çø        
+1797   4              if(StoreDataCheck(BED_FACE_FORM_LENGTH_ADDR,stLocalControl.uiBedFaceFormLen+2)==1)  break;          
+1798   4            }
+1799   3            ShowBedFaceForm();
+1800   3          }
+1801   2          else    //Ö÷¸ñÊ½Çø²»ÕýÈ·£¬±¸·Ý¸ñÊ½ÇøÒ²²»ÕýÈ·¡£
+1802   2          {//Ê¹Ö®ÏÔÊ¾Ä¬ÈÏ¸ñÊ½
+1803   3            stLocalControl.uiBedFaceFormLen = 14*sizeof(STItemForm);
+1804   3            Write_Cont(BED_FACE_FORM_LENGTH_ADDR,&(stLocalControl.uiBedFaceFormLen),2);
+*** WARNING C182 IN LINE 1804 OF LCD.C: pointer to different objects
+1805   3            Write_Cont(BED_FACE_FORM_START_ADDR,&(default_bed_form[0].ItemCode),stLocalControl.uiBedFaceFormLen);
+1806   3      
+1807   3            crc= stLocalControl.uiBedFaceFormLen>>8;    //Ð£ÑéºÍ¶Ô³¤¶ÈÓëÊý¾ÝÇóºÍ
+1808   3            crc+= stLocalControl.uiBedFaceFormLen;
+1809   3            p= &(default_bed_form[0].ItemCode);
+1810   3            for(i=0;i<stLocalControl.uiBedFaceFormLen;i++) 
+1811   3            {
+1812   4              crc += *p;
+1813   4              p++;
+1814   4            }
+1815   3            Write_Cont(BED_FACE_FORM_START_ADDR+stLocalControl.uiBedFaceFormLen,&crc,1);
+1816   3            SectorDataCopy(BED_FACE_FORM_BAK,BED_FACE_FORM_LENGTH_ADDR,stLocalControl.uiBedFaceFormLen+3);  
+1817   3            ShowBedFaceForm();
+1818   3          }
+1819   2        }
+1820   1        WDT_CONTR = 0x3e; 
+1821   1        ShowItem(BED_NUMBER);
+1822   1        
+1823   1        Read_Cont((uint8*)&(stLocalControl.uiBedFaceDataLen),BED_FACE_DATA_LENGTH_ADDR,2);  //¶Á´²Í·¿¨Êý¾Ý×Ü¸öÊý
+1824   1        if(StoreDataCheck(BED_FACE_DATA_LENGTH_ADDR,stLocalControl.uiBedFaceDataLen+2)) //½«Êý¾Ý³¤¶ÈÒ²°üº¬½øÈ¥
+1825   1        { 
+1826   2          ShowPatientBaseInfo();      
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 31  
+
+1827   2          if(StoreDataCheck(BED_FACE_DATA_BAK,stLocalControl.uiBedFaceDataLen+2)!=1)
+1828   2          {//Èç¹û±¸·ÝÇø²»ÕýÈ·
+1829   3            for(i=0;i<5;i++)
+1830   3            {     
+1831   4              SectorDataCopy(BED_FACE_DATA_BAK,BED_FACE_DATA_LENGTH_ADDR,stLocalControl.uiBedFaceDataLen+3);  //¿½±´Ö
+             -ÁÁíÒ»±¸·ÝÇø        
+1832   4              if(StoreDataCheck(BED_FACE_DATA_BAK,stLocalControl.uiBedFaceDataLen+2)==1)  break;  
+1833   4            }   
+1834   3          }
+1835   2        }
+1836   1        else
+1837   1        {//Ö÷Êý¾ÝÇø²»ÕýÈ·
+1838   2          if(StoreDataCheck(BED_FACE_DATA_BAK,stLocalControl.uiBedFaceDataLen+2))
+1839   2          {//±¸·ÝÇøÕýÈ·
+1840   3            while(1)
+1841   3            {
+1842   4              SectorDataCopy(BED_FACE_DATA_LENGTH_ADDR,BED_FACE_DATA_BAK,stLocalControl.uiBedFaceDataLen+3);  //¿½±´Ö
+             -ÁÖ÷Êý¾ÝÇø        
+1843   4              if(StoreDataCheck(BED_FACE_DATA_LENGTH_ADDR,stLocalControl.uiBedFaceDataLen+2)==1)  break;          
+1844   4            }
+1845   3            ShowPatientBaseInfo();
+1846   3          }
+1847   2          else    //Ö÷Êý¾ÝÇø²»ÕýÈ·£¬±¸·ÝÊý¾ÝÇøÒ²²»ÕýÈ·¡£
+1848   2          {
+1849   3      
+1850   3            stLocalControl.uiBedFaceDataLen =0;
+1851   3            Write_Cont(BED_FACE_DATA_LENGTH_ADDR,&(stLocalControl.uiBedFaceDataLen),2);
+*** WARNING C182 IN LINE 1851 OF LCD.C: pointer to different objects
+1852   3            Write_Cont(BED_FACE_DATA_BAK,&(stLocalControl.uiBedFaceDataLen),2);
+*** WARNING C182 IN LINE 1852 OF LCD.C: pointer to different objects
+1853   3      
+1854   3      
+1855   3      /*      j=0;
+1856   3            for(i=0;i<13;i++)
+1857   3            {
+1858   3              GT23_Rec_Data[j++] = default_bed_data[i].ItemCode;
+1859   3              if(default_bed_data[i].ItemCode==2 ||default_bed_data[i].ItemCode==3||default_bed_data[i].ItemCode==4|
+             -|default_bed_data[i].ItemCode==5)
+1860   3              {
+1861   3                GT23_Rec_Data[j++] = default_bed_data[i].DataLength+2;
+1862   3                GT23_Rec_Data[j++] = default_bed_form[i].fcolor;
+1863   3                GT23_Rec_Data[j++] = default_bed_form[i].bcolor;
+1864   3              }
+1865   3              else GT23_Rec_Data[j++] = default_bed_data[i].DataLength;
+1866   3              
+1867   3              p= default_bed_data[i].pData;
+1868   3              while(*p)
+1869   3              {
+1870   3                GT23_Rec_Data[j++] = *p;
+1871   3                p++;
+1872   3              }
+1873   3            }
+1874   3      
+1875   3            stLocalControl.uiBedFaceDataLen =j;     
+1876   3            crc=j;
+1877   3            Write_Cont(BED_FACE_DATA_LENGTH_ADDR,&(stLocalControl.uiBedFaceDataLen),2);
+1878   3            for(i=0;i<stLocalControl.uiBedFaceDataLen;i++) 
+1879   3            {
+1880   3              crc += GT23_Rec_Data[i];
+1881   3            }
+1882   3            Write_Cont(BED_FACE_DATA_START_ADDR,GT23_Rec_Data,stLocalControl.uiBedFaceDataLen);
+1883   3            Write_Cont(BED_FACE_DATA_START_ADDR+stLocalControl.uiBedFaceDataLen,&crc,1);
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 32  
+
+1884   3      
+1885   3            SectorDataCopy(BED_FACE_DATA_BAK,BED_FACE_DATA_LENGTH_ADDR,stLocalControl.uiBedFaceDataLen+3);
+1886   3            
+1887   3            ShowPatientBaseInfo();*/
+1888   3          }
+1889   2        }
+1890   1        ShowItem(OX_START);
+1891   1        ShowItem(OX_END);
+1892   1        ShowItem(OX_SUBTOTAL);  
+1893   1        ShowItem(OX_TOTAL);
+1894   1      
+1895   1        Set_VisualPage();
+1896   1        stLocalControl.byDisplayFace= BED_INFO_FACE;
+1897   1      
+1898   1      }
+*** WARNING C280 IN LINE 1772 OF LCD.C: 'j': unreferenced local variable
+1899          
+1900          
+1901          
+1902          void ShowPowerUpFace(void)  //Ð´ÔÚµÚ0Ò³
+1903          {
+1904   1        page=0;
+1905   1        fcolor=BLUE;
+1906   1        Lcd_Clear();
+1907   1      
+1908   1        //²âÊÔÓÃ
+1909   1      /*  x=0;y=0;
+1910   1        size =A128x80Aria;
+1911   1        mul_col=1;
+1912   1        mul_row=1;  
+1913   1        pDispData="129";
+1914   1        DisplayString();*/
+1915   1      
+1916   1      
+1917   1        current_size = 4; //64*64
+1918   1        current_vert_spac = VERT_SPAC_64;
+1919   1        get_dot_number();
+1920   1        get_basesize_mul();
+1921   1        
+1922   1        x=(LCD_PIX_X-dot_number*6)/2;   
+1923   1        y=(LCD_PIX_Y-(dot_number+current_vert_spac)*4)/2;   
+1924   1      
+1925   1        fcolor=WHITE;
+1926   1        bcolor=BLUE;
+1927   1        pDispData="ÏµÍ³³õÊ¼»¯...";
+1928   1        start_x =0;
+1929   1        start_y =0;
+1930   1        end_x = 799;
+1931   1        end_y =479;   
+1932   1        DisplayString();
+1933   1        
+1934   1      
+1935   1        y += (dot_number+current_vert_spac);      //106
+1936   1        x=(LCD_PIX_X-dot_number*4)/2;   //176
+1937   1        pDispData="°æ±¾V";
+1938   1        DisplayString();
+1939   1      
+1940   1        stLocalControl.stEepromCfgData.byVersionHi =0x04;
+1941   1        stLocalControl.stEepromCfgData.byVersionLo =0x06;
+1942   1        
+1943   1        DisplayOneChar(stLocalControl.stEepromCfgData.byVersionHi);
+1944   1        pDispData=".";
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 33  
+
+1945   1          DisplayString();
+1946   1        DisplayOneChar(stLocalControl.stEepromCfgData.byVersionLo);
+1947   1        
+1948   1        
+1949   1      
+1950   1      /*  y += (dot_number+current_vert_spac);
+1951   1        x =(LCD_PIX_X-dot_number*10)/2;
+1952   1        pDispData="ºþÄÏÒ»ÌØµç×ÓÒ½ÓÃ¹¤³Ì";
+1953   1        DisplayString();  
+1954   1      
+1955   1      
+1956   1        y += (dot_number+current_vert_spac);
+1957   1        x =(LCD_PIX_X-dot_number*6)/2;
+1958   1        pDispData="¹É·ÝÓÐÏÞ¹«Ë¾";
+1959   1        DisplayString();*/
+1960   1      
+1961   1      
+1962   1        y += (dot_number+current_vert_spac);
+1963   1        x =(LCD_PIX_X-dot_number*10)/2;
+1964   1        pDispData="²¡·¿»¤ÀíÏµÍ³´²Í··Ö»ú";
+1965   1        DisplayString();  
+1966   1      
+1967   1        
+1968   1        Set_VisualPage();
+1969   1        stLocalControl.byDisplayFace=POWER_UP_FACE;
+1970   1      }
+1971          
+1972          
+1973          void ShowStartNumSet(void)
+1974          {
+1975   1        uint8 i;
+1976   1        for(i=0;i<SEGMENT_DATA_LEN;i++)   BedDataBuff[i]=0;
+1977   1        
+1978   1        strcat(BedDataBuff,Digit2ASCII(stLocalControl.stBusDealFreq.bySndSecAddr));
+1979   1        strcat(BedDataBuff,"Çø");
+1980   1        strcat(BedDataBuff,Digit2ASCII(stLocalControl.stBusDealFreq.bySndRoomAddr));
+1981   1        strcat(BedDataBuff,"·¿");
+1982   1        strcat(BedDataBuff,Digit2ASCII(stLocalControl.stBusDealFreq.bySndBedAddr));
+1983   1        strcat(BedDataBuff,"´²¿ªÊ¼±àºÅ"); 
+1984   1        pDispData = BedDataBuff;
+1985   1        Length=strlen(pDispData);
+1986   1          
+1987   1        ShowItem(MESSAGE2);
+1988   1      }
+1989          
+1990          
+1991          void ShowNumSetOk(void)
+1992          {
+1993   1      
+1994   1        
+1995   1        pDispData="±àºÅ³É¹¦";
+1996   1        Length=strlen(pDispData);
+1997   1        ShowItem(MESSAGE2);
+1998   1        
+1999   1        ShowItem(BED_NUMBER);   //Ð´ÔÚµÚ0Ò³,¹ý5ÃëÔÙ·µ»ØµÚ0Ò³
+2000   1      }
+2001          
+2002          
+2003          void ShowStartRfNumSet(void)      
+2004          {
+2005   1      
+2006   1      
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 34  
+
+2007   1        pDispData="ÊäÒº±¨¾¯Æ÷¿ªÊ¼¶ÔÂë"; 
+2008   1        Length=strlen(pDispData);
+2009   1        ShowItem(MESSAGE2); 
+2010   1      }
+2011          
+2012          void ShowRfNumSetOk(void)     
+2013          {
+2014   1      
+2015   1        
+2016   1        pDispData="ÊäÒº±¨¾¯Æ÷¶ÔÂë³É¹¦"; 
+2017   1        Length= strlen(pDispData);
+2018   1        ShowItem(MESSAGE2); 
+2019   1      }
+2020          
+2021          
+2022          
+2023          
+2024          uint8* GetTitle(uint8 ItemCode)
+2025          {
+2026   1        switch(ItemCode)
+2027   1        {
+2028   2          case BED_NUMBER:
+2029   2            return("´²ºÅ");
+2030   2            break;
+2031   2      
+2032   2          case ILLNESS_LEVEL:
+2033   2            return("²¡Çé");
+2034   2            break;
+2035   2      
+2036   2          case MEDICAL_LEVEL:
+2037   2            return("Ò½±£");
+2038   2            break;
+2039   2      
+2040   2          case NURSING_LEVEL:
+2041   2            return("»¤Àí");
+2042   2            break;
+2043   2      
+2044   2          case DIETARY_LEVEL:
+2045   2            return("ÒûÊ³");
+2046   2            break;
+2047   2      
+2048   2          case HOSPITALIZED_NO:
+2049   2            return("ÈëÔººÅ");
+2050   2            break;
+2051   2      
+2052   2          case NAME:
+2053   2            return("ÐÕÃû");
+2054   2            break;
+2055   2      
+2056   2          case SEX:
+2057   2            return("ÐÔ±ð");
+2058   2            break;
+2059   2      
+2060   2          case AGE:
+2061   2            return("ÄêÁä");
+2062   2            break;
+2063   2          
+2064   2          case ADMISSION_DATE:
+2065   2            return("ÈëÔº");
+2066   2            break;
+2067   2      
+2068   2          case DIAGNOSIS:
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 35  
+
+2069   2            return("Õï¶Ï");
+2070   2            break;
+2071   2      
+2072   2          case BLOOD:
+2073   2            return("ÑªÐÍ");
+2074   2            break;
+2075   2      
+2076   2              case CAUTION:
+2077   2            return("°²È«¾¯Ê¾");
+2078   2            break;
+2079   2      
+2080   2          case ALERGY_DRUGS:
+2081   2            return("¹ýÃôÊ·");
+2082   2            break;
+2083   2      
+2084   2            
+2085   2          case DOCTOR:
+2086   2            return("Ò½Éú");
+2087   2            break;
+2088   2      
+2089   2          case NURSE:
+2090   2            return("»¤Ê¿");
+2091   2            break;
+2092   2      
+2093   2          case ILLNESS_CHANGE:
+2094   2            return("²¡Çé±ä»¯");
+2095   2            break;
+2096   2      
+2097   2          case PHARMACY:
+2098   2            return("ÓÃÒ©");
+2099   2            break;
+2100   2      
+2101   2          case MESSAGE_BOARD:
+2102   2            return("ÁôÑÔ°å");
+2103   2            break;
+2104   2      
+2105   2          case DIET_INFO:
+2106   2            return("ÒûÊ³ÐÅÏ¢");
+2107   2            break;
+2108   2      
+2109   2          case DOCTOR_ADVICE:
+2110   2            return("Ò½Öö");
+2111   2            break;
+2112   2      
+2113   2          case HINT:
+2114   2            return("ÌáÊ¾");
+2115   2            break;
+2116   2            
+2117   2            
+2118   2          case OX_SUPPLY:
+2119   2            return("¹©Ñõ");
+2120   2            break;
+2121   2      
+2122   2          case OX_START:
+2123   2            return("¿ªÊ¼");
+2124   2            break;
+2125   2      
+2126   2          case OX_END:
+2127   2            return("½áÊø");
+2128   2            break;
+2129   2      
+2130   2          case OX_SUBTOTAL:
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 36  
+
+2131   2            return("Ð¡¼Æ");
+2132   2            break;
+2133   2          case OX_TOTAL:
+2134   2            return("ÀÛ¼Æ");
+2135   2            break;
+2136   2      
+2137   2          case MESSAGE2:
+2138   2            return("ÏûÏ¢À¸2");
+2139   2            break;
+2140   2      
+2141   2          case MESSAGE3:
+2142   2            return("ÏûÏ¢À¸3");
+2143   2            break;  
+2144   2      
+2145   2          case MESSAGE4:
+2146   2            return("ÏûÏ¢À¸4");
+2147   2            break;  
+2148   2      
+2149   2          case MESSAGE5:
+2150   2            return("ÏûÏ¢À¸5");
+2151   2            break;  
+2152   2      
+2153   2          case MESSAGE6:
+2154   2            return("ÏûÏ¢À¸6");
+2155   2            break;  
+2156   2            
+2157   2      
+2158   2          default:
+2159   2            return(NULL);
+2160   2            break;    
+2161   2        }
+2162   1      }
+2163          
+2164          
+2165          
+2166          
+2167          uint8 GetTitleLength(uint8 ItemCode)
+2168          {
+2169   1        uint8 title_length=0;
+2170   1        switch(ItemCode)
+2171   1        {
+2172   2          case BED_NUMBER:
+2173   2          case ILLNESS_LEVEL:
+2174   2          case MEDICAL_LEVEL:
+2175   2          case NURSING_LEVEL:
+2176   2          case DIETARY_LEVEL:
+2177   2          case NAME:
+2178   2          case SEX:
+2179   2          case AGE:
+2180   2          case ADMISSION_DATE:
+2181   2          case DIAGNOSIS:
+2182   2          case BLOOD:
+2183   2          case DOCTOR:
+2184   2          case NURSE:
+2185   2          case PHARMACY:
+2186   2          case DOCTOR_ADVICE:
+2187   2          case HINT:
+2188   2          case OX_SUPPLY: 
+2189   2          case OX_START:
+2190   2          case OX_END:
+2191   2          case OX_SUBTOTAL:
+2192   2          case OX_TOTAL:
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 37  
+
+2193   2             title_length= 4;     //¶¼ÊÇ2¸öºº×ÖµÄ
+2194   2             break;
+2195   2      
+2196   2      
+2197   2      
+2198   2          case HOSPITALIZED_NO:
+2199   2          case ALERGY_DRUGS:
+2200   2          case MESSAGE_BOARD:
+2201   2             title_length= 6;     //¶¼ÊÇ3¸öºº×ÖµÄ
+2202   2             break;     
+2203   2      
+2204   2      
+2205   2          case MESSAGE2:
+2206   2          case MESSAGE3:
+2207   2          case MESSAGE4:
+2208   2          case MESSAGE5:
+2209   2          case MESSAGE6:
+2210   2             title_length= 7;     //¶¼ÊÇ3.5¸öºº×ÖµÄ
+2211   2             break;       
+2212   2            
+2213   2      
+2214   2              case CAUTION:
+2215   2          case ILLNESS_CHANGE:
+2216   2          case DIET_INFO:
+2217   2             title_length= 8;     //¶¼ÊÇ4¸öºº×ÖµÄ
+2218   2             break;   
+2219   2      
+2220   2          default:
+2221   2            title_length= 0;
+2222   2            break;    
+2223   2        }
+2224   1        return title_length;
+2225   1      }
+2226          
+2227          //ÓÉÒ»¿éÇøÓòµÄÆðÊ¼µã×ø±ê¡¢½áÊøµã×ø±ê¡¢ÏîÄ¿´úÂë¡¢ÒªÏÔÊ¾µÄ×Ö·û,×Ö·û¸öÊý=======>
+2228          //µÃµ½ÒªÏÔÊ¾×Ö·ûµÄ»ù±¾³ß´ç¡¢
+2229          //×Ö·ûµÄ·Å´ó±¶Êý¡¢
+2230          //ÏÔÊ¾×Ö·û¿éµÄÇøÓò(¿¼ÂÇµ½ÊúÏò±êÌâ)
+2231          //ÏÔÊ¾×Ö·ûµÄÆðÊ¼×ø±ê
+2232          //
+2233          int8 get_size_mul_start_xy(uint8 item_code,uint8 disp_mode)
+2234          {
+2235   1        uint16 area_width,area_height;
+2236   1        uint8 RowCharNum;
+2237   1        uint8 ColumnCharNum;  
+2238   1        if(end_x >= LCD_PIX_X || end_y >=LCD_PIX_Y) return 0;
+2239   1        if(start_x>=end_x || start_y>= end_y) return 0;
+2240   1        area_width = end_x-start_x+1;
+2241   1        area_height = end_y-start_y+1;
+2242   1      
+2243   1        if(item_code == BED_NUMBER)
+2244   1        {
+2245   2          if((area_width>= 80*Length) &&(area_height>=128))
+2246   2          {
+2247   3            size =A128x80Aria;
+2248   3            mul_col=1;
+2249   3            mul_row=1;
+2250   3            dot_number =160;
+2251   3            x = start_x + (area_width-80*Length)/2;
+2252   3            y = start_y + (area_height-128)/2;
+2253   3            return 1;
+2254   3            
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 38  
+
+2255   3          }
+2256   2          else goto  get_size_mul_start_xy_1;
+2257   2        }
+2258   1        else
+2259   1        {
+2260   2          if(disp_mode & TITLE_WHETHER_DIS)
+2261   2          {//ÏÔÊ¾±êÌâ,Ö»ÓÐÒ»ÖÖ·½Ê½:ºáÏòÍ¬ÐÐÇÒ´øÃ±ºÅ
+2262   3            byUsart0SndBuf[0]=0;
+2263   3            //±êÌâºáÏòÏÔÊ¾
+2264   3              
+2265   3            strcat(byUsart0SndBuf,GetTitle(item_code));
+2266   3            Length += GetTitleLength(item_code);
+2267   3            strcat(byUsart0SndBuf,":");
+2268   3            Length++;
+2269   3            strcat(byUsart0SndBuf,pDispData);
+2270   3            pDispData = byUsart0SndBuf;
+2271   3          }
+2272   2          
+2273   2        }
+2274   1        
+2275   1      
+2276   1      get_size_mul_start_xy_1:
+2277   1      
+2278   1        if(area_height-VERT_SPAC_160 >=160)     {current_size = DOT160X160;current_vert_spac = VERT_SPAC_160;}
+2279   1        else if(area_height-VERT_SPAC_128 >=128)  {current_size = DOT128X128;current_vert_spac = VERT_SPAC_128;}  
+2280   1        else if(area_height-VERT_SPAC_96 >=96)    {current_size = DOT96X96;current_vert_spac = VERT_SPAC_96;}
+2281   1        else if(area_height-VERT_SPAC_80 >=80)    {current_size = DOT80X80;current_vert_spac = VERT_SPAC_80;}
+2282   1        else if(area_height-VERT_SPAC_64 >=64)    {current_size = DOT64X64;current_vert_spac = VERT_SPAC_64;}
+2283   1        else if(area_height-VERT_SPAC_48 >=48)    {current_size = DOT48X48;current_vert_spac = VERT_SPAC_48;}
+2284   1        else if(area_height-VERT_SPAC_32 >=32)    {current_size = DOT32X32;current_vert_spac = VERT_SPAC_32;}
+2285   1        else if(area_height-VERT_SPAC_16 >=16)    {current_size = DOT16X16;current_vert_spac = VERT_SPAC_16;}
+2286   1        else
+2287   1        {//¸ß¶ÈÌ«Ð¡£¬Á¬×îÐ¡³ß´çµÄ×Ö·û¶¼ÏÔÊ¾²»ÏÂ£¬Ö±½ÓÌø¹ý
+2288   2          return 0;
+2289   2        }
+2290   1      
+2291   1      
+2292   1        do
+2293   1        {
+2294   2          get_dot_number();
+2295   2      
+2296   2          RowCharNum= area_height/(dot_number+current_vert_spac);
+2297   2          ColumnCharNum= area_width/(dot_number/2);
+2298   2          if(Length<=RowCharNum*ColumnCharNum)
+2299   2          {//¸öÊý·ûºÏÒªÇó
+2300   3        
+2301   3            if(RowCharNum==1)
+2302   3            {//Ö»ÓÐÒ»ÐÐ£¬ÐÐÁÐ¶¼¾ÓÖÐÏÔÊ¾
+2303   4              x= start_x+(area_width-Length*(dot_number/2))/2;
+2304   4            
+2305   4            }
+2306   3      
+2307   3            else x=start_x; // ºáÏò¶¥¸ñÏÔÊ¾
+2308   3            
+2309   3            y= start_y +(area_height-(dot_number+current_vert_spac)*(RowCharNum-1)-dot_number)/2; //ÊúÏò¾ÓÖÐÏÔÊ¾
+2310   3      
+2311   3            get_basesize_mul();  //ÏÔÊ¾»ù±¾³ß´çÓë·Å´ó±¶Êý
+2312   3            break;
+2313   3            
+2314   3          }
+2315   2          else current_size--;
+2316   2        }while(current_size);
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 39  
+
+2317   1        if(current_size ==0) return 0;
+2318   1        else return 1;
+2319   1      }
+2320          
+2321          
+2322          //ÏÔÊ¾´²Í··Ö»ú½çÃæ¸ñÊ½
+2323          void ShowBedFaceForm(void)
+2324          {
+2325   1        uint16 position=0;
+2326   1        uint16 uiFormLen;
+2327   1        uint8 i,j;
+2328   1        
+2329   1        uint16 area_height,area_width;
+2330   1        uint8 RowCharNum,ColumnCharNum; 
+2331   1      
+2332   1      
+2333   1        page=0;
+2334   1        fcolor = WHITE;//BLUE4_VALUE;
+2335   1        Lcd_Clear();
+2336   1      
+2337   1      //  Read_Cont((uint8*)&(stLocalControl.uiBedFaceFormLen),BED_FACE_FORM_LENGTH_START_ADDR,2);  //¶Á¸ñÊ½Êý¾Ý×Ü
+             -¸öÊý
+2338   1        uiFormLen= stLocalControl.uiBedFaceFormLen;
+2339   1      
+2340   1        if(((stLocalControl.uiBedFaceFormLen/sizeof(STItemForm))>=MAX_ITEM_CODE) ||(stLocalControl.uiBedFaceFormL
+             -en ==0xffff)||(stLocalControl.uiBedFaceFormLen ==0))
+2341   1        {//ÏîÄ¿³¬ÏÞ
+2342   2          stLocalControl.uiBedFaceFormLen=0;
+2343   2          Write_Cont(BED_FACE_FORM_LENGTH_ADDR,&(stLocalControl.uiBedFaceFormLen),2);
+*** WARNING C182 IN LINE 2343 OF LCD.C: pointer to different objects
+2344   2          Write_Cont(BED_FACE_FORM_BAK,&(stLocalControl.uiBedFaceFormLen),2);
+*** WARNING C182 IN LINE 2344 OF LCD.C: pointer to different objects
+2345   2      
+2346   2          for(i=0;i<14;i++)
+2347   2          {
+2348   3            start_x = default_bed_form[i].StartPoint.x;
+2349   3            start_y = default_bed_form[i].StartPoint.y;
+2350   3            end_x   = default_bed_form[i].EndPoint.x;
+2351   3            end_y   = default_bed_form[i].EndPoint.y;
+2352   3            
+2353   3            bcolor  = GetColor(default_bed_form[i].bcolor);
+2354   3            fcolor  = GetColor(default_bed_form[i].fcolor);
+2355   3            DisplayBlock();
+2356   3      
+2357   3            start_x = default_bed_form[i].EndPoint.x;
+2358   3            start_y = default_bed_form[i].StartPoint.y+4;
+2359   3            end_x   = start_x+4;
+2360   3            end_y   = default_bed_form[i].EndPoint.y+4;
+2361   3            bcolor  = BLACK;
+2362   3            DisplayBlock(); 
+2363   3      
+2364   3            start_x = default_bed_form[i].StartPoint.x+4;
+2365   3            start_y = default_bed_form[i].EndPoint.y;
+2366   3            end_x   = default_bed_form[i].EndPoint.x;
+2367   3            end_y   = start_y+4;
+2368   3            bcolor  = BLACK;
+2369   3            DisplayBlock(); 
+2370   3      
+2371   3            
+2372   3            start_x = default_bed_form[i].StartPoint.x;
+2373   3            start_y = default_bed_form[i].StartPoint.y;
+2374   3            end_x   = default_bed_form[i].EndPoint.x;
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 40  
+
+2375   3            end_y   = default_bed_form[i].EndPoint.y; 
+2376   3      
+2377   3      
+2378   3      
+2379   3      
+2380   3            for(j=0;j<14;j++)
+2381   3            {
+2382   4              if(default_bed_data[j].ItemCode ==default_bed_form[i].ItemCode) break;
+2383   4      
+2384   4            }
+2385   3            if(j<14)
+2386   3            {//ÕÒµ½È±Ê¡Êý¾Ý
+2387   4              if(default_bed_form[i].ItemCode == BED_NUMBER)
+2388   4              {
+2389   5                ASCIIBuff[0]=stLocalControl.stEepromCfgData.bySelfBedAddr/100+0x30;
+2390   5                ASCIIBuff[4]= stLocalControl.stEepromCfgData.bySelfBedAddr%100;
+2391   5                ASCIIBuff[1]=ASCIIBuff[4]/10+0x30;
+2392   5                ASCIIBuff[2]=ASCIIBuff[4]%10+0x30;
+2393   5                ASCIIBuff[3]=0;
+2394   5                if(ASCIIBuff[0]!=0x30) 
+2395   5                {
+2396   6                  pDispData = ASCIIBuff;
+2397   6                  Length =3;
+2398   6                }
+2399   5                else
+2400   5                {
+2401   6                  pDispData = &(ASCIIBuff[1]);
+2402   6                  Length =2;          
+2403   6                }
+2404   5                
+2405   5              }
+2406   4              else
+2407   4              {
+2408   5                pDispData = default_bed_data[j].pData;
+2409   5                Length = default_bed_data[j].DataLength;
+2410   5              }
+2411   4      
+2412   4      
+2413   4              
+2414   4              bcolor  = GetColor(default_bed_form[i].bcolor);
+2415   4              fcolor  = GetColor(default_bed_form[i].fcolor); 
+2416   4      
+2417   4              if(get_size_mul_start_xy(default_bed_form[i].ItemCode,default_bed_form[i].DispMode)==1)  DisplayString
+             -Len();
+2418   4                          
+2419   4            }
+2420   3            WDT_CONTR = 0x3e;
+2421   3          }   
+2422   2          return;
+2423   2        }
+2424   1      
+2425   1        
+2426   1        for(;uiFormLen>=sizeof(STItemForm);uiFormLen-=sizeof(STItemForm),position+=sizeof(STItemForm))
+2427   1        {
+2428   2          Read_Cont(&(stLocalControl.stItemForm.ItemCode),BED_FACE_FORM_START_ADDR+position,sizeof(STItemForm));
+2429   2          start_x = stLocalControl.stItemForm.StartPoint.x;
+2430   2          start_y = stLocalControl.stItemForm.StartPoint.y;
+2431   2          end_x = stLocalControl.stItemForm.EndPoint.x;
+2432   2          end_y = stLocalControl.stItemForm.EndPoint.y;
+2433   2      
+2434   2          bcolor=GetColor(stLocalControl.stItemForm.bcolor);
+2435   2          //bcolor = BLUE3_VALUE;
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 41  
+
+2436   2          DisplayBlock();
+2437   2      
+2438   2          start_x = stLocalControl.stItemForm.EndPoint.x;
+2439   2          start_y = stLocalControl.stItemForm.StartPoint.y+4;
+2440   2          end_x = start_x+4;
+2441   2          end_y = stLocalControl.stItemForm.EndPoint.y+4;
+2442   2          bcolor  = BLACK;
+2443   2          DisplayBlock(); 
+2444   2          
+2445   2          start_x = stLocalControl.stItemForm.StartPoint.x+4;
+2446   2          start_y = stLocalControl.stItemForm.EndPoint.y;
+2447   2          end_x = stLocalControl.stItemForm.EndPoint.x;
+2448   2          end_y = start_y+4;
+2449   2          bcolor  = BLACK;
+2450   2          DisplayBlock(); 
+2451   2          
+2452   2          
+2453   2          start_x = stLocalControl.stItemForm.StartPoint.x;
+2454   2          start_y = stLocalControl.stItemForm.StartPoint.y;
+2455   2          end_x = stLocalControl.stItemForm.EndPoint.x;
+2456   2          end_y = stLocalControl.stItemForm.EndPoint.y;
+2457   2      
+2458   2          fcolor=GetColor(stLocalControl.stItemForm.fcolor);
+2459   2          bcolor=GetColor(stLocalControl.stItemForm.bcolor);
+2460   2          //bcolor = BLUE3_VALUE;
+2461   2          
+2462   2          pDispData=GetTitle(stLocalControl.stItemForm.ItemCode);
+2463   2          Length = GetTitleLength(stLocalControl.stItemForm.ItemCode);  
+2464   2      
+2465   2          if((pDispData ==NULL)|| (Length==0)) continue;
+2466   2      
+2467   2          
+2468   2          area_height = end_y-start_y +1;
+2469   2          area_width  = end_x-start_x +1;
+2470   2      
+2471   2          
+2472   2          if(area_height-VERT_SPAC_160 >=160)     {current_size = DOT160X160;current_vert_spac = VERT_SPAC_160;}
+2473   2          else if(area_height-VERT_SPAC_128 >=128)  {current_size = DOT128X128;current_vert_spac = VERT_SPAC_128;}  
+2474   2          else if(area_height-VERT_SPAC_96 >=96)    {current_size = DOT96X96;current_vert_spac = VERT_SPAC_96;}
+2475   2          else if(area_height-VERT_SPAC_80 >=80)    {current_size = DOT80X80;current_vert_spac = VERT_SPAC_80;}
+2476   2          else if(area_height-VERT_SPAC_64 >=64)    {current_size = DOT64X64;current_vert_spac = VERT_SPAC_64;}
+2477   2          else if(area_height-VERT_SPAC_48 >=48)    {current_size = DOT48X48;current_vert_spac = VERT_SPAC_48;}
+2478   2          else if(area_height-VERT_SPAC_32 >=32)    {current_size = DOT32X32;current_vert_spac = VERT_SPAC_32;}
+2479   2          else if(area_height-VERT_SPAC_16 >=16)    {current_size = DOT16X16;current_vert_spac = VERT_SPAC_16;}
+2480   2          else
+2481   2          {//¸ß¶ÈÌ«Ð¡£¬Á¬×îÐ¡³ß´çµÄ×Ö·û¶¼ÏÔÊ¾²»ÏÂ£¬Ö±½ÓÌø¹ý
+2482   3            continue;
+2483   3          }
+2484   2          
+2485   2          
+2486   2          do
+2487   2          {
+2488   3            get_dot_number();
+2489   3          
+2490   3            RowCharNum= area_height/(dot_number+current_vert_spac);
+2491   3            ColumnCharNum= area_width/(dot_number/2);
+2492   3            if(Length<=RowCharNum*ColumnCharNum)
+2493   3            {//¸öÊý·ûºÏÒªÇó
+2494   4      
+2495   4              if(RowCharNum==1)
+2496   4              {//Ö»ÓÐÒ»ÐÐ£¬ÐÐÁÐ¶¼¾ÓÖÐÏÔÊ¾
+2497   5                x= start_x+(area_width-Length*(dot_number/2))/2;
+C51 COMPILER V9.00   LCD                                                                   07/10/2019 15:34:23 PAGE 42  
+
+2498   5              
+2499   5              }
+2500   4          
+2501   4              else x=start_x; // ºáÏò¶¥¸ñÏÔÊ¾
+2502   4              
+2503   4              y= start_y +(area_height-(dot_number+current_vert_spac)*(RowCharNum-1)-dot_number)/2; //ÊúÏò¾ÓÖÐÏÔÊ¾
+2504   4          
+2505   4              get_basesize_mul();  //ÏÔÊ¾»ù±¾³ß´çÓë·Å´ó±¶Êý
+2506   4              break;
+2507   4              
+2508   4            }
+2509   3            else current_size--;
+2510   3          }while(current_size);
+2511   2          DisplayStringLen();
+2512   2      
+2513   2        }
+2514   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =  12089    ----
+   CONSTANT SIZE    =    806    ----
+   XDATA SIZE       =     96      71
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  10 WARNING(S),  0 ERROR(S)

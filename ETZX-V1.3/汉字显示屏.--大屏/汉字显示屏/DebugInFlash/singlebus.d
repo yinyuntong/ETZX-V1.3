@@ -1,0 +1,9 @@
+.\DebugInFlash\singlebus.o: USER_CODE\SingleBus.c
+.\DebugInFlash\singlebus.o: .\LPC11xx\LPC11xx.h
+.\DebugInFlash\singlebus.o: .\CM0\core_cm0.h
+.\DebugInFlash\singlebus.o: C:\Keil\ARM\ARMCC\bin\..\include\stdint.h
+.\DebugInFlash\singlebus.o: .\LPC11xx\system_LPC11xx.h
+.\DebugInFlash\singlebus.o: USER_CODE\dataType.h
+.\DebugInFlash\singlebus.o: USER_CODE\singlebus.h
+.\DebugInFlash\singlebus.o: USER_CODE\hzxsp.h
+.\DebugInFlash\singlebus.o: USER_CODE\led.h

@@ -1,0 +1,8 @@
+---- bRS485DataTreat Matches (7 in 3 files) ----
+main.c (usr):		if(bRS485DataTreat)
+main.c (usr):				bRS485DataTreat =0;
+UART.C (usr):bit bRS485DataTreat =0;
+UART.C (usr):		bRS485DataTreat=0;		//因为数据可能已覆盖，将485数据处理标志清0
+UART.C (usr):				bRS485DataTreat=1;
+UART.C (usr):				bRS485DataTreat=1;
+Uart.h (usr):extern bit bRS485DataTreat;

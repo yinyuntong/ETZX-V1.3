@@ -1,0 +1,106 @@
+Dependencies for Project 'HZXSP', Target 'KTKZQ': (DO NOT MODIFY !)
+F (.\CM0\core_cm0.c)(0x4C8CF83A)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\core_cm0.o" --omf_browse ".\DebugInFlash\core_cm0.crf" --depend ".\DebugInFlash\core_cm0.d")
+I (C:\Program Files (x86)\ARM\ADSv1_2\INCLUDE\stdint.h)(0x3BEB19E6)
+F (.\LPC11xx\system_LPC11xx.c)(0x4F3F0DD6)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\system_lpc11xx.o" --omf_browse ".\DebugInFlash\system_lpc11xx.crf" --depend ".\DebugInFlash\system_lpc11xx.d")
+I (C:\Program Files (x86)\ARM\ADSv1_2\INCLUDE\stdint.h)(0x3BEB19E6)
+I (LPC11xx\LPC11xx.h)(0x56C17F68)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+F (.\LPC11xx\startup\startup_LPC11xx.s)(0x5018813A)(--cpu Cortex-M0 -g --apcs=interwork -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx --list ".\DebugInFlash\startup_LPC11xx.lst" --xref -o ".\DebugInFlash\startup_LPC11xx.o" --depend ".\DebugInFlash\startup_LPC11xx.d")
+F (.\USER_CODE\E2PROM.c)(0x591BFC13)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\e2prom.o" --omf_browse ".\DebugInFlash\e2prom.crf" --depend ".\DebugInFlash\e2prom.d")
+I (USER_CODE\E2PROM.h)(0x591BC4D5)
+I (.\LPC11xx\LPC11xx.h)(0x56C17F68)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Program Files (x86)\ARM\ADSv1_2\INCLUDE\stdint.h)(0x3BEB19E6)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (C:\Program Files (x86)\ARM\ADSv1_2\INCLUDE\stdio.h)(0x3BEB19E6)
+I (C:\Program Files (x86)\ARM\ADSv1_2\INCLUDE\stdlib.h)(0x3BEB19E6)
+F (.\USER_CODE\main.c)(0x5D1AC0AB)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\main.o" --omf_browse ".\DebugInFlash\main.crf" --depend ".\DebugInFlash\main.d")
+I (.\LPC11xx\LPC11xx.h)(0x56C17F68)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x57F606B8)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\HZXSP.h)(0x5912B7F6)
+I (USER_CODE\spi.h)(0x59255075)
+I (USER_CODE\E2PROM.h)(0x591BC4D5)
+I (USER_CODE\led.h)(0x59254B4D)
+I (USER_CODE\uart.h)(0x596DA99A)
+I (USER_CODE\singlebus.h)(0x596D69F1)
+I (USER_CODE\CC1101.h)(0x58747666)
+I (USER_CODE\Util.h)(0x58841E8C)
+I (C:\Keil\ARM\RV31\INC\string.h)(0x4BA13B9A)
+I (C:\Keil\ARM\RV31\INC\stdio.h)(0x4BA13B96)
+I (USER_CODE\main.h)(0x5D1AC9F6)
+F (.\USER_CODE\SPI.c)(0x5926915F)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\spi.o" --omf_browse ".\DebugInFlash\spi.crf" --depend ".\DebugInFlash\spi.d")
+I (.\LPC11xx\LPC11xx.h)(0x56C17F68)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Program Files (x86)\ARM\ADSv1_2\INCLUDE\stdint.h)(0x3BEB19E6)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\HZXSP.h)(0x5912B7F6)
+I (USER_CODE\spi.h)(0x59255075)
+I (USER_CODE\util.h)(0x58841E8C)
+I (USER_CODE\led.h)(0x59254B4D)
+F (.\USER_CODE\util.c)(0x5922AFF8)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\util.o" --omf_browse ".\DebugInFlash\util.crf" --depend ".\DebugInFlash\util.d")
+I (.\LPC11xx\LPC11xx.h)(0x56C17F68)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Program Files (x86)\ARM\ADSv1_2\INCLUDE\stdint.h)(0x3BEB19E6)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+F (.\USER_CODE\LED.C)(0x594A2530)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\led.o" --omf_browse ".\DebugInFlash\led.crf" --depend ".\DebugInFlash\led.d")
+I (.\LPC11xx\LPC11xx.h)(0x56C17F68)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Program Files (x86)\ARM\ADSv1_2\INCLUDE\stdint.h)(0x3BEB19E6)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\HZXSP.h)(0x5912B7F6)
+I (USER_CODE\led.h)(0x59254B4D)
+I (USER_CODE\spi.h)(0x59255075)
+I (USER_CODE\uart.h)(0x596DA99A)
+I (C:\Keil\ARM\RV31\INC\string.h)(0x4BA13B9A)
+F (.\USER_CODE\SingleBus.c)(0x5A5C1ADB)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\singlebus.o" --omf_browse ".\DebugInFlash\singlebus.crf" --depend ".\DebugInFlash\singlebus.d")
+I (.\LPC11xx\LPC11xx.h)(0x56C17F68)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x57F606B8)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\singlebus.h)(0x596D69F1)
+I (USER_CODE\hzxsp.h)(0x5912B7F6)
+I (USER_CODE\led.h)(0x59254B4D)
+I (USER_CODE\E2PROM.h)(0x591BC4D5)
+I (USER_CODE\uart.h)(0x596DA99A)
+I (USER_CODE\cc1101.h)(0x58747666)
+I (USER_CODE\main.h)(0x5D1AC9F6)
+I (C:\Keil\ARM\RV31\INC\string.h)(0x4BA13B9A)
+I (USER_CODE\Util.h)(0x58841E8C)
+I (C:\Keil\ARM\RV31\INC\stdio.h)(0x4BA13B96)
+F (.\USER_CODE\uart.c)(0x596D93D8)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\uart.o" --omf_browse ".\DebugInFlash\uart.crf" --depend ".\DebugInFlash\uart.d")
+I (.\LPC11xx\LPC11xx.h)(0x56C17F68)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x57F606B8)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\HZXSP.h)(0x5912B7F6)
+I (USER_CODE\singlebus.h)(0x596D69F1)
+I (USER_CODE\uart.h)(0x596DA99A)
+I (USER_CODE\E2PROM.h)(0x591BC4D5)
+I (C:\Keil\ARM\RV31\INC\string.h)(0x4BA13B9A)
+I (USER_CODE\cc1101.h)(0x58747666)
+I (USER_CODE\led.h)(0x59254B4D)
+I (USER_CODE\main.h)(0x5D1AC9F6)
+I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x57F606B8)
+F (.\USER_CODE\CC1101.c)(0x59225366)(-c --cpu Cortex-M0 -g -O3 -Otime --apcs=interwork -I.\CM0 -I.\LPC11xx -I.\USER_CODE -I C:\Keil\ARM\RV31\INC -I C:\Keil\ARM\CMSIS\Include -I C:\Keil\ARM\Inc\NXP\LPC11xx -o ".\DebugInFlash\cc1101.o" --omf_browse ".\DebugInFlash\cc1101.crf" --depend ".\DebugInFlash\cc1101.d")
+I (.\LPC11xx\LPC11xx.h)(0x56C17F68)
+I (.\CM0\core_cm0.h)(0x4C8CF9E6)
+I (C:\Program Files (x86)\ARM\ADSv1_2\INCLUDE\stdint.h)(0x3BEB19E6)
+I (.\LPC11xx\system_LPC11xx.h)(0x4C8A73F4)
+I (USER_CODE\dataType.h)(0x4B861C88)
+I (USER_CODE\HZXSP.h)(0x5912B7F6)
+I (USER_CODE\cc1101.h)(0x58747666)
+I (USER_CODE\uart.h)(0x596DA99A)
+I (USER_CODE\SingleBus.h)(0x596D69F1)
+I (USER_CODE\E2PROM.h)(0x591BC4D5)
+I (USER_CODE\led.h)(0x59254B4D)
+I (USER_CODE\spi.h)(0x59255075)
+I (C:\Keil\ARM\RV31\INC\string.h)(0x4BA13B9A)

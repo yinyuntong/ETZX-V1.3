@@ -1,0 +1,5 @@
+--cpu Cortex-M3 ".\output\boot_flash\core_cm3.o" ".\output\boot_flash\startup_lpc17xx.o" ".\output\boot_flash\system_lpc17xx.o" ".\output\boot_flash\main.o" ".\output\boot_flash\inflash.o" 
+--strict --scatter ".\output\boot_flash\boot_flash-DS3231.sct" 
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\output\boot_flash\list\boot_flash-DS3231.map" -o .\output\boot_flash\boot_flash-DS3231.axf

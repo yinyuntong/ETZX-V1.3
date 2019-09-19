@@ -1,0 +1,5 @@
+"main.obj",
+"display.obj",
+"ascii.obj" 
+TO "XSAJ" 
+RAMSIZE(256) 

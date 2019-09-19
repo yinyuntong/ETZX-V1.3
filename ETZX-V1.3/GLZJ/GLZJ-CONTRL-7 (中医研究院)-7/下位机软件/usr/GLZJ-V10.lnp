@@ -1,0 +1,9 @@
+"I2C.obj",
+"main.obj",
+"PCF8563.obj",
+"SingleBus.obj",
+"Uart.obj",
+"Key.obj",
+"IAP.obj" 
+TO "GLZJ-V10" 
+RAMSIZE(256) 

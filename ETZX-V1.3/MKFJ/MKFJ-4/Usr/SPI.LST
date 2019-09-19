@@ -1,0 +1,947 @@
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE SPI
+OBJECT MODULE PLACED IN SPI.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE SPI.c OPTIMIZE(SIZE) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  湖南熙旺达科技有限公司
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称               :SPI.c
+   9          *文件描述               :SPI总线驱动程序
+  10          *创建人                 :熊坚强
+  11          *创建日期               :2008-9-22
+  12          *版本号                 :V1.1
+  13          *注释                   :                                       
+  14          *----------------------------------------------------------
+  15          *修改人                         :
+  16          *修改日期                       :
+  17          *版本号                 :
+  18          *注释                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_SPI_
+  22          #include "config.h"
+  23          
+  24          extern STLocalControl   xdata stLocalControl;
+  25          
+  26          uint8    xdata  GT23_Rec_Data[128];
+  27          uint8    xdata  GT23_Rec_Length;
+  28          uint16   xdata  GT23_16LAddress;
+  29          uint16   xdata  GT23_16HAddress;
+  30          uint32   xdata  GT23_32Address; 
+  31          extern uint8   xdata SerchRoom;
+  32          extern bit     Page_Flag;
+  33          uint8  xdata   Modify_Room_Number=0;
+  34          uint8  xdata   Modify_SEC_Name=0;
+  35          extern uint8 xdata  Page_Color[5];
+  36          uint8  xdata  ID_Number=0;
+  37          uint8  xdata  ID_Number_Flag=0;
+  38          
+  39          uint8 xdata 
+  40          FRAM_BUFF[12];
+  41          
+  42          void Read_Cont(uint8 *pBuffer,unsigned long Dst, unsigned long no_bytes);
+  43          extern void Delayms(uint16 ms);
+  44          
+  45          /**********************************************************
+  46          *函数名称                       :Delay_nus      
+  47          *函数描述               :延时程序
+  48          *输入参数               :
+  49          *返回值                         :       
+  50          *全局变量                       :
+  51          *调用模块                       :
+  52          ***********************************************************
+  53          *创建人                 :熊坚强
+  54          *创建日期                       :2008-9-22
+  55          ***********************************************************
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 2   
+
+  56          *修改人                         :
+  57          *修改日期               :
+  58          *注释                   :
+  59          **********************************************************/
+  60          void Delay_nus(uint8 xdata i)
+  61          {
+  62   1              uint8 xdata j;
+  63   1              for(;i>0;i--)
+  64   1              {
+  65   2                for(j=2;j>0;j--);
+  66   2              }
+  67   1      }
+  68          /**********************************************************
+  69          *函数名称                       :SpiTransferByte        
+  70          *函数描述               :SPI总线传输一个字节数据,并返回读到的一个字节数据
+  71          *输入参数               :byData:待传输的数据
+  72          *返回值                         :SPDAT:读取到的数据     
+  73          *全局变量                       :
+  74          *调用模块                       :
+  75          ***********************************************************
+  76          *创建人                 :陈卫国
+  77          *创建日期                       :2008-9-22
+  78          ***********************************************************
+  79          *修改人                         :
+  80          *修改日期               :
+  81          *注释                   :
+  82          **********************************************************/
+  83          uint8 SpiTransferByte(uint8 byData)
+  84          {
+  85   1              SPDAT = byData;
+  86   1              while((SPSTAT&0x80) == 0x00);                           //等待传输完成
+  87   1              SPSTAT = 0xC0;
+  88   1              return(SPDAT);
+  89   1      }
+  90          uint8 READ_ID(void)
+  91          {
+  92   1              uint8 byRet;
+  93   1              SST_CS = 0;             
+  94   1              SpiTransferByte(SST_READ_ID);               //传输读写ID号命令
+  95   1              SpiTransferByte(0x00);  
+  96   1              SpiTransferByte(0x00);
+  97   1              SpiTransferByte(0x01);  
+  98   1              byRet = SpiTransferByte(0xFF);         //接收ID号数据   
+  99   1              SST_CS = 1;             
+ 100   1              return(byRet);
+ 101   1      }
+ 102          /**********************************************************
+ 103          *函数名称                       :SpiInit        
+ 104          *函数描述               :SPI接口初始化
+ 105          *输入参数               :
+ 106          *返回值                         :       
+ 107          *全局变量                       :
+ 108          *调用模块                       :
+ 109          ***********************************************************
+ 110          *创建人                 :陈卫国
+ 111          *创建日期                       :2008-9-22
+ 112          ***********************************************************
+ 113          *修改人                         :
+ 114          *修改日期               :
+ 115          *注释                   :
+ 116          **********************************************************/
+ 117          void SpiInit(void)
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 3   
+
+ 118          {
+ 119   1              P4M0  &= 0xDD;
+ 120   1              P4M1  &= 0xDD;
+ 121   1              SPCTL  = 0xDC;                                                                                  //忽略SS引脚,使能SPI接口,高位在前,Fosc/4        
+ 122   1              SPSTAT = 0xC0;                                                                                  //清除标志 
+ 123   1              SST_CS=0;
+ 124   1              SpiTransferByte(SST_EWSR);
+ 125   1              SST_CS=1;
+ 126   1              SST_CS=0;
+ 127   1              SpiTransferByte(SST_WRSR);              
+ 128   1              SpiTransferByte(0x00);          
+ 129   1              SST_CS=1;
+ 130   1              ID_Number=READ_ID();
+ 131   1              if(ID_Number==0x8C)      //PCT
+ 132   1              ID_Number_Flag=1;
+ 133   1              else if(ID_Number==0x43) //SST
+ 134   1              ID_Number_Flag=2;
+ 135   1      }
+ 136          /**********************************************************
+ 137          *函数名称                       :Read_Status_Register   
+ 138          *函数描述               :读取SST存储器状态寄存器中的数据
+ 139          *输入参数               :
+ 140          *返回值                         :byRet:读取到的数据     
+ 141          *全局变量                       :
+ 142          *调用模块                       :
+ 143          ***********************************************************
+ 144          *创建人                 :熊坚强
+ 145          *创建日期                       :2008-9-22
+ 146          ***********************************************************
+ 147          *修改人                         :
+ 148          *修改日期               :
+ 149          *注释                   :
+ 150          **********************************************************/
+ 151          uint8 Read_Status_Register(void)
+ 152          {
+ 153   1              uint8 byRet;
+ 154   1              SST_CS=0;                               
+ 155   1              SpiTransferByte(0x05);          
+ 156   1              byRet = SpiTransferByte(0xFF);  
+ 157   1              SST_CS=1;                               
+ 158   1              return byRet;
+ 159   1      }
+ 160          /**********************************************************
+ 161          *函数名称                       :Wait_Busy      
+ 162          *函数描述               :等待写数据结束
+ 163          *输入参数               :
+ 164          *返回值                         :       
+ 165          *全局变量                       :
+ 166          *调用模块                       :
+ 167          ***********************************************************
+ 168          *创建人                 :熊坚强
+ 169          *创建日期                       :2008-9-22
+ 170          ***********************************************************
+ 171          *修改人                         :
+ 172          *修改日期               :
+ 173          *注释                   :
+ 174          **********************************************************/
+ 175          void Wait_Busy(void)
+ 176          {
+ 177   1         while((Read_Status_Register()&0x01) == 0x01)
+ 178   1         {
+ 179   2           Delay_nus(10);
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 4   
+
+ 180   2         }
+ 181   1      }
+ 182          /**********************************************************
+ 183          *函数名称                       :FmReadByte     
+ 184          *函数描述               :读取SST存储器指定地址的一个字节数据
+ 185          *输入参数               :uiAddr:地址
+ 186          *返回值                         :byRet:读取到的数据     
+ 187          *全局变量                       :
+ 188          *调用模块                       :
+ 189          ***********************************************************
+ 190          *创建人                 :陈卫国
+ 191          *创建日期                       :2008-9-22
+ 192          ***********************************************************
+ 193          *修改人                         :
+ 194          *修改日期               :
+ 195          *注释                   :
+ 196          **********************************************************/
+ 197          uint8 FmReadByte(uint32 uiAddr)
+ 198          {
+ 199   1              uint8 byRet;
+ 200   1              SST_CS = 0;             
+ 201   1              SpiTransferByte(SST_READ);                      //传输读命令
+ 202   1              SpiTransferByte(((uiAddr & 0xFFFFFF) >> 16));   
+ 203   1              SpiTransferByte(((uiAddr & 0xFFFF) >> 8));
+ 204   1              SpiTransferByte(uiAddr & 0xFF); 
+ 205   1              byRet = SpiTransferByte(0xFF);         //接收数据       
+ 206   1              SST_CS = 1;             
+ 207   1              return(byRet);
+ 208   1      }
+ 209          
+ 210          /************************************************************************/
+ 211          /* PROCEDURE:   Read_Cont                                                                                               */
+ 212          /*                                                                                                                                              */              
+ 213          /* This procedure reads multiple addresses of the device and stores             */
+ 214          /* data into 128 byte buffer. Maximum byte that can be read is 128 bytes*/
+ 215          /*                                                                                                                                              */
+ 216          /* Input:                                                                                                                               */
+ 217          /*              Dst:            Destination Address 000000H - 07FFFFH                           */
+ 218          /*          SST25VF020:Dst:     Destination Address 000000H - 03FFFFH                   */
+ 219          /*      no_bytes        Number of bytes to read (max = 128)                                     */
+ 220          /*                                                                                                                                              */
+ 221          /* Returns:                                                                                                                             */
+ 222          /*              Nothing                                                                                                                 */
+ 223          /*                                                                                                                                              */
+ 224          /************************************************************************/
+ 225          void Read_Cont(uint8 *pBuffer,unsigned long Dst, unsigned long no_bytes)
+ 226          {
+ 227   1              unsigned long i = 0;
+ 228   1              SST_CS = 0;                             /* enable device */
+ 229   1              SpiTransferByte(0x03);                  /* read command */
+ 230   1              SpiTransferByte(((Dst & 0xFFFFFF) >> 16));      /* send 3 address bytes */
+ 231   1              SpiTransferByte(((Dst & 0xFFFF) >> 8));
+ 232   1              SpiTransferByte(Dst & 0xFF);
+ 233   1              for (i = 0; i < no_bytes; i++)          /* read until no_bytes is reached */
+ 234   1              {
+ 235   2                      pBuffer[i] = SpiTransferByte(0xFF);     /* receive byte and store at address 80H - FFH */
+ 236   2              }
+ 237   1              SST_CS = 1;                                     /* disable device */
+ 238   1      
+ 239   1      }
+ 240          
+ 241          /**********************************************************
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 5   
+
+ 242          *函数名称                       :FmWriteByte    
+ 243          *函数描述               :在SST存储器指定地址写入一个字节数据
+ 244          *输入参数               :uiAddr:地址,byData:待写入的数据
+ 245          *返回值                         :
+ 246          *全局变量                       :
+ 247          *调用模块                       :
+ 248          ***********************************************************
+ 249          *创建人                 :陈卫国
+ 250          *创建日期                       :2008-9-22
+ 251          ***********************************************************
+ 252          *修改人                         :
+ 253          *修改日期               :
+ 254          *注释                   :
+ 255          **********************************************************/
+ 256          void FmWriteByte(uint32 uiAddr, uint8 byData)
+ 257          { 
+ 258   1          SST_CS = 0;
+ 259   1              SpiTransferByte(SST_WREN);            //传输写使能命令
+ 260   1              SST_CS = 1;
+ 261   1              Wait_Busy();
+ 262   1              SST_CS = 0;
+ 263   1              SpiTransferByte(SST_SECTOR_EARSE); //传输擦除命令       
+ 264   1              SpiTransferByte(((uiAddr & 0xFFFFFF) >> 16));   
+ 265   1              SpiTransferByte(((uiAddr & 0xFFFF) >> 8));
+ 266   1              SpiTransferByte(uiAddr & 0xFF);                 
+ 267   1              SST_CS = 1;
+ 268   1              Wait_Busy();
+ 269   1              SST_CS = 0;
+ 270   1              SpiTransferByte(SST_WREN);            //传输写使能命令
+ 271   1              SST_CS = 1;
+ 272   1              Wait_Busy();
+ 273   1              SST_CS = 0;             
+ 274   1              SpiTransferByte(SST_WRITE);       //传输写命令  
+ 275   1              SpiTransferByte(((uiAddr & 0xFFFFFF) >> 16));   
+ 276   1              SpiTransferByte(((uiAddr & 0xFFFF) >> 8));
+ 277   1              SpiTransferByte(uiAddr & 0xFF);         
+ 278   1              SpiTransferByte(byData);              //写入数据        
+ 279   1              SST_CS = 1;
+ 280   1              Wait_Busy();
+ 281   1      }
+ 282          
+ 283          
+ 284          void FmWriteByte1(uint32 uiAddr, uint8 byData)
+ 285          { 
+ 286   1      
+ 287   1              SST_CS = 0;
+ 288   1              SpiTransferByte(SST_WREN);            //传输写使能命令
+ 289   1              SST_CS = 1;
+ 290   1              Wait_Busy();
+ 291   1              SST_CS = 0;             
+ 292   1              SpiTransferByte(SST_WRITE);       //传输写命令  
+ 293   1              SpiTransferByte(((uiAddr & 0xFFFFFF) >> 16));   
+ 294   1              SpiTransferByte(((uiAddr & 0xFFFF) >> 8));
+ 295   1              SpiTransferByte(uiAddr & 0xFF);         
+ 296   1              SpiTransferByte(byData);              //写入数据        
+ 297   1              SST_CS = 1;
+ 298   1              Wait_Busy();
+ 299   1      }
+ 300          
+ 301          
+ 302          /**********************************************************
+ 303          *函数名称                       :FmWriteBytes   
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 6   
+
+ 304          *函数描述               :在SST存储器指定地址存多个字节数据
+ 305          *输入参数               :uiAddr:地址,uiLen:待写入的数据长度,pbyData:待写入数据首地址
+ 306          *返回值                         :
+ 307          *全局变量                       :
+ 308          *调用模块                       :
+ 309          ***********************************************************
+ 310          *创建人                 :陈卫国
+ 311          *创建日期                       :2008-9-22
+ 312          ***********************************************************
+ 313          *修改人                         :
+ 314          *修改日期               :
+ 315          *注释                   :
+ 316          **********************************************************/
+ 317          #if 1
+ 318          void FmWriteBytes(uint32 uiAddr, uint16 uiLen, uint8* pbyData)
+ 319          {
+ 320   1              if(0 == uiLen)
+ 321   1              {
+ 322   2                      return;
+ 323   2              } 
+ 324   1              SST_CS = 0;
+ 325   1              SpiTransferByte(SST_WREN);            //传输写使能命令
+ 326   1              SST_CS = 1;
+ 327   1              Wait_Busy();
+ 328   1              SST_CS = 0;
+ 329   1              SpiTransferByte(SST_SECTOR_EARSE); //传输擦除命令       
+ 330   1              SpiTransferByte(((uiAddr & 0xFFFFFF) >> 16));                            /* 发送3个字节的地址信息        
+             -*/
+ 331   1          SpiTransferByte(((uiAddr & 0xFFFF) >> 8));
+ 332   1          SpiTransferByte(uiAddr & 0xFF);             
+ 333   1              SST_CS = 1;
+ 334   1              Wait_Busy();
+ 335   1              while (uiLen--)
+ 336   1              {
+ 337   2                      SST_CS = 0;
+ 338   2              SpiTransferByte(SST_WREN);                                                    /* 发送写使能命令   
+             -            */
+ 339   2              SST_CS = 1;
+ 340   2              Wait_Busy();
+ 341   2              SST_CS = 0;
+ 342   2              SpiTransferByte(0x02);                                                    /* 发送字节数据烧写命令 
+             -        */
+ 343   2              SpiTransferByte(((uiAddr & 0xFFFFFF) >> 16));                            /* 发送3个字节的地址信息 
+             -       */
+ 344   2              SpiTransferByte(((uiAddr & 0xFFFF) >> 8));
+ 345   2              SpiTransferByte(uiAddr & 0xFF);
+ 346   2              SpiTransferByte(*pbyData++);                                             /* 发送被烧写的数据      
+             -       */
+ 347   2                      uiAddr++;
+ 348   2              SST_CS = 1;
+ 349   2              Wait_Busy();
+ 350   2          }
+ 351   1              SST_CS=0;
+ 352   1              SpiTransferByte(SST_WRDI);              
+ 353   1              SST_CS = 1;  
+ 354   1              Wait_Busy();
+ 355   1      }
+ 356          #else
+              void FmWriteBytes(uint32 uiAddr, uint16 uiLen, uint8* pbyData)
+              {
+                      uint16  xdata highaddr;
+                      uint16  xdata lowaddr;  
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 7   
+
+                      highaddr = uiAddr/65536;
+                  lowaddr  = uiAddr%65536;  
+                      if(0 == uiLen)
+                      {
+                              return;
+                      } 
+                      SST_CS = 0;
+                      SpiTransferByte(SST_WREN);            //传输写使能命令
+                      SST_CS = 1;
+                      Wait_Busy();
+                      SST_CS = 0;
+                      SpiTransferByte(SST_SECTOR_EARSE); //传输擦除命令       
+                      SpiTransferByte(highaddr%256);
+                      SpiTransferByte(lowaddr/256);
+                      SpiTransferByte(lowaddr%256);           
+                      SST_CS = 1;
+                      Wait_Busy();
+                      SST_CS = 0;
+                      SpiTransferByte(SST_WREN);            //传输写使能命令
+                      SST_CS = 1;
+                      Wait_Busy();
+                      SST_CS = 0;
+                      if(ID_Number_Flag==0x01)
+                      SpiTransferByte(SST_AAI_P);         //传输地址自动增加命令 
+                      else if(ID_Number_Flag==0x02)
+                      SpiTransferByte(SST_AAI_S);     
+                      SpiTransferByte(highaddr%256);
+                      SpiTransferByte(lowaddr/256);
+                      SpiTransferByte(lowaddr%256);           
+                      SpiTransferByte(*pbyData);
+                      if(ID_Number_Flag==0x01)
+                      {
+                        pbyData++;
+                        SpiTransferByte(*pbyData);
+                      }
+                      SST_CS=1;
+                      Wait_Busy();
+                      uiLen--;
+                  if(ID_Number_Flag==0x01)
+                      uiLen--;
+                  pbyData++;
+                      for(;uiLen>0;)                                //写入数据 
+                      {       
+                              SST_CS=0;
+                          if(ID_Number_Flag==0x01)
+                              SpiTransferByte(SST_AAI_P);     //传输地址自动增加命令 
+                              else if(ID_Number_Flag==0x02)
+                              SpiTransferByte(SST_AAI_S);
+                              SpiTransferByte(*pbyData);
+                          if(ID_Number_Flag==0x01)
+                              {
+                                pbyData++;
+                                SpiTransferByte(*pbyData);
+                              }
+                              SST_CS=1;
+                              Wait_Busy();
+                              uiLen--;
+                          if(ID_Number_Flag==0x01)
+                              uiLen--;
+                              pbyData++;
+                      }       
+                      SST_CS=0;
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 8   
+
+                      SpiTransferByte(SST_WRDI);              
+                      SST_CS = 1;  
+                      Wait_Busy();
+              }
+              #endif
+ 428          
+ 429          
+ 430          void FmWriteBytes1(uint32 uiAddr, uint16 uiLen, uint8* pbyData)
+ 431          {
+ 432   1              if(0 == uiLen)
+ 433   1              {
+ 434   2                      return;
+ 435   2              } 
+ 436   1       
+ 437   1              while (uiLen--)
+ 438   1              {
+ 439   2                      SST_CS = 0;
+ 440   2              SpiTransferByte(SST_WREN);                                                    /* 发送写使能命令   
+             -            */
+ 441   2              SST_CS = 1;
+ 442   2              Wait_Busy();
+ 443   2              SST_CS = 0;
+ 444   2              SpiTransferByte(0x02);                                                    /* 发送字节数据烧写命令 
+             -        */
+ 445   2              SpiTransferByte(((uiAddr & 0xFFFFFF) >> 16));                            /* 发送3个字节的地址信息 
+             -       */
+ 446   2              SpiTransferByte(((uiAddr & 0xFFFF) >> 8));
+ 447   2              SpiTransferByte(uiAddr & 0xFF);
+ 448   2              SpiTransferByte(*pbyData++);                                             /* 发送被烧写的数据      
+             -       */
+ 449   2                      uiAddr++;
+ 450   2              SST_CS = 1;
+ 451   2              Wait_Busy();
+ 452   2          }
+ 453   1              SST_CS=0;
+ 454   1              SpiTransferByte(SST_WRDI);              
+ 455   1              SST_CS = 1;  
+ 456   1              Wait_Busy();
+ 457   1      }
+ 458          
+ 459          /**********************************************************
+ 460          *函数名称                       :ReadParameter  
+ 461          *函数描述               :读取配置参数
+ 462          *输入参数               :
+ 463          *返回值                         :
+ 464          *全局变量                       :
+ 465          *调用模块                       :
+ 466          ***********************************************************
+ 467          *创建人                 :陈卫国
+ 468          *创建日期                       :2008-9-22
+ 469          ***********************************************************
+ 470          *修改人                         :
+ 471          *修改日期               :
+ 472          *注释                   :
+ 473          **********************************************************/
+ 474          void ReadParameter(void)
+ 475          {
+ 476   1              stLocalControl.uiShortType = IAP_ADDR;
+ 477   1              stLocalControl.pbyData= & (stLocalControl.stEepromCfgData.bySelfSecAddr);
+ 478   1              stLocalControl.byChar1 = sizeof(STEepromCfgData);
+ 479   1              EnableIAP(IAP_READ);            
+ 480   1              while(stLocalControl.byChar1--)
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 9   
+
+ 481   1              {               
+ 482   2                      *stLocalControl.pbyData++ = IapReadByte(stLocalControl.uiShortType++);          
+ 483   2              }
+ 484   1              DisableIAP(); 
+ 485   1              //加载使能数据
+ 486   1              byEnable1 = stLocalControl.stEepromCfgData.byEnable1;
+ 487   1              byEnable2 = stLocalControl.stEepromCfgData.byEnable2;
+ 488   1      }
+ 489          /**********************************************************
+ 490          *函数名称                       :SaveParameter  
+ 491          *函数描述               :存储配置参数,存储参数前先擦除整个扇区,
+ 492                                                   然后将所有参数重新写入扇区
+ 493          *输入参数               :
+ 494          *返回值                         :
+ 495          *全局变量                       :stLocalControl
+ 496          *调用模块                       :EnableIAP,IapErase,IapWriteByte,DisableIAP
+ 497          ***********************************************************
+ 498          *创建人                 :陈卫国
+ 499          *创建日期                       :2008-9-22
+ 500          ***********************************************************
+ 501          *修改人                         :
+ 502          *修改日期               :
+ 503          *注释                   :
+ 504          **********************************************************/
+ 505          void SaveParameter(void)
+ 506          {  
+ 507   1              stLocalControl.uiShortType = IAP_ADDR;  
+ 508   1              stLocalControl.pbyData = &(stLocalControl.stEepromCfgData.bySelfSecAddr);
+ 509   1              stLocalControl.byChar1 = sizeof(STEepromCfgData);
+ 510   1              EnableIAP(IAP_ERASE);
+ 511   1              IapErase(IAP_ADDR);     
+ 512   1              EnableIAP(IAP_WRITE); 
+ 513   1              while(stLocalControl.byChar1--)
+ 514   1              {
+ 515   2                      IapWriteByte(stLocalControl.uiShortType++, *stLocalControl.pbyData++);
+ 516   2              }
+ 517   1              //如果是在写参数命令中调用该函数,重新加载使能数据
+ 518   1              byEnable1 = stLocalControl.stEepromCfgData.byEnable1;
+ 519   1              byEnable2 = stLocalControl.stEepromCfgData.byEnable2;
+ 520   1              DisableIAP();   
+ 521   1              EnableIAP(IAP_ERASE);
+ 522   1              IapErase(0x0000);       
+ 523   1              EnableIAP(IAP_WRITE);
+ 524   1              IapWriteByte(0x0000,INIT_FLAG);
+ 525   1              DisableIAP();
+ 526   1      }
+ 527          /**********************************************************
+ 528          *函数名称                       :ParameterInit  
+ 529          *函数描述               :参数初始化
+ 530          *输入参数               :
+ 531          *返回值                         :
+ 532          *全局变量                       :
+ 533          *调用模块                       :
+ 534          ***********************************************************
+ 535          *创建人                 :陈卫国
+ 536          *创建日期                       :2008-9-22
+ 537          ***********************************************************
+ 538          *修改人                         :
+ 539          *修改日期               :
+ 540          *注释                   :
+ 541          **********************************************************/
+ 542          void ParameterInit(void)
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 10  
+
+ 543          { 
+ 544   1              uint8 byTemp;
+ 545   1              //开始读取系统参数
+ 546   1          EnableIAP(IAP_READ);
+ 547   1              if(IapReadByte(0x0000)==INIT_FLAG)
+ 548   1              {
+ 549   2                      ReadParameter();
+ 550   2              }
+ 551   1              else
+ 552   1              {
+ 553   2                      stLocalControl.stEepromCfgData.bySelfSecAddr=CBYTE[0x2800];
+ 554   2                      stLocalControl.stEepromCfgData.bySelfRoomAddr=CBYTE[0x2801];
+ 555   2                      stLocalControl.stEepromCfgData.bySelfBedAddr=CBYTE[0x2802];
+ 556   2                      if(FmReadByte(Close_EnSoundNote_ADDR)==0x01)
+ 557   2                              stLocalControl.stEepromCfgData.byEnable1=0xF7;
+ 558   2                      else
+ 559   2                              stLocalControl.stEepromCfgData.byEnable1=CBYTE[0x2803];
+ 560   2                      stLocalControl.stEepromCfgData.byEnable2=CBYTE[0x2804];
+ 561   2                      stLocalControl.stEepromCfgData.byPrio=CBYTE[0x2805];
+ 562   2                      stLocalControl.stEepromCfgData.byRingTime=CBYTE[0x2806];
+ 563   2                      stLocalControl.stEepromCfgData.byTalkTime=CBYTE[0x2807];
+ 564   2                      stLocalControl.stEepromCfgData.byBroadTime=CBYTE[0x2808];
+ 565   2                      stLocalControl.stEepromCfgData.byListenDelay=CBYTE[0x2809];
+ 566   2                      stLocalControl.stEepromCfgData.byVolumStep=CBYTE[0x280A];
+ 567   2                      stLocalControl.stEepromCfgData.byRingVol=CBYTE[0x280B];
+ 568   2                      stLocalControl.stEepromCfgData.byCH0TalkedVol=CBYTE[0x280C];
+ 569   2                      stLocalControl.stEepromCfgData.byCH1TalkedVol=CBYTE[0x280D];
+ 570   2                      stLocalControl.stEepromCfgData.byBroadVol=CBYTE[0x280E];
+ 571   2                      stLocalControl.stEepromCfgData.byNoteVol=CBYTE[0x280F];
+ 572   2                      stLocalControl.stEepromCfgData.byMusicVol=CBYTE[0x2810];
+ 573   2                      stLocalControl.stEepromCfgData.byCH0TalkVol=CBYTE[0x2811];
+ 574   2                      stLocalControl.stEepromCfgData.byCH1TalkVol=CBYTE[0x2812];
+ 575   2                      stLocalControl.stEepromCfgData.bySelfRingVol=CBYTE[0x2813];
+ 576   2                      stLocalControl.stEepromCfgData.byMaxVol=CBYTE[0x2814];
+ 577   2                      stLocalControl.stEepromCfgData.byMinVol=CBYTE[0x2815];
+ 578   2                      stLocalControl.stEepromCfgData.byReserve1=CBYTE[0x2816];
+ 579   2                      stLocalControl.stEepromCfgData.byReserve2=CBYTE[0x2817];
+ 580   2                      stLocalControl.stEepromCfgData.byReserve3=CBYTE[0x2818];
+ 581   2                      stLocalControl.stEepromCfgData.bySerialNum1=CBYTE[0x2819];
+ 582   2                      stLocalControl.stEepromCfgData.bySerialNum2=CBYTE[0x281A];
+ 583   2                      stLocalControl.stEepromCfgData.bySerialNum3=CBYTE[0x281B];
+ 584   2                      stLocalControl.stEepromCfgData.byVersionHi=CBYTE[0x281C];
+ 585   2                      stLocalControl.stEepromCfgData.byVersionLo=CBYTE[0x281D];
+ 586   2                      byEnable1 = stLocalControl.stEepromCfgData.byEnable1;
+ 587   2                      byEnable2 = stLocalControl.stEepromCfgData.byEnable2;
+ 588   2              }
+ 589   1              //读取液晶配置参数
+ 590   1              byTemp = FmReadByte(LCD_INIT_ADDR);
+ 591   1              if(INIT_FLAG == byTemp)
+ 592   1              {       //已经初始化了
+ 593   2                      Modify_SEC_Name = FmReadByte(LCD_SEC_MSK_ADDR);
+ 594   2                  stLocalControl.uiShortType = LCD_SEC_ADDR;              //开始读取颜色数据
+ 595   2              stLocalControl.uiShortType =stLocalControl.uiShortType+18;
+ 596   2                  Page_Color[0]=FmReadByte(stLocalControl.uiShortType++);//科室字体颜色 
+ 597   2                  Page_Color[1]=FmReadByte(stLocalControl.uiShortType++);//科室字体背景色,也是清屏色
+ 598   2                  Page_Color[2]=FmReadByte(stLocalControl.uiShortType++);//中间填充颜色
+ 599   2                  Page_Color[3]=FmReadByte(stLocalControl.uiShortType++);//几床到几床字体背景色
+ 600   2                  Page_Color[4]=FmReadByte(stLocalControl.uiShortType++);//几床到几床背景色,也是清屏色
+ 601   2              }
+ 602   1              else
+ 603   1              {       //没有初始化
+ 604   2                      byTemp = FmReadByte(LCD_INIT_ADDR);
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 11  
+
+ 605   2                      if(INIT_FLAG == byTemp)
+ 606   2                      {       //重新检查
+ 607   3                              Modify_SEC_Name = FmReadByte(LCD_SEC_MSK_ADDR);
+ 608   3                              stLocalControl.uiShortType = LCD_SEC_ADDR;                            //开始读取颜色数据
+ 609   3                  stLocalControl.uiShortType =stLocalControl.uiShortType+18;
+ 610   3                      Page_Color[0]=FmReadByte(stLocalControl.uiShortType++);//科室字体颜色 
+ 611   3                      Page_Color[1]=FmReadByte(stLocalControl.uiShortType++);//科室字体背景色,也是清屏色
+ 612   3                      Page_Color[2]=FmReadByte(stLocalControl.uiShortType++);//中间填充颜色
+ 613   3                      Page_Color[3]=FmReadByte(stLocalControl.uiShortType++);//几床到几床字体背景色
+ 614   3                      Page_Color[4]=FmReadByte(stLocalControl.uiShortType++);//几床到几床背景色,也是清屏色
+ 615   3                              return;
+ 616   3                      }
+ 617   2                      FmWriteByte(LCD_INIT_ADDR, INIT_FLAG);
+ 618   2                      FmWriteByte(LCD_SEC_MSK_ADDR, 0);
+ 619   2              }
+ 620   1              SerchRoom=FmReadByte(Serch_Room_ADDR);
+ 621   1              if(SerchRoom==1||SerchRoom==2||SerchRoom==3||SerchRoom==4||SerchRoom==5||SerchRoom==6||SerchRoom==7||Serc
+             -hRoom==8||SerchRoom==9||SerchRoom==10||SerchRoom==11||SerchRoom==12||SerchRoom==13||SerchRoom==14||SerchRoom==15)
+ 622   1              {  
+ 623   2                      SerchRoom=SerchRoom;
+ 624   2              }
+ 625   1              else
+ 626   1                      SerchRoom=0;
+ 627   1              if(INIT_FLAG==FmReadByte(Serch_Room_Page_ADDR))
+ 628   1                      Page_Flag=1;
+ 629   1              else
+ 630   1                      Page_Flag=0;    
+ 631   1              Modify_Room_Number=FmReadByte(Modify_Room_Number_ADDR);
+ 632   1      }
+ 633          /**********************************************************
+ 634          *函数名称                       :Get_GT23_Data  
+ 635          *函数描述               :读取字库的点阵数据
+ 636          *输入参数               :
+ 637          *返回值                         :
+ 638          *全局变量                       :
+ 639          *调用模块                       :
+ 640          ***********************************************************
+ 641          *创建人                 :熊坚强
+ 642          *创建日期                       :2011-3-22
+ 643          ***********************************************************
+ 644          *修改人                         :
+ 645          *修改日期               :
+ 646          *注释                   :
+ 647          **********************************************************/
+ 648          void Get_GT23_Data(uint8 highbyte,uint8 lowbyte,uint8 word_size)
+ 649          {
+ 650   1               uint32  xdata address1,address2,address3,address4;
+ 651   1      
+ 652   1               if(highbyte==0x00&&lowbyte>=0x20&&lowbyte <0x7E) //   0x20~0x7e  是ASCII字符
+ 653   1               {
+ 654   2                       switch(word_size)
+ 655   2                       {
+ 656   3                               case 1: //16*8
+ 657   3                               default:
+ 658   3                                       address1 = (lowbyte-0x20)*16; 
+ 659   3                                       address3 = address1+A8BaseAdd; 
+ 660   3                                       Read_Cont(GT23_Rec_Data,address3,16);
+ 661   3                                       break; 
+ 662   3                                       
+ 663   3                               case 2: //24x12
+ 664   3                                       address1 = (lowbyte-0x20)*48; 
+ 665   3                                       address3 = address1+A12BaseAdd; 
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 12  
+
+ 666   3                                       Read_Cont(GT23_Rec_Data,address3,48);
+ 667   3                                       break;                                  
+ 668   3                               
+ 669   3                               case 3:        //32X16
+ 670   3                                       address1 = (lowbyte-0x20)*64; 
+ 671   3                                       address3 = address1+A16BaseAdd; 
+ 672   3                                       Read_Cont(GT23_Rec_Data,address3,64);
+ 673   3                                       break;                                  
+ 674   3      /*                               case 4:   //96x48
+ 675   3                                       if(lowbyte<=0x39&&lowbyte>=0x30)  //数字
+ 676   3                                      {
+ 677   3                                       address1 = (lowbyte-0x21)*576; 
+ 678   3                                       address3 = address1+D48BaseAdd; 
+ 679   3                                       Read_Cont(GT23_Rec_Data,address3,576);                                 
+ 680   3                                      }
+ 681   3                                      break;*/
+ 682   3                                       
+ 683   3                       }               
+ 684   2               
+ 685   2               }
+ 686   1               else if(highbyte >=0x81&&highbyte<=0xfe&&lowbyte>=0x40&&lowbyte<=0xfe)    //GBK内码 32X32
+ 687   1               {
+ 688   2                      switch(word_size)
+ 689   2                      {
+ 690   3                              case 1:
+ 691   3                              default:
+ 692   3                                       address1 = (highbyte-0x81)*191; 
+ 693   3                                       address2 = (lowbyte-0x40)+address1;
+ 694   3                                       address3 = address2*32;                                 //每个汉字占用32字节
+ 695   3                                       address4 = address3+C16BaseAdd; 
+ 696   3                                       Read_Cont(GT23_Rec_Data,address4,32);
+ 697   3                                       break;
+ 698   3                              case 3:
+ 699   3                                       address1 = (highbyte-0x81)*191; 
+ 700   3                                       address2 = (lowbyte-0x40)+address1;
+ 701   3                                       address3 = address2*128;                                //每个汉字占用128字节
+ 702   3                                       address4 = address3+C32BaseAdd; 
+ 703   3                                       Read_Cont(GT23_Rec_Data,address4,128);
+ 704   3                                       break;                          
+ 705   3                      }
+ 706   2               }
+ 707   1      
+ 708   1      }
+ 709          
+ 710          
+ 711          
+ 712          /**********************************************************
+ 713          *函数名称                       :Get_GT23_Data1 
+ 714          *函数描述               :读取字库的点阵数据
+ 715          *输入参数               :
+ 716          *返回值                         :
+ 717          *全局变量                       :
+ 718          *调用模块                       :
+ 719          ***********************************************************
+ 720          *创建人                 :熊坚强
+ 721          *创建日期                       :2011-3-22
+ 722          ***********************************************************
+ 723          *修改人                         :
+ 724          *修改日期               :
+ 725          *注释                   :
+ 726          **********************************************************/
+ 727          void Get_GT23_Data1(uint8 *word,uint8 word_size)
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 13  
+
+ 728          {
+ 729   1               uint32  xdata address1,address2,address3,address4;
+ 730   1               uint8 xdata highbyte,lowbyte;
+ 731   1               highbyte = *word;
+ 732   1               word++;
+ 733   1               lowbyte = *word;
+ 734   1               if(highbyte==0x00&&lowbyte>=0x20&&lowbyte <0x7E) //   0x20~0x7e  是ASCII字符
+ 735   1               {
+ 736   2                       switch(word_size)
+ 737   2                       {
+ 738   3                               case 1: //16*8
+ 739   3                               default:
+ 740   3                                       address1 = (lowbyte-0x20)*16; 
+ 741   3                                       address3 = address1+A8BaseAdd; 
+ 742   3                                       Read_Cont(GT23_Rec_Data,address3,16);
+ 743   3                                       break; 
+ 744   3                                       
+ 745   3                               case 2: //24x12
+ 746   3                                       address1 = (lowbyte-0x20)*48; 
+ 747   3                                       address3 = address1+A12BaseAdd; 
+ 748   3                                       Read_Cont(GT23_Rec_Data,address3,48);
+ 749   3                                       break;                                  
+ 750   3                               
+ 751   3                               case 3:        //32X16
+ 752   3                                       address1 = (lowbyte-0x20)*64; 
+ 753   3                                       address3 = address1+A16BaseAdd; 
+ 754   3                                       Read_Cont(GT23_Rec_Data,address3,64);
+ 755   3                                       break;                                  
+ 756   3      /*                               case 4:   //96x48
+ 757   3                                       if(lowbyte<=0x39&&lowbyte>=0x30)  //数字
+ 758   3                                      {
+ 759   3                                       address1 = (lowbyte-0x21)*576; 
+ 760   3                                       address3 = address1+D48BaseAdd; 
+ 761   3                                       Read_Cont(GT23_Rec_Data,address3,576);                                 
+ 762   3                                      }
+ 763   3                                      break;*/
+ 764   3                                       
+ 765   3                       }               
+ 766   2               
+ 767   2               }
+ 768   1               else if(highbyte >=0x81&&highbyte<=0xfe&&lowbyte>=0x40&&lowbyte<=0xfe)    //GBK内码 32X32
+ 769   1               {
+ 770   2                      switch(word_size)
+ 771   2                      {
+ 772   3                              case 1:
+ 773   3                              default:
+ 774   3                                       address1 = (highbyte-0x81)*191; 
+ 775   3                                       address2 = (lowbyte-0x40)+address1;
+ 776   3                                       address3 = address2*32;                                 //每个汉字占用32字节
+ 777   3                                       address4 = address3+C16BaseAdd; 
+ 778   3                                       Read_Cont(GT23_Rec_Data,address4,32);
+ 779   3                                       break;
+ 780   3                              case 3:
+ 781   3                                       address1 = (highbyte-0x81)*191; 
+ 782   3                                       address2 = (lowbyte-0x40)+address1;
+ 783   3                                       address3 = address2*128;                                //每个汉字占用128字节
+ 784   3                                       address4 = address3+C32BaseAdd; 
+ 785   3                                       Read_Cont(GT23_Rec_Data,address4,128);
+ 786   3                                       break;                          
+ 787   3                      }
+ 788   2               }
+ 789   1      
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 14  
+
+ 790   1      }
+ 791          
+ 792          
+ 793          /************************************************************************/
+ 794          /* PROCEDURE: WREN                                                                                                              */
+ 795          /*                                                                                                                                              */
+ 796          /* This procedure enables the Write Enable Latch.  It can also be used  */
+ 797          /* to Enables Write Status Register.                                                                    */
+ 798          /*                                                                                                                                              */
+ 799          /* Input:                                                                                                                               */
+ 800          /*              None                                                                                                                    */
+ 801          /*                                                                                                                                              */
+ 802          /* Returns:                                                                                                                             */
+ 803          /*              Nothing                                                                                                                 */
+ 804          /************************************************************************/
+ 805          void WREN()
+ 806          {
+ 807   1              SST_CS=0;                               /* enable device */
+ 808   1              SpiTransferByte(0x06);          /* send WREN command */
+ 809   1              SST_CS=1;                               /* disable device */
+ 810   1              Wait_Busy();
+ 811   1      }
+ 812          
+ 813          
+ 814          /************************************************************************/
+ 815          /* PROCEDURE: Sector_Erase                                                                                              */
+ 816          /*                                                                                                                                              */
+ 817          /* This procedure Sector Erases the Chip.                                                               */
+ 818          /*                                                                                                                                              */
+ 819          /* Input:                                                                                                                               */
+ 820          /*              Dst:            Destination Address 000000H - 07FFFFH                           */
+ 821          /*                                                                                                                                              */
+ 822          /* Returns:                                                                                                                             */
+ 823          /*              Nothing                                                                                                                 */
+ 824          /************************************************************************/
+ 825          void Sector_Erase(unsigned long Dst)
+ 826          {
+ 827   1      
+ 828   1      
+ 829   1              SST_CS=0;                                       /* enable device */
+ 830   1              SpiTransferByte(0x20);                  /* send Sector Erase command */
+ 831   1              SpiTransferByte(((Dst & 0xFFFFFF) >> 16));      /* send 3 address bytes */
+ 832   1              SpiTransferByte(((Dst & 0xFFFF) >> 8));
+ 833   1              SpiTransferByte(Dst & 0xFF);
+ 834   1              SST_CS=1;                                       /* disable device */
+ 835   1      }
+ 836          
+ 837          /**********************************************************
+ 838          *函数名称                       :FRAM_TEST      
+ 839          *函数描述               :存储芯片测试操作
+ 840          *输入参数               :
+ 841          *返回值                         :       
+ 842          *全局变量                       :
+ 843          *调用模块                       :
+ 844          ***********************************************************
+ 845          *创建人                 :尹运同
+ 846          *创建日期                       :2008-9-22
+ 847          ***********************************************************
+ 848          *修改人                         :
+ 849          *修改日期               :
+ 850          *注释                   :
+ 851          **********************************************************/
+C51 COMPILER V9.00   SPI                                                                   06/23/2017 13:33:25 PAGE 15  
+
+ 852          void FRAM_TEST(void)
+ 853          {
+ 854   1              unsigned char i;
+ 855   1              
+ 856   1              FRAM_BUFF[0]=0x11;
+ 857   1              FRAM_BUFF[1]=0x22;
+ 858   1              FRAM_BUFF[2]=0x33;
+ 859   1              FRAM_BUFF[3]=0x44;
+ 860   1              FRAM_BUFF[4]=0x55;
+ 861   1              FRAM_BUFF[5]=0x66; 
+ 862   1              
+ 863   1              FRAM_BUFF[6]=0x77;
+ 864   1              FRAM_BUFF[7]=0x88;
+ 865   1              FRAM_BUFF[8]=0x99;
+ 866   1              FRAM_BUFF[9]=0xaa;
+ 867   1              FRAM_BUFF[10]=0xbb;
+ 868   1              
+ 869   1              
+ 870   1              FmWriteByte(0x3e9000,FRAM_BUFF[0]);
+ 871   1              FmWriteBytes1(0x3e9002,10,&(FRAM_BUFF[1]));
+ 872   1              
+ 873   1              for(i=0;i<12;i++) FRAM_BUFF[i]=0;
+ 874   1              Delayms(10);
+ 875   1      
+ 876   1              FRAM_BUFF[0]=FmReadByte(0x3e9000);
+ 877   1              Read_Cont(&(FRAM_BUFF[1]),0x3e9002,10);
+ 878   1              Delayms(10);
+ 879   1      
+ 880   1              Send_Data(FRAM_BUFF,11);
+ 881   1      
+ 882   1      
+ 883   1      }
+ 884          
+ 885          
+ 886          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3025    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    153      35
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      55
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

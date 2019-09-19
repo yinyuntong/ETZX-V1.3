@@ -1,0 +1,404 @@
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 14:13:10 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c LARGE BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  湖南一特电子股份有限公司
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------文件信息---------------------------
+   8          *文件名称               :main.c
+   9          *文件描述               :主函数
+  10          *创建人                 :尹运同
+  11          *创建日期               :2008-9-22
+  12          *版本号                 :V1.0
+  13          *注释                   :                                       
+  14          *----------------------------------------------------------
+  15          *修改人                         :
+  16          *修改日期                       :
+  17          *版本号                 :
+  18          *注释                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_MAIN_
+  22          
+  23          #include "config.h"
+  24          
+  25          uint16  xdata uiIsrTimerCount = ISR_INC_COUNT;                                  //系统时钟定时值
+  26          uint8   OS_Q_MEM_SEL    byMainCmdQ[16];                                         //主线程消息队列
+  27          STLocalControl  xdata stLocalControl;//全局变量结构体
+  28          
+  29          
+  30          
+  31          uint8  xdata MicCtrlState;
+  32          
+  33          uint8 code *DispData="  ";
+  34          
+  35          bit bBL_SW_State=1;
+  36          
+  37          
+  38          void Ex0Int(void)       interrupt X0_INTNO              //0号中断
+  39          {
+  40   1              EX0=0;
+  41   1      }
+  42          
+  43          void TIMER1Int(void) interrupt T1_INTNO         //3号中断
+  44          {
+  45   1              ET1=0;
+  46   1      }
+  47          
+  48          #if STC12C5A==true
+  49          void AdcInt(void)       interrupt ADC_INTNO             //5号中断
+  50          {
+  51   1              EADC=0;
+  52   1      }
+  53          
+  54          void LvdInt(void) interrupt LVD_INTNO           //6号中断
+  55          {
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 14:13:10 PAGE 2   
+
+  56   1              ELVD=0;
+  57   1      }
+  58          
+  59          //void PcaInt(void) interrupt PCA_INTNO         //7号中断
+  60          //{
+  61          //      CMOD    &=      !ECF;                   //禁止 PCA计数器溢出中断   
+  62          //      CCAPM0  &=      !PCA0_ECCF;             //禁止CCF0中断
+  63          //      CCAPM1  &=      !PCA1_ECCF;             //禁止CCF1中断  
+  64          //}
+  65          
+  66          #endif
+  67          /***********************************************************/
+  68          void UserTickTimer(void)   /* 系统定时中断中调用的用户函 */
+  69          { 
+  70   1      
+  71   1      #if STC12C5A==1
+  72   1              uiIsrTimerCount+=ISR_INC_COUNT;
+  73   1              CCAP0L = (uint8)uiIsrTimerCount;
+  74   1              CCAP0H = (uint8)(uiIsrTimerCount>>8);
+  75   1              CCF0=0;
+  76   1      #endif
+  77   1      
+  78   1      
+  79   1              if(stUsartCfg[0].byRecTimeout!=0) stUsartCfg[0].byRecTimeout--;
+  80   1      }
+  81          
+  82          void BL_SW_Init()
+  83          {
+  84   1              //BL_SW推挽输出
+  85   1              P5M0 |=         Bin(0,0,0,0,0,0,1,0);
+  86   1              P5M1 &=   (~Bin(0,0,0,0,0,0,1,0));
+  87   1              BL_SW =1;
+  88   1      }
+  89          
+  90          /**********************************************************
+  91          *函数名称                       :Init   
+  92          *函数描述               :硬件初始化操作
+  93          *输入参数               :
+  94          *返回值                         :       
+  95          *全局变量                       :
+  96          *调用模块                       :
+  97          ***********************************************************
+  98          *创建人                 :尹运同
+  99          *创建日期                       :2008-9-22
+ 100          ***********************************************************
+ 101          *修改人                         :
+ 102          *修改日期               :
+ 103          *注释                   :
+ 104          **********************************************************/
+ 105          void Init(void)
+ 106          {
+ 107   1              memset(&(stLocalControl.byLedState),0x00,sizeof(STLocalControl));
+ 108   1              
+ 109   1              CMOD = 0x02;
+ 110   1              CCON = 0x00;    
+ 111   1              CL = 0x00;
+ 112   1              CH = 0x00;
+ 113   1              CCAP0L = (uint8)uiIsrTimerCount;
+ 114   1              CCAP0H = (uint8)(uiIsrTimerCount>>8);
+ 115   1              //设置PCA模块0为16位软件定时器,ECCF0=1允许PCA模块0中断
+ 116   1              CCAPM0 = 0x49;
+ 117   1               
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 14:13:10 PAGE 3   
+
+ 118   1              //启动PCA计数器计数
+ 119   1              CR = 1; 
+ 120   1      //      //复位看门狗
+ 121   1              WDT_CONTR = 0x3d; 
+ 122   1              //IO口配置
+ 123   1              //STC12C52/5A系列:M0=0,M1=0:准双向，M0=0,M1=1:高阻，M0=1,M1=0:推挽，M0=1,M1=1:开漏
+ 124   1              //特别注意:因输入口线上外围未配置上拉电阻，不能配置成高阻输入，只能配置成准双向，否则该脚在高电平时处于悬
+             -浮状态
+ 125   1              
+ 126   1              //P0:用作SSD1963数据线,准双向
+ 127   1              P0M0 = 0x00;
+ 128   1              P0M1 = 0x00;
+ 129   1      
+ 130   1              //P1口:P1^0(RS)推挽P1^1(cs)推挽P1^2未用1^3(spi_cs2)推挽P1^4(SPI_CS1)推挽P1^5(MOSI)推挽P1^6(MISO)准双向P1^
+             -7(SCLK)推挽
+ 131   1              //P1M0:  1  0  1  1  1  0  1  1
+ 132   1              //P1M1:  0  0  0  0  0  0  0  0
+ 133   1              P1M0 = 0XBB;
+ 134   1              P1M1 = 0X00;
+ 135   1      
+ 136   1              //P2口::P2^0(SW1)准双向P2^1(SW2)准双向P2^2(SW3)准双向P2^3(SW4)准双向P2^4(SW5)准双向P2^5:未用P2^6:未用P2^7
+             -未用
+ 137   1              //P2M0 = 0  0  0  0  0  0  0  0
+ 138   1              //P2M1 = 0  0  0  0  0  0  0  0
+ 139   1              P2M0 = 0X00;
+ 140   1              P2M1 = 0X00;
+ 141   1      
+ 142   1      /*      //P3口:P3^0(RXD)准双向P3^1(TXD)推挽P3^2未用P3^3(RECD):准双向P3^4(SND)推挽P3^5未用P3^6(WR)推挽P3^7(RD)推
+             -挽 
+ 143   1              //P3M0 =  1  1  0  1  0  0  1  0
+ 144   1              //P3M1 =  0  0  0  0  0  0  0  0
+ 145   1              P3M0 = 0Xd2;
+ 146   1              P3M1 = 0X00;
+ 147   1      */
+ 148   1              //P3口:P3^0(RXD)准双向P3^1(TXD)未用P3^2推挽P3^3(RECD):准双向P3^4(SND)推挽P3^5未用P3^6(WR)推挽P3^7(RD)推挽
+             - 
+ 149   1              //P3M0 =  1  1  0  1  0  1  0  0
+ 150   1              //P3M1 =  0  0  0  0  0  0  0  0
+ 151   1              P3M0 = 0Xd4;
+ 152   1              P3M1 = 0X00;
+ 153   1      
+ 154   1              
+ 155   1              //P4口:P4^0未用P4^1未用P4^2未用P4^3未用P4^4(RESET)推挽P4^5未用P4^未用P4^7未用 
+ 156   1              //P4M0 =  0  0  0  1  0  0  0  0
+ 157   1              //P4M1 =  0  0  0  0  0  0  0  0
+ 158   1              P4M0 = 0X10;
+ 159   1              P4M1 = 0X00;
+ 160   1              P4SW=P46EN|P45EN|P44EN;
+ 161   1      
+ 162   1              //P5口:P5^0(LED)推挽P5^1未用P5^2未用P5^3未用
+ 163   1              //P5M0 = 0000  0  0  0  1
+ 164   1              //P5M1 = 0000  0  0  0  0
+ 165   1              P5M0 = 0X01;
+ 166   1              P5M1 = 0X00;
+ 167   1      
+ 168   1              
+ 169   1              //IO初始化
+ 170   1              LCD_CS7 = 1;
+ 171   1              SST25VF_CS = 1;
+ 172   1              GT23L_CS = 1;
+ 173   1      
+ 174   1              //关闭MIC
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 14:13:10 PAGE 4   
+
+ 175   1              MicCtrlState=MIC_CTRL=0;
+ 176   1      
+ 177   1              Delayms(1000);
+ 178   1      
+ 179   1      
+ 180   1              //读取系统配置字
+ 181   1              InitParameter();
+ 182   1      
+ 183   1              //单总线初始化  
+ 184   1              SingleBusInit();
+ 185   1      
+ 186   1              //串口初始化
+ 187   1              UsartInit();
+ 188   1              Send_Data_Byte(0x33);
+ 189   1      
+ 190   1      
+ 191   1              SpiLcdMode();
+ 192   1          ST7735_Init();      //液晶屏初始化
+ 193   1      //      背光控制初始化
+ 194   1              BL_SW_Init();
+ 195   1      
+ 196   1              //存储器初始化
+ 197   1              SST25VF_Init();
+ 198   1      
+ 199   1      //      FRAM_TEST();
+ 200   1      
+ 201   1      
+ 202   1      
+ 203   1      
+ 204   1      
+ 205   1              //设置上电指示灯状态    
+ 206   1              SetLedState(LED_OFF);   
+ 207   1      
+ 208   1              //设置初始时间
+ 209   1              stLocalControl.stTime.byYear=0x11;
+ 210   1              stLocalControl.stTime.byMonth=0x01;
+ 211   1              stLocalControl.stTime.byDay=0x28;
+ 212   1              stLocalControl.stTime.byHour=0x16;
+ 213   1              stLocalControl.stTime.byMinute=0x28;
+ 214   1              
+ 215   1              //设置上电登记标志,超时设置(超时后自动发送上电登记命令) 
+ 216   1              bLanding = 1;   
+ 217   1              MakeCH0TimerOut(50, 0); 
+ 218   1      
+ 219   1              //,灯闪烁时间初始化
+ 220   1              stLocalControl.byLedTimeSet     = 25;
+ 221   1              stLocalControl.byLedFlashTime = stLocalControl.byLedTimeSet;    
+ 222   1      
+ 223   1              stLocalControl.bySecondFlashTime=25;
+ 224   1      
+ 225   1      
+ 226   1      
+ 227   1              Read_Cont((uint8 *)(&(stLocalControl.uiDietDataLen)),DIET_LENGTH_ADDR,2);
+ 228   1              Read_Cont((uint8 *)(&(stLocalControl.uiPrescriptionDataLen)),PRESCRIPTION_LENGTH_ADDR,2);
+ 229   1              Read_Cont((uint8 *)(&(stLocalControl.uiPromptDataLen)),PROMPT_LENGTH_ADDR,2);
+ 230   1      
+ 231   1              //上电时使屏亮
+ 232   1              ShowPowerUpFace();
+ 233   1      }
+ 234          /**********************************************************
+ 235          *函数名称                       :GetMessage     
+ 236          *函数描述               :获取主线程消息队列中的消息(无消息则挂起自身)
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 14:13:10 PAGE 5   
+
+ 237          *输入参数               :Msg:存储消息指针
+ 238          *返回值                         :       
+ 239          *全局变量                       :
+ 240          *调用模块                       :
+ 241          ***********************************************************
+ 242          *创建人                 :尹运同
+ 243          *创建日期                       :2008-9-22
+ 244          ***********************************************************
+ 245          *修改人                         :
+ 246          *修改日期               :
+ 247          *注释                   :
+ 248          **********************************************************/
+ 249          void GetMessage(uint8 data *Msg)
+ 250          {
+ 251   1              OSQPend(Msg, byMainCmdQ, 0);
+ 252   1      }
+ 253          /**********************************************************
+ 254          *函数名称                       :DispatchMessage        
+ 255          *函数描述               :分发处理获取的主线程消息
+ 256          *输入参数               :Msg:消息,高4位是命令类型,低4位是命令数据
+ 257          *返回值                         :       
+ 258          *全局变量                       :
+ 259          *调用模块                       :
+ 260          ***********************************************************
+ 261          *创建人                 :尹运同
+ 262          *创建日期                       :2008-9-22
+ 263          ***********************************************************
+ 264          *修改人                         :
+ 265          *修改日期               :
+ 266          *注释                   :
+ 267          **********************************************************/
+ 268          void DispatchMessage(uint8 Msg)
+ 269          {
+ 270   1              switch(Msg&0xf0)
+ 271   1              {
+ 272   2                      case BUS0_REC:                                                                          //总线0收到数据帧
+ 273   2                              Bus0RecDeal();
+ 274   2                              break;
+ 275   2                      case BUS0_SND:                                                                          //总线0数据发送完成
+ 276   2                              Bus0SendDeal();
+ 277   2                              break;  
+ 278   2                      case KEY_DOWN:                                                                          //键按下处理                            
+ 279   2                              KeyDownDeal(Msg);
+ 280   2                              break;
+ 281   2                      case KEY_ALWAYS:                                                                        //键长按下处理
+ 282   2                              KeyAlwaysDeal(Msg);
+ 283   2                              break;
+ 284   2                      case KEY_UP:                                                                            //键弹起处理
+ 285   2                              KeyUpDeal(Msg);
+ 286   2                              break;                                          
+ 287   2                      case TIMER_OUT:                                                                         //超时处理
+ 288   2                              TimerOutDeal();
+ 289   2                              break;                  
+ 290   2              }       
+ 291   1      }
+ 292          /**********************************************************
+ 293          *函数名称                       :MainTask       
+ 294          *函数描述               :系统主线程,负责整个系统的消息处理
+ 295          *输入参数               :
+ 296          *返回值                         :       
+ 297          *全局变量                       :
+ 298          *调用模块                       :
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 14:13:10 PAGE 6   
+
+ 299          ***********************************************************
+ 300          *创建人                 :尹运同
+ 301          *创建日期                       :2008-9-22
+ 302          ***********************************************************
+ 303          *修改人                         :
+ 304          *修改日期               :
+ 305          *注释                   :
+ 306          **********************************************************/
+ 307          void MainTask(void)
+ 308          {
+ 309   1              static uint8 data Msg;  
+ 310   1              
+ 311   1              //系统硬件初始化
+ 312   1              Init();         
+ 313   1              //创建主线程消息队列    
+ 314   1              OSQCreate(byMainCmdQ, 16);
+ 315   1              //以下为创建任务线程    
+ 316   1              OSTaskCreate(Bus0Manage, NULL, 1);      
+ 317   1              OSTaskCreate(KeyManager, NULL, 2);
+ 318   1              OSTaskCreate(DispManager, NULL, 3);     
+ 319   1              OSTaskCreate(TimerOutManager, NULL, 4);
+ 320   1      
+ 321   1              //进入消息循环  
+ 322   1      
+ 323   1              while(TRUE)
+ 324   1              {
+ 325   2                      WDT_CONTR = 0x3d;       //喂狗
+ 326   2                      GetMessage(&Msg);
+ 327   2                      DispatchMessage(Msg);
+ 328   2                      if(bUsart0RecFinish==1)
+ 329   2                      {
+ 330   3                              bUsart0RecFinish=0;
+ 331   3                              Usart0RecDeal();
+ 332   3                      }
+ 333   2              }
+ 334   1      } 
+ 335          /**********************************************************
+ 336          *函数名称                       :main   
+ 337          *函数描述               :系统主函数,整个软件的入口
+ 338          *输入参数               :
+ 339          *返回值                         :       
+ 340          *全局变量                       :
+ 341          *调用模块                       :
+ 342          ***********************************************************
+ 343          *创建人                 :尹运同
+ 344          *创建日期                       :2008-9-22
+ 345          ***********************************************************
+ 346          *修改人                         :
+ 347          *修改日期               :
+ 348          *注释                   :
+ 349          **********************************************************/
+ 350          void main(void)
+ 351          {       
+ 352   1              //操作系统初始化        
+ 353   1              OSInit();
+ 354   1      
+ 355   1      
+ 356   1              //创建系统主线程
+ 357   1              OSTaskCreate(MainTask, NULL, 0); 
+ 358   1              
+ 359   1              while(1)
+ 360   1          {
+C51 COMPILER V9.00   MAIN                                                                  02/18/2019 14:13:10 PAGE 7   
+
+ 361   2                      _nop_();
+ 362   2       //      PCON = PCON | 0x01;                    //CPU进入休眠状态           
+ 363   2          }    
+ 364   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    487    ----
+   CONSTANT SIZE    =      3    ----
+   XDATA SIZE       =     56       1
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =     16    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

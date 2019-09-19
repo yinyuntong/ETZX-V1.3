@@ -1,0 +1,532 @@
+C51 COMPILER V9.00   UART                                                                  06/23/2017 13:33:26 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE UART
+OBJECT MODULE PLACED IN uart.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE uart.c OPTIMIZE(SIZE) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  ºþÄÏÎõÍú´ï¿Æ¼¼ÓÐÏÞ¹«Ë¾
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8          *ÎÄ¼þÃû³Æ               :uart.c
+   9          *ÎÄ¼þÃèÊö               :´®¿ÚÇý¶¯³ÌÐò
+  10          *´´½¨ÈË                 :³ÂÎÀ¹ú
+  11          *´´½¨ÈÕÆÚ               :2008-9-22
+  12          *°æ±¾ºÅ                 :V1.0
+  13          *×¢ÊÍ                   :                                       
+  14          *----------------------------------------------------------
+  15          *ÐÞ¸ÄÈË                         :
+  16          *ÐÞ¸ÄÈÕÆÚ                       :
+  17          *°æ±¾ºÅ                 :
+  18          *×¢ÊÍ                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_UART_
+  22          #include "config.h"
+  23          
+  24          STUartControl idata stUartControl;                                                      //´®¿Ú¿ØÖÆ½á¹¹Ìå
+  25          uint8 xdata byUartBuff[UART0_BUF_SIZE];                                 //¸ø¶Á´®¿ÚÏûÏ¢¶ÓÁÐ·ÖÅäµÄ¶ÓÁÐ¿Õ¼ä        
+  26          uint8 data byUsartData;                                                                         //´®¿Ú»º³åÇøÔÝ´æ
+  27           
+  28          extern STLocalControl   xdata stLocalControl;
+  29          uint8  xdata Page_Color[5]={0x00,0x00,0x00,0x00,0x00};
+  30          extern uint8  xdata  Modify_SEC_Name;
+  31          uint32 xdata Fbaud;   //²¨ÌØÂÊµÄÊýÖµ
+  32          uint8  xdata Fbaud_Type;
+  33          
+  34          extern bit bUsartRecFrame;
+  35          
+  36          extern void Delayms(uint16 ms);
+  37          /**********************************************************
+  38          *º¯ÊýÃû³Æ                       :UartInit       
+  39          *º¯ÊýÃèÊö               :´®¿Ú³õÊ¼»¯
+  40          *ÊäÈë²ÎÊý               :
+  41          *·µ»ØÖµ                         :       
+  42          *È«¾Ö±äÁ¿                       :
+  43          *µ÷ÓÃÄ£¿é                       :
+  44          ***********************************************************
+  45          *´´½¨ÈË                 :³ÂÎÀ¹ú
+  46          *´´½¨ÈÕÆÚ                       :2008-9-22
+  47          ***********************************************************
+  48          *ÐÞ¸ÄÈË                         :
+  49          *ÐÞ¸ÄÈÕÆÚ               :
+  50          *×¢ÊÍ                   :
+  51          **********************************************************/
+  52          void UartInit(void)
+  53          {
+  54   1              //¿ØÖÆ×Ö³õÊ¼»¯
+  55   1              stUartControl.byState  = 0x00;
+C51 COMPILER V9.00   UART                                                                  06/23/2017 13:33:26 PAGE 2   
+
+  56   1              stUartControl.byRxTail = 0x00; 
+  57   1              stUartControl.byCrc    = 0x00;
+  58   1              //²¨ÌØÂÊÉèÖÃ
+  59   1              AUXR |= 0x40;                                                                                   //1TÄ£Ê½ 
+  60   1              SCON = 0x50;
+  61   1              PCON &= 0x7F;
+  62   1              TMOD |= 0x20;
+  63   1              //TH1 = 0xF6;
+  64   1              //TL1 = 0xF6;                                                                                           //²¨ÌØÂÊÉèÖÃÎª57600             
+  65   1              //-------------------------------------------------------------
+  66   1              //-------------------------------------------------------------
+  67   1              //2012/4/9²¨ÌØÂÊ¿É±ä
+  68   1              if(INIT_FLAG==FmReadByte(Set_Baud_ADDR))
+  69   1              {
+  70   2                 Fbaud_Type=FmReadByte(System_Baud_ADDR);
+  71   2                 switch(Fbaud_Type)
+  72   2                 {
+  73   3                   case 1:
+  74   3                       Fbaud=1200;
+  75   3                       break;
+  76   3                       case 2:
+  77   3                       Fbaud=2400;
+  78   3                       break;
+  79   3                       case 3:
+  80   3                       Fbaud=4800;
+  81   3                       break;
+  82   3                       case 4:
+  83   3                       Fbaud=9600;
+  84   3                       break;
+  85   3                       case 5:
+  86   3                       Fbaud=14400;
+  87   3                       break;
+  88   3                       case 6:
+  89   3                       Fbaud=19200;
+  90   3                       break;
+  91   3                       case 7:
+  92   3                       Fbaud=28800;
+  93   3                       break;
+  94   3                       case 8:
+  95   3                       Fbaud=38400;
+  96   3                       break;
+  97   3                       case 9:
+  98   3                       Fbaud=57600;
+  99   3                       break;
+ 100   3                       case 10:
+ 101   3                       Fbaud=115200;
+ 102   3                       break;
+ 103   3                 }
+ 104   2              }
+ 105   1              else
+ 106   1              {
+ 107   2                Fbaud=57600;
+ 108   2              }
+ 109   1              if(Fbaud>2000)
+ 110   1              {
+ 111   2                TL1=TH1=256-(Fosc/32/Fbaud);
+ 112   2              }
+ 113   1              else
+ 114   1              {
+ 115   2                AUXR &= 0xBF;
+ 116   2                TL1=TH1=256-(Fosc/32/Fbaud/12);
+ 117   2              }
+C51 COMPILER V9.00   UART                                                                  06/23/2017 13:33:26 PAGE 3   
+
+ 118   1              //---------------------------------------------------------------------
+ 119   1              //--------------------------------------------------------------------- 
+ 120   1              TR1 = 1;
+ 121   1              ES = 1; 
+ 122   1      }
+ 123          /**********************************************************
+ 124          *º¯ÊýÃû³Æ                       :UartDeal       
+ 125          *º¯ÊýÃèÊö               :´®¿Ú½ÓÊÕµ½Ò»Ö¡Êý¾Ý´¦Àíº¯Êý
+ 126          *ÊäÈë²ÎÊý               :
+ 127          *·µ»ØÖµ                         :
+ 128          *È«¾Ö±äÁ¿                       :
+ 129          *µ÷ÓÃÄ£¿é                       :
+ 130          ***********************************************************
+ 131          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 132          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 133          ***********************************************************
+ 134          *ÐÞ¸ÄÈË                         :
+ 135          *ÐÞ¸ÄÈÕÆÚ               :
+ 136          *×¢ÊÍ                   :
+ 137          **********************************************************/
+ 138          void UartDeal(void)
+ 139          {       
+ 140   1          //-------------------------------------------------------------------------------------------
+ 141   1              //-------------------------------------------------------------------------------------------
+ 142   1              //Ôö¼Ó×Ô¶¯¼ì²âÃüÁî
+ 143   1          if(CMD_RS485_CHECK == ((STUartFreq xdata*)byUartBuff)->byCmd)//Èç¹ûÊÇ×Ô¶¯¼ì²âÃüÁî
+ 144   1              {
+ 145   2                  stLocalControl.stBusDealFreq.byRecSecAddr = CMD_RS485_CHECK;
+ 146   2                  stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+ 147   2                  stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;
+ 148   2                  stLocalControl.stBusDealFreq.byCmd = 0x02;
+ 149   2                  stLocalControl.stBusDealFreq.bySndSecAddr  = 0x01;
+ 150   2                  stLocalControl.stBusDealFreq.bySndRoomAddr = 0x02;
+ 151   2                  stLocalControl.stBusDealFreq.bySndBedAddr  = 0x03;
+ 152   2                      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 153   2      
+ 154   2      
+ 155   2                      return;
+ 156   2              }
+ 157   1              //-------------------------------------------------------------------------------------------
+ 158   1              //-------------------------------------------------------------------------------------------
+ 159   1              if(((STUartFreq xdata*)byUartBuff)->byRecAreaAddr != stLocalControl.stEepromCfgData.bySelfSecAddr)
+ 160   1              {       //µØÖ·²»ÊÇµ½±¾»úµÄ              
+ 161   2                      return;
+ 162   2              }
+ 163   1              if(((STUartFreq xdata*)byUartBuff)->byRecRoomAddr != stLocalControl.stEepromCfgData.bySelfRoomAddr)
+ 164   1              {       //µØÖ·²»ÊÇµ½±¾»úµÄ              
+ 165   2                      return;
+ 166   2              }
+ 167   1              if(((STUartFreq xdata*)byUartBuff)->byRecBedAddr != stLocalControl.stEepromCfgData.bySelfBedAddr)
+ 168   1              {       //µØÖ·²»ÊÇµ½±¾»úµÄ                      
+ 169   2                      return;
+ 170   2              }         
+ 171   1          if(CMD_DISPLAY_DATA == ((STUartFreq xdata*)byUartBuff)->byCmd) //·¢ËÍ¿ÆÊÒÅäÖÃÐÅÏ¢
+ 172   1              {       
+ 173   2                      stLocalControl.pbyData = ((STUartFreq xdata*)byUartBuff)->byData;
+ 174   2                      //stLocalControl.pbyData++;
+ 175   2                      stLocalControl.pbyData+=3;
+ 176   2                      if(0x00 != *(stLocalControl.pbyData))      //...ÊÇ·ñÎªÄÚÂëÊý¾Ý
+ 177   2                      {       
+ 178   3                              stLocalControl.stBusDealFreq.byCmd = CMD_DATA_ERROR;                    
+ 179   3                              goto ExitDeal;
+C51 COMPILER V9.00   UART                                                                  06/23/2017 13:33:26 PAGE 4   
+
+ 180   3                      }
+ 181   2                      stLocalControl.pbyData++;
+ 182   2                  if(0x04 != *(stLocalControl.pbyData))    //...ÊÇ·ñÎªÃÅ¿Ú·Ö»ú½çÃæ
+ 183   2                      {       
+ 184   3                              stLocalControl.stBusDealFreq.byCmd = CMD_DATA_ERROR;                    
+ 185   3                              goto ExitDeal;
+ 186   3                      }
+ 187   2                      stLocalControl.pbyData++;
+ 188   2                      if(*(stLocalControl.pbyData) > 0)      //...ÆÁºÅÊý¾ÝÎª0
+ 189   2                      {       //³¬¹ý×î´óÆÁÊýÄ¿ÁË 
+ 190   3                              stLocalControl.stBusDealFreq.byCmd = CMD_DATA_ERROR;                                    
+ 191   3                              goto ExitDeal;  
+ 192   3                      }
+ 193   2                      stLocalControl.uiShortType = stLocalControl.byChar1 = *(stLocalControl.pbyData);   //ÆÁºÅ·ÅÔÚstLocalCont
+             -rol.byChar1ÖÐ,¿ªÊ¼´æ´¢µ½Ìúµç´æ´¢Æ÷ÖÐ
+ 194   2                      stLocalControl.uiShortType += LCD_SEC_ADDR;     
+ 195   2                      stLocalControl.pbyData ++;
+ 196   2                      if(*(stLocalControl.pbyData) > 0)        //Ö»½ÓÊÕÒ»Ö¡Êý¾Ý£¬Ö¡ºÅÊý¾ÝÎª0
+ 197   2                      {       //³¬¹ý×î´óÐÐÊýÄ¿ÁË
+ 198   3                              stLocalControl.stBusDealFreq.byCmd = CMD_DATA_ERROR;                                    
+ 199   3                              goto ExitDeal;  
+ 200   3                      }
+ 201   2                      stLocalControl.byChar2 = *(stLocalControl.pbyData);       //Ö¡ºÅ·ÅÔÚstLocalControl.byChar2ÖÐ
+ 202   2                      
+ 203   2                      //·µ»ØÕýÈ·Ó¦´ð
+ 204   2                      stLocalControl.stBusDealFreq.byRecSecAddr = CMD_DISPLAY_DATA;
+ 205   2                      stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+ 206   2                      stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;
+ 207   2                      stLocalControl.stBusDealFreq.byCmd = 0x02;
+ 208   2                      stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 209   2                      stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 210   2                      stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 211   2                      Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));
+ 212   2                         
+ 213   2                      if(stLocalControl.byChar2==0x00)                      //Ö¡ºÅÎª0±íÊ¾·¢ËÍµÄÊÇ¿ÆÊÒÃû³Æ¡¢¼¸´²µ½¼¸´²¡¢ÑÕÉ«Êý¾
+             -Ý
+ 214   2                      {
+ 215   3                        stLocalControl.uiShortType += stLocalControl.byChar2 * (((STUartFreq xdata*)byUartBuff)->byLen-8);     //
+             -×Ü¹²41¸ö×Ö½Ú´æ´¢(¿ÆÊÒ14+´²ºÅ4+ÑÕÉ«5+ÔðÈÎÒ½Éú8+ÔðÈÎ»¤Ê¿8+´²ºÅ2)
+ 216   3                        stLocalControl.byChar2 = (1 << stLocalControl.byChar1);               
+ 217   3                        stLocalControl.pbyData++;
+ 218   3                        if(*(stLocalControl.pbyData) == 0x01) //Êý¾ÝÎª½áÊøÐÐ
+ 219   3                        {
+ 220   4                              Modify_SEC_Name = 0x01;
+ 221   4                              FmWriteByte(LCD_SEC_MSK_ADDR,0x01); 
+ 222   4                              stLocalControl.byChar2=0x01;
+ 223   4                        }  
+ 224   3                        //ËùÓÐÊý¾ÝÕýÈ·£¬Ð´ÈëÊý¾Ý
+ 225   3                        stLocalControl.pbyData++;
+ 226   3                        FmWriteBytes(stLocalControl.uiShortType,((STUartFreq xdata*)byUartBuff)->byLen-8,stLocalControl.pbyDat
+             -a);        //¿ªÊ¼´æ´¢·¢ËÍÆÁÊý¾Ý       
+ 227   3                    stLocalControl.uiShortType = LCD_SEC_ADDR;           //...¿ªÊ¼¶ÁÈ¡ÑÕÉ«Êý¾Ý
+ 228   3                stLocalControl.uiShortType =stLocalControl.uiShortType+18;
+ 229   3                        Page_Color[0]=FmReadByte(stLocalControl.uiShortType++);//¿ÆÊÒ×ÖÌåÑÕÉ« 
+ 230   3                    Page_Color[1]=FmReadByte(stLocalControl.uiShortType++);//¿ÆÊÒ×ÖÌå±³¾°É«,Ò²ÊÇÇåÆÁÉ«
+ 231   3                    Page_Color[2]=FmReadByte(stLocalControl.uiShortType++);//ÖÐ¼äÌî³äÑÕÉ«
+ 232   3                        Page_Color[3]=FmReadByte(stLocalControl.uiShortType++);//¼¸´²µ½¼¸´²×ÖÌå±³¾°É«
+ 233   3                    Page_Color[4]=FmReadByte(stLocalControl.uiShortType++);//¼¸´²µ½¼¸´²±³¾°É«,Ò²ÊÇÇåÆÁÉ«
+ 234   3                        if(stLocalControl.byChar2 == 0x01)
+ 235   3                        {     
+ 236   4                          ReadPageColour();
+ 237   4                              SetLcdState(1); 
+C51 COMPILER V9.00   UART                                                                  06/23/2017 13:33:26 PAGE 5   
+
+ 238   4                              ShowPage();     
+ 239   4                        }
+ 240   3                      }
+ 241   2                      return;         
+ 242   2              }
+ 243   1              stLocalControl.stBusDealFreq.byCmd = CMD_DATA_ERROR;            
+ 244   1      ExitDeal:
+ 245   1              stLocalControl.stBusDealFreq.byRecSecAddr = stLocalControl.stBusDealFreq.bySndSecAddr;
+ 246   1          stLocalControl.stBusDealFreq.byRecRoomAddr = stLocalControl.stBusDealFreq.bySndRoomAddr;
+ 247   1              stLocalControl.stBusDealFreq.byRecBedAddr = stLocalControl.stBusDealFreq.bySndBedAddr;
+ 248   1              stLocalControl.stBusDealFreq.bySndSecAddr = stLocalControl.stEepromCfgData.bySelfSecAddr;
+ 249   1              stLocalControl.stBusDealFreq.bySndRoomAddr = stLocalControl.stEepromCfgData.bySelfRoomAddr;
+ 250   1              stLocalControl.stBusDealFreq.bySndBedAddr = stLocalControl.stEepromCfgData.bySelfBedAddr;
+ 251   1              Bus0OutputData(&(stLocalControl.stBusDealFreq.bySndSecAddr));   
+ 252   1      } 
+ 253          /**********************************************************
+ 254          *º¯ÊýÃû³Æ                       :UartInt        
+ 255          *º¯ÊýÃèÊö               :´®¿ÚÖÐ¶Ïº¯Êý
+ 256          *ÊäÈë²ÎÊý               :
+ 257          *·µ»ØÖµ                         :
+ 258          *È«¾Ö±äÁ¿                       :
+ 259          *µ÷ÓÃÄ£¿é                       :
+ 260          ***********************************************************
+ 261          *´´½¨ÈË                 :³ÂÎÀ¹ú
+ 262          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 263          ***********************************************************
+ 264          *ÐÞ¸ÄÈË                         :
+ 265          *ÐÞ¸ÄÈÕÆÚ               :
+ 266          *×¢ÊÍ                   :
+ 267          **********************************************************/
+ 268          #pragma disable
+ 269          void comm(void) interrupt 4
+ 270          {
+ 271   1              if(RI == 1)
+ 272   1              {       
+ 273   2                      RI = 0;
+ 274   2                      //È¡³ö´®¿ÚÊý¾Ý
+ 275   2                      byUsartData = SBUF;
+ 276   2                      //ÉèÖÃ½ÓÊÕ³¬Ê±                          
+ 277   2                      MakeCH0TimerOut(5, 0);  
+ 278   2                      switch(stUartControl.byState)
+ 279   2                      {
+ 280   3                              /*case 0:                                                                                       //ÆðÊ¼½×¶Î                                      
+ 281   3                                      if(byUsartData == START_BYTE1)
+ 282   3                                      {       //ÆðÊ¼×Ö·ûÕýÈ·,ÆðÊ¼×Ö·û²»´æ´¢                                   
+ 283   3                                              stUartControl.byState = 1;
+ 284   3                                              stUartControl.byLen = 7; 
+ 285   3                                              stUartControl.byRxTail = 0;     
+ 286   3                                              stUartControl.byCrc = 0;                                                                                                                                                                                                                
+ 287   3                                      }
+ 288   3                                      else
+ 289   3                                      {
+ 290   3                                              stUartControl.byRxTail = 0;
+ 291   3                                      }                       
+ 292   3                                      break;
+ 293   3                              case 1:
+ 294   3                                      stUartControl.byCrc += byUsartData;     
+ 295   3                                      byUartBuff[stUartControl.byRxTail++] = byUsartData;                     
+ 296   3                                      if(--stUartControl.byLen == 0x00)
+ 297   3                                      {       
+ 298   3                                          stUartControl.byState = 2;
+ 299   3                                              stUartControl.byLen = 2;
+C51 COMPILER V9.00   UART                                                                  06/23/2017 13:33:26 PAGE 6   
+
+ 300   3                                      }                                       
+ 301   3                                      break;
+ 302   3                              case 2: 
+ 303   3                                      stUartControl.byCrc += byUsartData;
+ 304   3                                      byUartBuff[stUartControl.byRxTail++] = byUsartData;
+ 305   3                                      if(--stUartControl.byLen == 0x00)
+ 306   3                                      {
+ 307   3                                        if(MAX_FREQ_DATA_LEN == byUsartData)
+ 308   3                                        {     //³¤¶ÈÖµÕýÈ·
+ 309   3                                          stUartControl.byLen = MAX_FREQ_DATA_LEN;
+ 310   3                                          stUartControl.byState = 3;
+ 311   3                                       }
+ 312   3                                      else
+ 313   3                                      {       //³¤¶ÈÖµ´íÎó,ÍË³ö½ÓÊÕ
+ 314   3                                         stUartControl.byState = 0;
+ 315   3                                         stUartControl.byRxTail = 0;
+ 316   3                                      }
+ 317   3                                 }                                    
+ 318   3                                      break;                          
+ 319   3                              case 3:
+ 320   3                                      stUartControl.byCrc += byUsartData;
+ 321   3                                      byUartBuff[stUartControl.byRxTail++] = byUsartData;
+ 322   3                                      if(--stUartControl.byLen == 0x00) 
+ 323   3                                      {       //½ÓÊÕÍêËùÓÐÊý¾Ý
+ 324   3                                              stUartControl.byState = 4;                                                                      
+ 325   3                                      }
+ 326   3                                      break;
+ 327   3                              case 4:
+ 328   3                                      if(stUartControl.byCrc == byUsartData)
+ 329   3                                      {       //Ð£ÑéºÍÕýÈ·
+ 330   3                                              stUartControl.byState = 5;
+ 331   3                                      }
+ 332   3                                      else
+ 333   3                                      {       //Ð£ÑéºÍ´íÎó,ÍË³ö½ÓÊÕ
+ 334   3                                              stUartControl.byState = 0;
+ 335   3                                              stUartControl.byRxTail = 0;
+ 336   3                                      }
+ 337   3                                      break;
+ 338   3                              case 5: 
+ 339   3                                      stUartControl.byState = 0;                      
+ 340   3                                      if(END_BYTE == byUsartData)
+ 341   3                                      {       //½áÊø×Ö·ûÕýÈ·                                          
+ 342   3                                              OS_INT_ENTER();
+ 343   3                                              OSQIntPost(byMainCmdQ, USART_REC);                              
+ 344   3                                              OSIntExit();
+ 345   3                                      }                               
+ 346   3                                      break;          
+ 347   3                              default:
+ 348   3                                      stUartControl.byState = 0;
+ 349   3                                      stUartControl.byRxTail = 0;
+ 350   3                                      break;*/
+ 351   3                          //2012-3-14Ôö¼Ó¼ì²â°å×Ô¶¯¼ì²â¹¦ÄÜ
+ 352   3                              case 0:                                                                                 //ÆðÊ¼½×¶Î                                      
+ 353   3                                      if(byUsartData == START_BYTE1)
+ 354   3                                      {       //ÆðÊ¼×Ö·ûÕýÈ·,ÆðÊ¼×Ö·û²»´æ´¢                                   
+ 355   4                                              stUartControl.byState = 1;
+ 356   4                                              stUartControl.byLen = 7; 
+ 357   4                                              stUartControl.byRxTail = 0;     
+ 358   4                                              stUartControl.byCrc = 0;
+ 359   4                                                                                                                                                                                                                                                              
+ 360   4                                      }
+ 361   3                                      else
+C51 COMPILER V9.00   UART                                                                  06/23/2017 13:33:26 PAGE 7   
+
+ 362   3                                      {
+ 363   4                                              stUartControl.byRxTail = 0;
+ 364   4                                      }                       
+ 365   3                                      break;
+ 366   3                              case 1:
+ 367   3                                      stUartControl.byCrc += byUsartData;     
+ 368   3                                      byUartBuff[stUartControl.byRxTail++] = byUsartData;                     
+ 369   3                                      if(--stUartControl.byLen == 0x00)
+ 370   3                                      {       
+ 371   4                                          stUartControl.byState = 2;
+ 372   4                                              stUartControl.byLen = 2;
+ 373   4                                              //--------------------------------------------------
+ 374   4                                          //--------------------------------------------------
+ 375   4                                          //Ôö¼Ó×Ô¶¯¼ì²â¹¦ÄÜ
+ 376   4                          if(CMD_RS485_CHECK == ((STUartFreq xdata*)byUartBuff)->byCmd)//Èç¹ûÊÇ×Ô¶¯¼ì²âÃüÁî
+ 377   4                                          {
+ 378   5              
+ 379   5                                            stUartControl.byState = 0x20;
+ 380   5                                            stUartControl.byLen = 7; 
+ 381   5                                          }
+ 382   4                                         //--------------------------------------------------
+ 383   4                                         //--------------------------------------------------
+ 384   4                                      }                                       
+ 385   3                                      break;
+ 386   3                              case 0x20:
+ 387   3                                      stUartControl.byCrc += byUsartData;
+ 388   3                                      byUartBuff[stUartControl.byRxTail++] = byUsartData;
+ 389   3                                      if(--stUartControl.byLen == 0x00)
+ 390   3                                      {
+ 391   4                                        stUartControl.byState = 4;
+ 392   4                                        
+ 393   4                                  }
+ 394   3                                  break;
+ 395   3                              case 2: 
+ 396   3                                      stUartControl.byCrc += byUsartData;
+ 397   3                                      byUartBuff[stUartControl.byRxTail++] = byUsartData;     
+ 398   3                                      
+ 399   3                                      stUartControl.byLen--;
+ 400   3                                      if(stUartControl.byLen == 1)
+ 401   3                                      {       
+ 402   4                                              stUartControl.uiRecLen = byUsartData<<8; 
+ 403   4                                      }                               
+ 404   3              
+ 405   3                                      
+ 406   3                                      else if(stUartControl.byLen == 0x00)
+ 407   3                                      {
+ 408   4                                              stUartControl.uiRecLen += byUsartData;
+ 409   4                                              if(stUartControl.uiRecLen <= MAX_FREQ_DATA_LEN)                                 
+ 410   4                                              {       //Êý¾Ý³¤¶È·ûºÏÒªÇó
+ 411   5                                                      stUartControl.byState = 3;
+ 412   5                                                      //stUartControl.uiRecLen += 2; 
+ 413   5                                              }                               
+ 414   4      
+ 415   4                                              else
+ 416   4                                              {       //³¤¶ÈÖµ´íÎó,ÍË³ö½ÓÊÕ
+ 417   5                                                 stUartControl.byState = 0;
+ 418   5                                                 stUartControl.byRxTail = 0;
+ 419   5                                              }
+ 420   4                                 }                                    
+ 421   3                                      break;                          
+ 422   3                              case 3:
+ 423   3                                      stUartControl.byCrc += byUsartData;
+C51 COMPILER V9.00   UART                                                                  06/23/2017 13:33:26 PAGE 8   
+
+ 424   3                                      byUartBuff[stUartControl.byRxTail++] = byUsartData;
+ 425   3                                      if(--stUartControl.uiRecLen == 0x00) 
+ 426   3                                      {       //½ÓÊÕÍêËùÓÐÊý¾Ý
+ 427   4                                              stUartControl.byState = 4;                                                                      
+ 428   4                                      }
+ 429   3                                      break;
+ 430   3                              case 4:
+ 431   3                                      if(stUartControl.byCrc == byUsartData)
+ 432   3                                      {       //Ð£ÑéºÍÕýÈ·
+ 433   4                                              stUartControl.byState = 5;
+ 434   4                                      }
+ 435   3                                      else
+ 436   3                                      {       //Ð£ÑéºÍ´íÎó,ÍË³ö½ÓÊÕ
+ 437   4                                              stUartControl.byState = 0;
+ 438   4                                              stUartControl.byRxTail = 0;
+ 439   4                                      }
+ 440   3                                      break;
+ 441   3                              case 5: 
+ 442   3                                      stUartControl.byState = 0;              
+ 443   3                                      if(END_BYTE == byUsartData)
+ 444   3                                      {       //½áÊø×Ö·ûÕýÈ·  
+ 445   4                                              bUsartRecFrame=1;
+ 446   4                                                                           
+ 447   4                                      }                               
+ 448   3                                      break;          
+ 449   3                              default:
+ 450   3                                      stUartControl.byState = 0;
+ 451   3                                      stUartControl.byRxTail = 0;
+ 452   3                                      break;                                                  
+ 453   3                      }        
+ 454   2              }
+ 455   1              else
+ 456   1              {
+ 457   2                      TI = 0;         
+ 458   2              }
+ 459   1      }
+ 460          
+ 461          
+ 462          void Send_Data(uint8 *Databuf,uint8 xdata l)
+ 463          { 
+ 464   1          uint8 xdata i;
+ 465   1              
+ 466   1          ES=0;
+ 467   1              for(i=0;i<l;i++)
+ 468   1           {
+ 469   2                 SBUF=*Databuf;
+ 470   2             while(!TI);
+ 471   2                 TI=0;
+ 472   2                 Databuf++;
+ 473   2               }
+ 474   1              ES=1;
+ 475   1      }
+ 476          
+ 477          
+ 478          void Send_Data_Byte(uint8 SendData)
+ 479          { 
+ 480   1              uint8 xdata i;
+ 481   1              
+ 482   1              ES=0;
+ 483   1          SBUF=SendData;
+ 484   1          while(!TI);
+ 485   1          TI=0;
+C51 COMPILER V9.00   UART                                                                  06/23/2017 13:33:26 PAGE 9   
+
+ 486   1              ES=1;
+ 487   1      }
+*** WARNING C280 IN LINE 480 OF UART.C: 'i': unreferenced local variable
+ 488          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1421    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    265       2
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =      6    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

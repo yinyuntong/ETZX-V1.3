@@ -1,0 +1,223 @@
+C51 COMPILER V9.00   EPH1660                                                               02/15/2019 10:08:08 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE EPH1660
+OBJECT MODULE PLACED IN EPH1660.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE EPH1660.C LARGE BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #define _IN_EPH1660
+   2          #include "CONFIG.H"
+   3          
+   4          
+   5          void Delayms(uint16 ms);
+   6          void ResetEPH1660(void);
+   7          uint8 GenerateCRC(uint8 * Packet,uint8 size);
+   8          void MasterSPIInitiEPH1660(void);
+   9          void MasterSPI_Send_Eph1660_Command(uint8 * Databuf,uint8 l);
+  10          void EPH1660Manager(void);
+  11          
+  12          
+  13          
+  14          uint8 xdata Num;
+  15          uint8 xdata MCUSndDataLength,MCUSndDataPosition;  //数据长度,数据位置
+  16          xdata uint8 code *MCUSndDataBuff; //数据指针
+  17          uint8 xdata SPIRecData; //接收数据缓存
+  18          
+  19          uint8 bdata flag;
+  20          sbit RecFramFinishFlag=flag^0;  //接收完一帧数据
+  21          sbit MCUSndFlag = flag^1;   //单片机发送标志
+  22          sbit MCUSndCmdFinishFlag  = flag^2; //一帧命令发送完成标志
+  23          sbit VerifyingFlag  =flag^3;  //正在计算校验和标志
+  24          
+  25          //----------------------------------------------------------------------------------------------
+  26          uint8 code Recognition_Mode[8]={0x50,0x49,0x04,0x00,0xFF,0xFF,0xFF,0x06}; //设置汉字识别模式
+  27          uint8 code GraphicMode[8]=     {0x50,0x49,0x04,0x01,0xFF,0xFF,0xFF,0x10}; //设置为图片模式
+  28          //uint8   code   Set_Area[8]={0x50,0x46,0x04,0x30,0x5E,0xCE,0xD7,0x28};         //设置手写区域(90,100,390,
+             -230)
+  29          uint8 code Set_Area[8]={0x50,0x46,0x04,0x10,0x10,0xF0,0xF0,0x96};         
+  30          
+  31          uint8 code SetInkingOff[8]={0x50,0x14,0x04,0x00,0xff,0xff,0xff,0x2c};   //设置轨迹关闭
+  32          uint8 code WakeUpEPH1660[8]={0x50,0x33,0x04,0x00,0x00,0x00,0x00,0xc7};
+  33          uint8 code TestCode[8]={0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55};
+  34          uint8 code SetEnaTapWake[8]={0x50,0x4A,0x04,0x01,0x02,0xFF,0xFF,0x96};  //无输入16S后进入省电模式
+  35          uint8 code SetNomalMode[8]={0x50,0x4A,0x04,0x01,0x00,0xFF,0xFF,0x40}; //不进入省电模
+  36          uint8 code ExitPowerSavingMode[8]={0x50,0x33,0x04,0xff,0xff,0xff,0xff,0x19};  //退出省电模式
+  37          uint8 code SetStrokeOverWaitingTime[8]={0x50,0x4D,0x04,0x20,0xFF,0xFF,0xFF,0x6C};//设置画笔等待时间
+  38          uint8 code SoftwareReset[8]={0x50,0x42,0x04,0xFF,0xFF,0xFF,0xFF,0xE3};  //软件复位
+  39          //----------------------------------------------------------------------------------------------
+  40          
+  41          uint8   xdata  Rec_Data[8];//接收数据缓冲区
+  42          
+  43          
+  44          //CRC-8 8bits checksum table
+  45          uint8 code CRCTable[256]={
+  46          0x00,0x07,0x0E,0x09,0x1C,0x1B,0x12,0x15,0x38,0x3F,0x36,0x31,
+  47          0x24,0x23,0x2A,0x2D,0x70,0x77,0x7E,0x79,0x6C,0x6B,0x62,0x65,
+  48          0x48,0x4F,0x46,0x41,0x54,0x53,0x5A,0x5D,0xE0,0xE7,0xEE,0xE9,
+  49          0xFC,0xFB,0xF2,0xF5,0xD8,0xDF,0xD6,0xD1,0xC4,0xC3,0xCA,0xCD,
+  50          0x90,0x97,0x9E,0x99,0x8C,0x8B,0x82,0x85,0xA8,0xAF,0xA6,0xA1,
+  51          0xB4,0xB3,0xBA,0xBD,0xC7,0xC0,0xC9,0xCE,0xDB,0xDC,0xD5,0xD2,
+  52          0xFF,0xF8,0xF1,0xF6,0xE3,0xE4,0xED,0xEA,0xB7,0xB0,0xB9,0xBE,
+  53          0xAB,0xAC,0xA5,0xA2,0x8F,0x88,0x81,0x86,0x93,0x94,0x9D,0x9A,
+  54          0x27,0x20,0x29,0x2E,0x3B,0x3C,0x35,0x32,0x1F,0x18,0x11,0x16,
+C51 COMPILER V9.00   EPH1660                                                               02/15/2019 10:08:08 PAGE 2   
+
+  55          0x03,0x04,0x0D,0x0A,0x57,0x50,0x59,0x5E,0x4B,0x4C,0x45,0x42,
+  56          0x6F,0x68,0x61,0x66,0x73,0x74,0x7D,0x7A,0x89,0x8E,0x87,0x80,
+  57          0x95,0x92,0x9B,0x9C,0xB1,0xB6,0xBF,0xB8,0xAD,0xAA,0xA3,0xA4,
+  58          0xF9,0xFE,0xF7,0xF0,0xE5,0xE2,0xEB,0xEC,0xC1,0xC6,0xCF,0xC8,
+  59          0xDD,0xDA,0xD3,0xD4,0x69,0x6E,0x67,0x60,0x75,0x72,0x7B,0x7C,
+  60          0x51,0x56,0x5F,0x58,0x4D,0x4A,0x43,0x44,0x19,0x1E,0x17,0x10,
+  61          0x05,0x02,0x0B,0x0C,0x21,0x26,0x2F,0x28,0x3D,0x3A,0x33,0x34,
+  62          0x4E,0x49,0x40,0x47,0x52,0x55,0x5C,0x5B,0x76,0x71,0x78,0x7F,
+  63          0x6A,0x6D,0x64,0x63,0x3E,0x39,0x30,0x37,0x22,0x25,0x2C,0x2B,
+  64          0x06,0x01,0x08,0x0F,0x1A,0x1D,0x14,0x13,0xAE,0xA9,0xA0,0xA7,
+  65          0xB2,0xB5,0xBC,0xBB,0x96,0x91,0x98,0x9F,0x8A,0x8D,0x84,0x83,
+  66          0xDE,0xD9,0xD0,0xD7,0xC2,0xC5,0xCC,0xCB,0xE6,0xE1,0xE8,0xEF,
+  67          0xFA,0xFD,0xF4,0xF3};
+  68          
+  69          
+  70          /*---------------------------------------------------------------------------
+  71          函数原型: void Delayms(uint16 ms)
+  72          参数说明: ms--需要延时的值
+  73          返 回 值: 无
+  74          函数功能：延时程序(对于18.432M晶振单指令周期延时1mS)
+  75          ----------------------------------------------------------------------------*/
+  76          void Delayms(uint16 ms)   
+  77          {
+  78   1         uint16 xdata i;
+  79   1         for(;ms!=0;ms--)
+  80   1          for(i=900;i!=0;i--);
+  81   1      }
+  82          
+  83          
+  84          
+  85          void ResetEPH1660(void)
+  86          {
+  87   1        EPH1660_CS=1;
+  88   1        RESETB=0;
+  89   1        Delayms(10);
+  90   1        RESETB=1;
+  91   1        Delayms(100);
+  92   1        EPH1660_CS=0;
+  93   1      }
+  94          
+  95          
+  96          unsigned char GenerateCRC(uint8 * Packet,uint8 size)
+  97          {
+  98   1        uint8 xdata i;
+  99   1        uint8 xdata value;
+ 100   1        VerifyingFlag=1;
+ 101   1        value=0;
+ 102   1        for(i=0;i<size-1;i++){
+ 103   2        value ^= Packet[i];
+ 104   2        value = CRCTable[value];
+ 105   2        }
+ 106   1        VerifyingFlag=0;
+ 107   1        return value;
+ 108   1      }
+ 109          
+ 110          
+ 111          void MasterSPIInitiEPH1660(void)
+ 112          {
+ 113   1      
+ 114   1         EPH1660_CS=1;     
+ 115   1      /*   MasterSPI_Send_Eph1660_Command(Recognition_Mode,8);
+ 116   1      //   MasterSPI_Send_Eph1660_Command(SetInkingOff,8);
+C51 COMPILER V9.00   EPH1660                                                               02/15/2019 10:08:08 PAGE 3   
+
+ 117   1      
+ 118   1         while(MCUSndCmdFinishFlag==0); //等待发送命令完成
+ 119   1         MCUSndCmdFinishFlag=0;
+ 120   1         WKICOM=1;
+ 121   1         Delayms(1000);*/
+ 122   1         
+ 123   1       //  MasterSPI_Send_Eph1660_Command(Set_Area,8);
+ 124   1       //MasterSPI_Send_Eph1660_Command(GraphicMode,8);
+ 125   1       //   MasterSPI_Send_Eph1660_Command(WakeUpEPH1660,8);
+ 126   1       //  MasterSPI_Send_Eph1660_Command(SetStrokeOverWaitingTime,8);
+ 127   1          MasterSPI_Send_Eph1660_Command(SoftwareReset,8);
+ 128   1         while(MCUSndCmdFinishFlag==0); //等待发送命令完成
+ 129   1         MCUSndCmdFinishFlag=0;
+ 130   1         WKICOM=1;
+ 131   1         Delayms(1000);
+ 132   1         
+ 133   1      }
+ 134          
+ 135          
+ 136          void MasterSPI_Send_Eph1660_Command(uint8 *Databuf,uint8 l)
+ 137          {
+ 138   1        MCUSndFlag=1;
+ 139   1        MCUSndDataLength=l;
+ 140   1        MCUSndDataPosition=0;
+ 141   1        MCUSndDataBuff=Databuf;
+ 142   1        MCUSndCmdFinishFlag=0;
+ 143   1        SPSTAT |= (SPIF|WCOL);  //清SPI中断标志
+ 144   1        SPDAT=*Databuf;   
+ 145   1        WKICOM=0; //单片机开始发送命令
+ 146   1      }
+ 147          
+ 148          /**********************************************************
+ 149          *函数名称     :DispManager  
+ 150          *函数描述         :按键管理线程
+ 151          *输入参数       :
+ 152          *返回值       :   
+ 153          *全局变量     :byMainCmdQ
+ 154          *调用模块       :OSQPost
+ 155          ***********************************************************
+ 156          *创建人           :尹运同
+ 157          *创建日期     :2008-9-22
+ 158          ***********************************************************
+ 159          *修改人         :
+ 160          *修改日期       :
+ 161          *注释           :
+ 162          **********************************************************/
+ 163          void EPH1660Manager(void)
+ 164          {   
+ 165   1      /*  CCAPM0=0X00;  //禁止调度
+ 166   1          EPH1660MasterSPI();
+ 167   1        MasterSPIInitiEPH1660();
+ 168   1        CCAPM0=0X49;  //开启调度*/
+ 169   1        while(TRUE)
+ 170   1        {   
+ 171   2          WDT_CONTR = 0x3e; //喂狗
+ 172   2          OSWait(K_TMO, 2);
+ 173   2          if(RecFramFinishFlag==1)
+ 174   2          {
+ 175   3            RecFramFinishFlag=0;
+ 176   3            if(Rec_Data[2]==0x04) //一帧8个字节
+ 177   3            {
+ 178   4              if(Rec_Data[7]==GenerateCRC(Rec_Data,8))
+C51 COMPILER V9.00   EPH1660                                                               02/15/2019 10:08:08 PAGE 4   
+
+ 179   4                Send_Data(Rec_Data,8);
+ 180   4            }
+ 181   3            else if(Rec_Data[2]==0x02)  //一帧6个字节
+ 182   3          
+ 183   3            {
+ 184   4              if(Rec_Data[5]==GenerateCRC(Rec_Data,6))
+ 185   4                Send_Data(Rec_Data,6);
+ 186   4            }
+ 187   3            //Send_Data(Rec_Data,8);
+ 188   3          }   
+ 189   2          
+ 190   2        } 
+ 191   1      
+ 192   1      }
+ 193          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    256    ----
+   CONSTANT SIZE    =    344    ----
+   XDATA SIZE       =     14       4
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

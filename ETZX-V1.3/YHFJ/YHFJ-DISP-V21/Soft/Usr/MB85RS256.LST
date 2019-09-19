@@ -1,0 +1,339 @@
+C51 COMPILER V8.08   MB85RS256                                                             05/12/2011 17:14:48 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE MB85RS256
+OBJECT MODULE PLACED IN MB85RS256.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE MB85RS256.C LARGE BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          ************************Copyright(c)************************
+   3          *                                  ºþÄÏÒ»ÌØµç×Ó¹É·ÝÓÐÏÞ¹«Ë¾
+   4          *                               All Rights Reserved
+   5          *                                        
+   6          *
+   7          *-----------------------ÎÄ¼þÐÅÏ¢---------------------------
+   8          *ÎÄ¼þÃû³Æ               :MB85RS256.c
+   9          *ÎÄ¼þÃèÊö               :MB85RS256Ìúµç´æ´¢Æ÷Çý¶¯
+  10          *´´½¨ÈË                 :ÒüÔËÍ¬
+  11          *´´½¨ÈÕÆÚ               :2008-9-22
+  12          *°æ±¾ºÅ                 :V1.0
+  13          *×¢ÊÍ                   :
+  14          *----------------------------------------------------------
+  15          *ÐÞ¸ÄÈË                         :
+  16          *ÐÞ¸ÄÈÕÆÚ                       :
+  17          *°æ±¾ºÅ                 :
+  18          *×¢ÊÍ                   :
+  19          ***********************************************************
+  20          */
+  21          #define _IN_MB5RS256_
+  22          #include "config.h"
+  23          
+  24          uint8 xdata FRAM_BUFF[20];
+  25          void delay_nus(uint8 i);
+  26          void delay_nms(uint8 i);
+  27          void FRAM_Write(uint16 Addr,uint8 *p,uint8 Len);
+  28          void FRAM_Read(uint16 Addr,uint8 *p,uint8 Len);
+  29          void FRAM_Write_Byte(uint16 Addr,uint8 WriteData);
+  30          uint8 FRAM_Read_Byte(uint16 Addr);
+  31          
+  32          /**********************************************************
+  33          *º¯ÊýÃû³Æ                       :FRAM_Write     
+  34          *º¯ÊýÃèÊö               :MB85RS256Ð´²Ù×÷
+  35          *ÊäÈë²ÎÊý               :Addr:µØÖ·
+  36                                                   Len:³¤¶È
+  37          *·µ»ØÖµ                         :       
+  38          *È«¾Ö±äÁ¿                       :
+  39          *µ÷ÓÃÄ£¿é                       :SPI_WriteByte
+  40          ***********************************************************
+  41          *´´½¨ÈË                 :ÒüÔËÍ¬
+  42          *´´½¨ÈÕÆÚ                       :2008-9-22
+  43          ***********************************************************
+  44          *ÐÞ¸ÄÈË                         :
+  45          *ÐÞ¸ÄÈÕÆÚ               :
+  46          *×¢ÊÍ                   :
+  47          **********************************************************/
+  48          void FRAM_Write(uint16 Addr,uint8 *p,uint8 Len)
+  49          {
+  50   1              unsigned int xdata i;
+  51   1              
+  52   1              MB85RS_CS = 0;
+  53   1              //Ð´Ê¹ÄÜ
+  54   1              SPI_WriteByte(WREN);
+  55   1              MB85RS_CS = 1;
+C51 COMPILER V8.08   MB85RS256                                                             05/12/2011 17:14:48 PAGE 2   
+
+  56   1              MB85RS_CS = 0;   
+  57   1              //´«Êä¶ÁÃüÁî    
+  58   1              SPI_WriteByte(WRITE);   
+  59   1              //´«ÊäµØÖ·
+  60   1              SPI_WriteByte((unsigned char)(Addr>>8));
+  61   1              SPI_WriteByte((unsigned char) Addr);
+  62   1              //Ð´ÈëÊý¾Ý 
+  63   1              for(i=0;i<Len;i++)
+  64   1              {       
+  65   2                      SPI_WriteByte(*p++);
+  66   2              }       
+  67   1              MB85RS_CS = 1; 
+  68   1               
+  69   1      }
+  70          
+  71          
+  72          void FRAM_Write_Byte(uint16 Addr,uint8 WriteData)
+  73          {
+  74   1              MB85RS_CS = 0;
+  75   1              //Ð´Ê¹ÄÜ
+  76   1              SPI_WriteByte(WREN);
+  77   1              MB85RS_CS = 1;
+  78   1              MB85RS_CS = 0;   
+  79   1              //´«Êä¶ÁÃüÁî    
+  80   1              SPI_WriteByte(WRITE);   
+  81   1              //´«ÊäµØÖ·
+  82   1              SPI_WriteByte((unsigned char)(Addr>>8));
+  83   1              SPI_WriteByte((unsigned char) Addr);
+  84   1              //Ð´ÈëÊý¾Ý      
+  85   1              SPI_WriteByte(WriteData);       
+  86   1              MB85RS_CS = 1; 
+  87   1               
+  88   1      }
+  89          /**********************************************************
+  90          *º¯ÊýÃû³Æ                       :FRAM_Read      
+  91          *º¯ÊýÃèÊö               :MB85RS256¶Á²Ù×÷
+  92          *ÊäÈë²ÎÊý               :Addr:µØÖ·
+  93                                                   Len:³¤¶È
+  94          *·µ»ØÖµ                         :       
+  95          *È«¾Ö±äÁ¿                       :
+  96          *µ÷ÓÃÄ£¿é                       :SPI_WriteByte
+  97          ***********************************************************
+  98          *´´½¨ÈË                 :ÒüÔËÍ¬
+  99          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 100          ***********************************************************
+ 101          *ÐÞ¸ÄÈË                         :
+ 102          *ÐÞ¸ÄÈÕÆÚ               :
+ 103          *×¢ÊÍ                   :
+ 104          **********************************************************/
+ 105          void FRAM_Read(uint16 Addr,uint8 *p,uint8 Len)
+ 106          {
+ 107   1               unsigned int xdata i;
+ 108   1               
+ 109   1               MB85RS_CS = 0; 
+ 110   1               delay_nus(10);
+ 111   1               SPI_WriteByte(0x03);           //¶ÁÄÚ´æ
+ 112   1               SPI_WriteByte( (unsigned char)(Addr>>8) );
+ 113   1               SPI_WriteByte( (unsigned char) Addr );
+ 114   1               for(i=0;i<Len;i++)
+ 115   1               {
+ 116   2                       SPI_WriteByte(0xf0);   //ÊäÈë8¸öÊ±ÖÓ
+ 117   2                       *p++ = SPDAT;
+C51 COMPILER V8.08   MB85RS256                                                             05/12/2011 17:14:48 PAGE 3   
+
+ 118   2               }
+ 119   1               delay_nus(10);
+ 120   1               MB85RS_CS = 1 ;
+ 121   1      }
+ 122          
+ 123          
+ 124          uint8 FRAM_Read_Byte(uint16 Addr)
+ 125          { 
+ 126   1               uint8 xdata ReadData;
+ 127   1               MB85RS_CS = 0; 
+ 128   1               delay_nus(10);
+ 129   1               SPI_WriteByte(0x03);           //¶ÁÄÚ´æ
+ 130   1               SPI_WriteByte( (unsigned char)(Addr>>8) );
+ 131   1               SPI_WriteByte( (unsigned char) Addr );
+ 132   1      
+ 133   1               SPI_WriteByte(0xf0);   //ÊäÈë8¸öÊ±ÖÓ
+ 134   1               ReadData = SPDAT;
+ 135   1               delay_nus(10);
+ 136   1               MB85RS_CS = 1 ;
+ 137   1               return(ReadData);
+ 138   1      }
+ 139          
+ 140          /**********************************************************
+ 141          *º¯ÊýÃû³Æ                       :delay_nms      
+ 142          *º¯ÊýÃèÊö               :ºÁÃë¼¶ÑÓÊ±²Ù×÷
+ 143          *ÊäÈë²ÎÊý               :i:ÑÓÊ±µÄmsÊý
+ 144          *·µ»ØÖµ                         :       
+ 145          *È«¾Ö±äÁ¿                       :
+ 146          *µ÷ÓÃÄ£¿é                       :
+ 147          ***********************************************************
+ 148          *´´½¨ÈË                 :ÒüÔËÍ¬
+ 149          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 150          ***********************************************************
+ 151          *ÐÞ¸ÄÈË                         :
+ 152          *ÐÞ¸ÄÈÕÆÚ               :
+ 153          *×¢ÊÍ                   :
+ 154          **********************************************************/
+ 155          void delay_nms(uint8 i)
+ 156          {
+ 157   1              unsigned int xdata j;
+ 158   1      
+ 159   1              for(;i>0;i--)
+ 160   1              {
+ 161   2                      for(j=5000;j>0;j--);
+ 162   2              }
+ 163   1               
+ 164   1      }
+ 165          
+ 166          
+ 167          /**********************************************************
+ 168          *º¯ÊýÃû³Æ                       :delay_nus      
+ 169          *º¯ÊýÃèÊö               :ÄÉÃë¼¶ÑÓÊ±²Ù×÷
+ 170          *ÊäÈë²ÎÊý               :i:ÑÓÊ±µÄusÊý
+ 171          *·µ»ØÖµ                         :       
+ 172          *È«¾Ö±äÁ¿                       :
+ 173          *µ÷ÓÃÄ£¿é                       :
+ 174          ***********************************************************
+ 175          *´´½¨ÈË                 :ÒüÔËÍ¬
+ 176          *´´½¨ÈÕÆÚ                       :2008-9-22
+ 177          ***********************************************************
+ 178          *ÐÞ¸ÄÈË                         :
+ 179          *ÐÞ¸ÄÈÕÆÚ               :
+C51 COMPILER V8.08   MB85RS256                                                             05/12/2011 17:14:48 PAGE 4   
+
+ 180          *×¢ÊÍ                   :
+ 181          **********************************************************/
+ 182          void delay_nus(uint8 i)
+ 183          {
+ 184   1              unsigned char xdata j;
+ 185   1      
+ 186   1              for(;i>0;i--)
+ 187   1              {
+ 188   2                      for(j=2;j>0;j--);
+ 189   2              }
+ 190   1               
+ 191   1      }
+ 192          
+ 193          
+ 194          /*---------------------------------------------------------------------------
+ 195          º¯ÊýÔ­ÐÍ: void InitiFRAM(void)
+ 196          ²ÎÊýËµÃ÷: ÎÞ
+ 197          ·µ »Ø Öµ: ÎÞ
+ 198          º¯Êý¹¦ÄÜ: ³õÊ¼»¯Ìúµç´æ´¢Æ÷Ð¾Æ¬
+ 199          ----------------------------------------------------------------------------*/
+ 200          /*void InitiFRAM(void)
+ 201          {
+ 202              SPI_CS0=1;
+ 203              SCLK=0;
+ 204              MOSI=0;
+ 205          }*/
+ 206          /*---------------------------------------------------------------------------
+ 207          º¯ÊýÔ­ÐÍ: void Send_FRAM_Data(uchar sendframdata)
+ 208          ²ÎÊýËµÃ÷: sendframdata--ÐèÒª·¢ËÍµÄÃüÁî¼°Êý¾Ý
+ 209          ·µ »Ø Öµ: ÎÞ
+ 210          º¯Êý¹¦ÄÜ£ºÏòÌúµç´æ´¢Æ÷Ð¾Æ¬·¢ËÍÃüÁî¼°Êý¾Ý
+ 211          ----------------------------------------------------------------------------*/
+ 212          /*void Send_FRAM_Data(uchar sendframdata)
+ 213           {
+ 214              uchar i;
+ 215                  for(i=0; i<8; i++)
+ 216                  {
+ 217                          if(sendframdata&0x80)
+ 218                      MOSI=1;       
+ 219                          else
+ 220                          MOSI=0;
+ 221                          SCLK=1;
+ 222                          _nop_();
+ 223                          SCLK=0;
+ 224                          _nop_();
+ 225                          sendframdata<<= 1;
+ 226                  } 
+ 227           }*/
+ 228          /*--------------------------------------------------------------------------------------------------------
+             --------
+ 229          º¯ÊýÔ­ÐÍ: void Write_FRAM_Data(uchar framhighaddr,uchar framlowaddr,uchar framdata)
+ 230          ²ÎÊýËµÃ÷: framhighaddr--Ìúµç´æ´¢Æ÷µÄ¸ß8Î»µØÖ·,framlowaddr--Ìúµç´æ´¢Æ÷µÄµÍ8Î»µØÖ·,framdata--Ð´Èëµ½Ìúµç´æ´¢Æ
+             -÷µÄÊý¾Ý
+ 231          ·µ »Ø Öµ: ÎÞ
+ 232          º¯Êý¹¦ÄÜ£ºÏòÌúµç´æ´¢Æ÷Ð¾Æ¬µ¥¸öµØÖ·Ð´ÈëÊý¾Ý
+ 233          ----------------------------------------------------------------------------------------------------------
+             --------*/
+ 234          /*void Write_FRAM_Data(uchar framhighaddr,uchar framlowaddr,uchar framdata)
+ 235          {
+ 236               _nop_();
+ 237               _nop_();
+ 238                   _nop_();
+C51 COMPILER V8.08   MB85RS256                                                             05/12/2011 17:14:48 PAGE 5   
+
+ 239                   SPI_CS0=0;
+ 240                   Send_FRAM_Data(WREN); 
+ 241                   SPI_CS0=1;
+ 242               SPI_CS0=0;
+ 243               Send_FRAM_Data(WRITE);
+ 244               Send_FRAM_Data(framhighaddr);
+ 245               Send_FRAM_Data(framlowaddr);
+ 246               Send_FRAM_Data(framdata);
+ 247               Send_FRAM_Data(WRSR);
+ 248               Send_FRAM_Data(0x8E);
+ 249               SPI_CS0=1;
+ 250          }*/
+ 251          /*--------------------------------------------------------------------------------------------------------
+             ----------------------------------------------
+ 252          º¯ÊýÔ­ÐÍ: Write_FRAM_SeqData(uchar framhighaddr,uchar framlowaddr,uchar *databuf,uchar number)
+ 253          ²ÎÊýËµÃ÷: framhighaddr--Ìúµç´æ´¢Æ÷µÄÊ×µØÖ·µÄ¸ß8Î»,framlowaddr--Ìúµç´æ´¢Æ÷µÄÊ×µØÖ·µÄµÍ8Î»,databuf--Ð´Èëµ½Ìú
+             -µç´æ´¢Æ÷µÄÊý¾ÝÖ¸Õë£¬number--ÐèÒªÐ´ÈëµÄÊý¾Ý¸öÊý
+ 254          ·µ »Ø Öµ: ÎÞ
+ 255          º¯Êý¹¦ÄÜ£ºÏòÌúµç´æ´¢Æ÷Ð¾Æ¬Á¬ÐøÐ´ÈëÊý¾Ý
+ 256          ----------------------------------------------------------------------------------------------------------
+             ----------------------------------------------*/
+ 257          /*void Write_FRAM_SeqData(uchar framhighaddr,uchar framlowaddr,uchar *databuf,uchar number)
+ 258          {
+ 259               uchar i;
+ 260               SPI_CS0=0;
+ 261               Send_FRAM_Data(WREN); 
+ 262               SPI_CS0=1;
+ 263               SPI_CS0=0;
+ 264               Send_FRAM_Data(WRITE);
+ 265               Send_FRAM_Data(framhighaddr);
+ 266               Send_FRAM_Data(framlowaddr);
+ 267              for(i=0;i<number;i++)
+ 268               {
+ 269                 Send_FRAM_Data(*(databuf+i));
+ 270                   }
+ 271               Send_FRAM_Data(WRSR);
+ 272               Send_FRAM_Data(0x8E);
+ 273               SPI_CS0=1;
+ 274          }*/
+ 275          /*----------------------------------------------------------------------------------
+ 276          º¯ÊýÔ­ÐÍ: uchar Read_FRAM_Data(uchar framhighaddr,uchar framlowaddr)
+ 277          ²ÎÊýËµÃ÷: framhighaddr--ÐèÒª¶Á³öÊý¾ÝµÄµØÖ·¸ß8Î»,framlowaddr--ÐèÒª¶Á³öÊý¾ÝµÄµØÖ·µÍ8Î»
+ 278          ·µ »Ø Öµ: Ìúµç´æ´¢Æ÷´æ´¢µÄÊý¾Ý
+ 279          º¯Êý¹¦ÄÜ£º¶ÁÈ¡Ìúµç´æ´¢Æ÷Ð¾Æ¬µ¥¸öµØÖ·Êý¾Ý
+ 280          -----------------------------------------------------------------------------------*/
+ 281          /*uchar Read_FRAM_Data(uchar framhighaddr,uchar framlowaddr)
+ 282          {
+ 283               uchar i,j;
+ 284               SPI_CS0=0;
+ 285               Send_FRAM_Data(READ);
+ 286               Send_FRAM_Data(framhighaddr);
+ 287               Send_FRAM_Data(framlowaddr);
+ 288                   for(i=0;i<8;i++)
+ 289                    { 
+ 290                      j <<= 1;
+ 291                  SCLK=1;
+ 292                          _nop_();
+ 293                 if(MISO)
+ 294                 j |= 0x01;         
+ 295                 SCLK=0;
+ 296                          _nop_();
+ 297                    }
+C51 COMPILER V8.08   MB85RS256                                                             05/12/2011 17:14:48 PAGE 6   
+
+ 298                   SPI_CS0=1;
+ 299                   return j;
+ 300          }*/
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    387    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     20      22
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

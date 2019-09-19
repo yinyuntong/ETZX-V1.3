@@ -1,0 +1,537 @@
+C51 COMPILER V9.00   单譥线接口                                                            04/30/2019 16:04:01 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 单譥线接口
+OBJECT MODULE PLACED IN 单总线接口.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 单总线接口.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "单总线接口.h"
+   2          #include    "stc12c5624.h"
+   3          //七个字节一帧:发送方区号,发送方房号,发送方床号,命令,接收方区号,接收方房号,接收方床号
+   4          //总线0宏定义
+   5          
+   6          //#define       BUS0_FREQ_SIZE          7                                                       //单总线0数据帧长度
+   7          #define         BUS0_FREQ_SIZE_HI       (BUS0_FREQ_SIZE << 4)           
+   8          #define         BUS0_TX_Q_ZISE          (BUS0_FREQ_SIZE*10 + 1)         //单总线0数据队列长度
+   9          #define         DisableBus0RecInt()     {EX0 = 0;}                              //单总线0禁止总线中断宏定义
+  10          #define         EnableBus0RecInt()      {IE0 = 0;EX0 = 1;}                      //单总线0恢复总线中断宏定义
+  11          #define         BUS0_SEND_CON           0x3c
+  12          #define         BUS0_CAN_SEND           0x0c 
+  13          #define         BUS0_ON_REC                     0x03
+  14          #define         BUS0_REQ_SEND           0x28
+  15          #define         BUS0_SEND_FINISH        0x0c
+  16          #define         BUS0_ON_WORK            0x23 
+  17          #define FOSC 26000000
+  18          //#define FOSC 18432000
+  19          //单总线自动重载时间    //100us(在18.432M晶振的情况下)
+  20          #define     TIMER0_H  0xff
+  21          #define     TIMER0_L  39 //-((unsigned long)153*FOSC/18432000) 39(recomend)  //100us
+  22          #define     TRUE   1
+  23          #define     FALSE  0
+  24          //#define unsigned char uint8
+  25          sbit        Bus0SendPin = P3^7;
+  26          sbit        Bus0RecPin  = P3^2;
+  27          
+  28          unsigned int data timer=0; //计时器
+  29          
+  30          /*数据帧格式
+  31          字节1：发送方区地址（一个字节）
+  32          字节2：发送方房地址（一个字节）
+  33          字节3：发送方床地址（一个字节）
+  34          字节4：命令代码（一个字节）
+  35          字节5：接收方区地址（一个字节）
+  36          字节6：接收方房地址（一个字节）
+  37          字节7：接收方床地址（一个字节）
+  38          注:数据桢在不同的命令中可能有不同含义
+  39          */
+  40          /*单总线协议
+  41            命令代码:一字节
+  42            数据代码:6字节(根据命令的不同数据格式)
+  43          */
+  44          typedef struct
+  45          {
+  46                  uint8 bySndSecAddr;                     /*主动发送方区地址*/
+  47                  uint8 bySndRoomAddr;            /*主动发送方房地址*/
+  48                  uint8 bySndBedAddr;                     /*主动发送方床地址*/
+  49                  uint8 byCmd;                            /*命令*/
+  50                  uint8 byRecSecAddr;                     /*接收方区地址*/
+  51                  uint8 byRecRoomAddr;            /*接收方房地址*/
+  52                  uint8 byRecBedAddr;                     /*接收方床地址*/        
+  53          } STBusFreq, *pSTBusFreq;       
+  54          /*
+  55          资源:占用外部中断0,定时器T0
+C51 COMPILER V9.00   单譥线接口                                                            04/30/2019 16:04:01 PAGE 2   
+
+  56          
+  57          发送一帧数据时,将数据按STBusFreq格式组织好,调用Bus0OutputData()函数后,数据将自动按序发送.发送完成后,bBus0S
+             -endFinish标志置1.
+  58          
+  59          接收到一帧数据时,bBus0RecFinish标志置1,接收到的数据保存在byBus0RecData[]数组中。
+  60          
+  61          呼叫命令：0x06
+  62          呼叫清除命令：0x10
+  63          */
+  64          
+  65          //总线0变量定义
+  66          uint8 bdata byBus0State0        = 0;                                                    //单总线0状态字1
+  67          sbit  bBus0StartRec                     = byBus0State0^0;                               //单总线0开始接收起始位标志
+  68          sbit  bBus0OnRec                        = byBus0State0^1;                               //单总线0开始接收数据位标志
+  69          sbit  bBus0Enable                       = byBus0State0^2;                               //单总线0允许发送标志
+  70          sbit  bBus0ReqSend                      = byBus0State0^3;                               //单总线0请求发送标志
+  71          sbit  bBus0OnSendBit            = byBus0State0^4;                               //单总线0正在发送一个数据位标志
+  72          sbit  bBus0OnSendFreq           = byBus0State0^5;                               //单总线0正在发送一个数据帧标志
+  73          sbit  bBus0SendError            = byBus0State0^6;                               //单总线0发送错误标志
+  74          sbit  bBus0Error                        = byBus0State0^7;                               //单总线0故障标志
+  75          uint8 bdata byBus0State1        = 0;                                                    //单总线0状态字2
+  76          sbit  bBus0RecFinish            = byBus0State1^0;                               //单总线0接收完成标志
+  77          sbit  bBus0RecBit9                      = byBus0State1^1;                               //单总线0接收字节数据的第9位
+  78          sbit  bBus0SendFinish           = byBus0State1^2;                               //单总线0发送完成标志
+  79          sbit  bBus0Disable                      = byBus0State1^3;                               //单总线0禁止发送标志
+  80          sbit  bBus0SendBit                      = byBus0State1^4;                               //单总线0正在发送的数据位
+  81          sbit  bBus0RecBit                       = byBus0State1^5;                               //单总线0正在接收的数据位
+  82          uint8 xdata byBus0RecCount = 0;                                                         //高4位是总线0接收定时中断计数，低4位是接收到的位计数
+  83          uint8 xdata byBus0RecBuf;                                                                       //总线0接收缓冲单元
+  84          uint8 xdata byBus0SendBuf;                                                                      //总线0发送缓冲单元     
+  85          uint8 xdata byBus0RecData[BUS0_FREQ_SIZE];                                      //总线0接收缓冲区
+  86          uint8 xdata byBus0SendData[BUS0_FREQ_SIZE];                                     //总线0发送缓冲区
+  87          uint8 xdata byBus0SendCount = 0;                                                    //高4位是总线0发送定时中断计数，低4位是发送的位计数
+  88          uint8 xdata byBus0RecSendCount = 0;                                                     //高4位是总线0接收到的字节计数，低4位是总线0发送完的字节计数
+  89          uint8 xdata byBus0SendStopCount;                                                    //总线0停止时间计数
+  90          uint8 xdata byBus0RecTimeOut = 0;                                                       //总线0接收超时计数
+  91          uint8 xdata byBus0DisableCount = 0;                                                     //总线0禁止计数  
+  92          uint8 xdata byBus0TxQ[BUS0_TX_Q_ZISE];                                          //总线0发送队列                                                 
+  93          uint8 xdata byBus0TxHead = 0;                                                           //单总线0发送队列头指针
+  94          uint8 xdata byBus0TxTail = 0;                                                           //单总线0发送队列尾指针
+  95          
+  96          
+  97          #define IncBus0TxPtr(addr)    {addr=(addr+1)%BUS0_TX_Q_ZISE;}
+  98          #define Bus0TxBuffLen()       ((byBus0TxTail+BUS0_TX_Q_ZISE-byBus0TxHead)%BUS0_TX_Q_ZISE) 
+  99          
+ 100          bit bBus0SndBitOk=0;
+ 101          /**********************************************************
+ 102          *函数名称                       :SingleBusInit  
+ 103          *函数描述               :单总线初始化
+ 104          *输入参数               :
+ 105          *返回值                         :       
+ 106          *全局变量                       :
+ 107          *调用模块                       :
+ 108          ***********************************************************
+ 109          *创建人                 :尹运同
+ 110          *创建日期                       :2008-9-22
+ 111          ***********************************************************
+ 112          *修改人                         :
+ 113          *修改日期               :
+ 114          *注释                   :
+ 115          **********************************************************/
+ 116          void SingleBusInit(void)
+C51 COMPILER V9.00   单譥线接口                                                            04/30/2019 16:04:01 PAGE 3   
+
+ 117          {
+ 118   1              //总线电平设置
+ 119   1              Bus0SendPin = 0;
+ 120   1              Bus0RecPin = 1;  
+ 121   1              P3M1|=0x80;
+ 122   1              P3M0&=0x7f;
+ 123   1              
+ 124   1      
+ 125   1              TMOD &= 0xf0;   //  ;t1作波特率发生器(不变)，
+ 126   1              TMOD |= 0X01;   //t0作方式1（16位)定时器
+ 127   1      
+ 128   1              TL0 = TIMER0_L;
+ 129   1              TH0 = TIMER0_H;
+ 130   1              TF0 = 0;                                                                                                //清除中断标志
+ 131   1              ///AUXR &= (~T0x12);                                                                    //传统12分频速度  
+ 132   1              ET0 = 1;                                                                                                //允许定时器0中断 
+ 133   1              TR0 = 1;                                                                                                //启动定时器
+ 134   1              //其它控制设置
+ 135   1              byBus0SendStopCount = 240;                                                              //上电总线0禁止发送时间设置             
+ 136   1              IE0 = 0;                                                                                                //清除中断标志
+ 137   1              IT0 = 1;                                                                                                //外部中断1为下降沿触发模式                                     
+ 138   1              if(Bus0RecPin)
+ 139   1              {       //如果总线正常,开中断   
+ 140   2                      EX0 = 1;
+ 141   2              }
+ 142   1              else
+ 143   1              {       //如果总线不正常,置总线故障标志                                 
+ 144   2                      bBus0Error = 1;
+ 145   2              }       
+ 146   1      }
+ 147          
+ 148          
+ 149          
+ 150          /**********************************************************
+ 151          *函数名称                       :Bus0RecInt     
+ 152          *函数描述               :外部中断0函数,单总线0接收中断
+ 153          *输入参数               :
+ 154          *返回值                         :       
+ 155          *全局变量                       :
+ 156          *调用模块                       :
+ 157          ***********************************************************
+ 158          *创建人                 :尹运同
+ 159          *创建日期                       :2008-9-22
+ 160          ***********************************************************
+ 161          *修改人                         :
+ 162          *修改日期               :
+ 163          *注释                   :
+ 164          **********************************************************/
+ 165          
+ 166          void Bus0RecInt(void) interrupt 0//X1_INTNO
+ 167          {       
+ 168   1              DisableBus0RecInt();                                                                    //禁止再次下降沿中断
+ 169   1              bBus0StartRec = 1;                                                                              //启动起始位沿检测
+ 170   1              bBus0Enable = 0;                                                                                //禁止总线发送                                                  
+ 171   1              byBus0RecCount = 0;                                                                             //清接收寄存器          
+ 172   1      }
+ 173          /**********************************************************
+ 174          *函数名称                       :Timer0Int      
+ 175          *函数描述               :定时器0溢出中断,定时器每500us中断一次
+ 176                                                   程序间隔检查总线0与总线1的接收和发送
+ 177          *输入参数               :
+ 178          *返回值                         :       
+C51 COMPILER V9.00   单譥线接口                                                            04/30/2019 16:04:01 PAGE 4   
+
+ 179          *全局变量                       :
+ 180          *调用模块                       :
+ 181          ***********************************************************
+ 182          *创建人                 :
+ 183          *创建日期                       :2008-9-22
+ 184          ***********************************************************
+ 185          *修改人                         :
+ 186          *修改日期               :
+ 187          *注释                   :
+ 188          **********************************************************/
+ 189          void Timer0Int(void) interrupt 1//T0_INTNO
+ 190          { 
+ 191   1              TR0=0;
+ 192   1              TH0=TIMER0_H;
+ 193   1              TL0=TIMER0_L;
+ 194   1              TR0=1;
+ 195   1              bBus0RecBit = Bus0RecPin;       
+ 196   1              timer++;
+ 197   1              /*******************************总线0接收处理***********************************/
+ 198   1              if(bBus0StartRec)                                                                               //判断总线所处的状态，接收到起始位
+ 199   1              {                       
+ 200   2                      byBus0RecCount += 0x10;                                                         //增加定时中断计数次数
+ 201   2                      if(0x50 == (byBus0RecCount & 0xf0))                                     //到总线起始位检测时间
+ 202   2                      {                       
+ 203   3                              bBus0StartRec = 0;
+ 204   3                              byBus0RecCount = 0x00;                                                  //重新开始计数                  
+ 205   3                              if(bBus0RecBit)                 
+ 206   3                              {       //无效起始位                                                                                                                                            
+ 207   4                                      if((!bBus0SendError)&&bBus0OnSendFreq)
+ 208   4                                      {       //没有发生过总线发送错误,且有一帧数据正在发送,停止帧数据发送,置发送错误标志                                             
+ 209   5                                              byBus0State0 &= (~BUS0_SEND_CON);
+ 210   5                                              bBus0SendError = 1;
+ 211   5                                              Bus0SendPin = 0;                                                //释放总线                                      
+ 212   5                                      }                               
+ 213   4                                      byBus0SendStopCount = 240;                                      
+ 214   4                                      byBus0RecSendCount = 0x00;                                      //接收出错,重置接收发送计数值
+ 215   4                                      EnableBus0RecInt();                             
+ 216   4                              }
+ 217   3                              else                                                            
+ 218   3                              {       //有效起始位
+ 219   4                                      bBus0OnRec = 1;                                                         //开始接收数据位                                                                                        
+ 220   4                              }
+ 221   3                      }
+ 222   2              }
+ 223   1              else if(bBus0OnRec)
+ 224   1              {               
+ 225   2                      byBus0RecCount += 0x10;                                                         //增加定时中断计数次数                  
+ 226   2                      if(0xa0 == (byBus0RecCount & 0xf0))
+ 227   2                      {
+ 228   3                              byBus0RecCount &= 0x0f;                                                 //清除定时中断计数次数
+ 229   3                              byBus0RecCount += 0x01;
+ 230   3                              if(0x0a == (byBus0RecCount & 0x0f))     
+ 231   3                              {       //收到第10位,结束位                                     
+ 232   4                                      bBus0OnRec = 0;                                                         //停止数据接收                                  
+ 233   4                                      if(bBus0RecBit)
+ 234   4                                      {       //有效的结束位                                                  
+ 235   5                                              if(((bit)(byBus0RecSendCount & 0xf0) == bBus0RecBit9)) 
+ 236   5                                              {       //数据桢错误
+ 237   6                                                      byBus0RecTimeOut = 0;
+ 238   6                                                      byBus0RecSendCount &= 0x0f;                                                                                     
+ 239   6                                              }
+ 240   5                                              else 
+C51 COMPILER V9.00   单譥线接口                                                            04/30/2019 16:04:01 PAGE 5   
+
+ 241   5                                              {       //数据桢正确                                    
+ 242   6                                                      byBus0RecTimeOut = 230;                         //设置下一个字节数据接收超时时间
+ 243   6                                                      byBus0RecData[byBus0RecSendCount>>4] = byBus0RecBuf;
+ 244   6                                                      byBus0RecSendCount += 0x10;                                                                                                                                                                     
+ 245   6                                                      if((byBus0RecSendCount & 0xf0) >= BUS0_FREQ_SIZE_HI)
+ 246   6                                                      {                                                                                                                                                                               
+ 247   7                                                              byBus0RecSendCount &= 0x0f;                                                     
+ 248   7                                                              if(!((bBus0OnSendFreq == 1)&&(bBus0ReqSend == 0)))
+ 249   7                                                              {       //如果接收到的这帧数据是自己发送的不置标志                                                      
+ 250   8                                                                      bBus0RecFinish = 1;                                                                                                                                                                                                                                                                                                             
+ 251   8                                                              }                                                                                                                                               
+ 252   7                                                              byBus0RecTimeOut = 0;
+ 253   7                                                              byBus0DisableCount = 10;
+ 254   7                                                              bBus0Disable = 1;                               //禁止总线使用                                                  
+ 255   7                                                      }       
+ 256   6                                              }                               
+ 257   5                                              byBus0SendStopCount = 240;
+ 258   5                                              EnableBus0RecInt();                                             
+ 259   5                                      }
+ 260   4                                      else                                                    
+ 261   4                                      {       //无效结束位
+ 262   5                                              bBus0Error = 1;                                                                         
+ 263   5                                              if((!bBus0SendError) && bBus0OnSendFreq)
+ 264   5                                              {       //没有发生过总线发送错误,且有一帧数据正在发送,停止帧数据发送,置发送错误标志
+ 265   6                                                      byBus0State0 &= (~BUS0_SEND_CON);
+ 266   6                                                      bBus0SendError = 1;                                                     
+ 267   6                                                      Bus0SendPin = 0;                                        //释放总线
+ 268   6                                              }
+ 269   5                                              byBus0RecSendCount = 0x00;                              //接收出错,重置接收发送计数值                                   
+ 270   5                                      }
+ 271   4                              }
+ 272   3                              else if(0x09 == (byBus0RecCount & 0x0f))
+ 273   3                              {       //第9位数据
+ 274   4                                      bBus0RecBit9 = bBus0RecBit;                                     
+ 275   4                              }
+ 276   3                              else                                                                                    
+ 277   3                              {       //有效数据位
+ 278   4                                      byBus0RecBuf >>= 1;
+ 279   4                                      if(bBus0RecBit)
+ 280   4                                      {       //为高电平
+ 281   5                                              byBus0RecBuf |= 0x80;
+ 282   5                                      }       
+ 283   4                              }
+ 284   3                      }
+ 285   2              }
+ 286   1              /*******************************总线0发送处理***********************************/
+ 287   1              if((byBus0State0 & BUS0_CAN_SEND) == BUS0_CAN_SEND)
+ 288   1              {       //总线0上有数据发送请求,且总线允许发送          
+ 289   2                      if(bBus0RecBit)
+ 290   2                      {       //总线正常,可以发送
+ 291   3                              Bus0SendPin = 1;
+ 292   3                              bBus0SendBit = 0;                                                               //发送起始位数据                        
+ 293   3                              byBus0SendCount = 0;
+ 294   3                              byBus0State0 &= (~BUS0_CAN_SEND);
+ 295   3                              byBus0SendBuf = byBus0SendData[byBus0RecSendCount & 0x0f];
+ 296   3                              bBus0OnSendBit = 1;                                                             //取出待发送的数据并置正在发送标志              
+ 297   3                      }
+ 298   2                      else
+ 299   2                      {       //总线不正常,停止发送
+ 300   3                              byBus0State0 &= (~BUS0_SEND_CON);
+ 301   3                              bBus0SendError = 1;                     
+ 302   3                              byBus0RecSendCount &= 0xf0;
+C51 COMPILER V9.00   单譥线接口                                                            04/30/2019 16:04:01 PAGE 6   
+
+ 303   3                              Bus0SendPin = 0;
+ 304   3                              byBus0SendStopCount = 240;
+ 305   3                      }
+ 306   2              }
+ 307   1              else if(bBus0OnSendBit)
+ 308   1              {       //有数据位正在发送,首先发送的是起始位   
+ 309   2                      byBus0SendCount += 0x10;
+ 310   2                      if(0x50 == (byBus0SendCount & 0xf0))
+ 311   2                      {//处于一个数据位的中间
+ 312   3                              if(bBus0SendBit == bBus0RecBit) bBus0SndBitOk=1;
+ 313   3                              else
+ 314   3                              {       //不相同,发送失败                                                               
+ 315   4                                      byBus0State0 &= ~BUS0_SEND_CON;
+ 316   4                                      byBus0RecSendCount &= 0xf0;
+ 317   4                                      bBus0SendError = 1;                                     
+ 318   4                                      Bus0SendPin = 0; 
+ 319   4                                      byBus0SendStopCount = 240;
+ 320   4      
+ 321   4                                      bBus0SndBitOk=0;
+ 322   4                              }                       
+ 323   3                      }
+ 324   2                              
+ 325   2                      //if(bBus0SendBit == bBus0RecBit)       
+ 326   2                      else if(bBus0SndBitOk ==1)
+ 327   2                      {       //发送的数据和接收的数据相同
+ 328   3                              //byBus0SendCount += 0x10;
+ 329   3                              if(0xa0 == (byBus0SendCount & 0xf0))
+ 330   3                              {       //一位数据发送完毕,首先发送的是起始位
+ 331   4                      bBus0SndBitOk =0;
+ 332   4                                      
+ 333   4                                      byBus0SendCount &= 0x0f;
+ 334   4                                      byBus0SendCount += 0x01;                                
+ 335   4                                      if(0x09 == (byBus0SendCount & 0x0f))
+ 336   4                                      {       //发送到第9位了
+ 337   5                                              bBus0SendBit = !(bit)(byBus0RecSendCount & 0x0f);
+ 338   5                                              Bus0SendPin = !bBus0SendBit;                                            
+ 339   5                                      }
+ 340   4                                      else if(0x0a == (byBus0SendCount & 0x0f))
+ 341   4                                      {       //发送到结束位了
+ 342   5                                              bBus0SendBit = 1;
+ 343   5                                              Bus0SendPin = 0;        
+ 344   5                                      }
+ 345   4                                      else if(0x0b == (byBus0SendCount & 0x0f))
+ 346   4                                      {       //已经发送完结束位了
+ 347   5                                              bBus0OnSendBit = 0;                                             
+ 348   5                                              byBus0RecSendCount += 0x01;                                                                     
+ 349   5                                              if((byBus0RecSendCount & 0x0f) >= BUS0_FREQ_SIZE)
+ 350   5                                              {       //发送完一帧数据                                                                                                
+ 351   6                                                      byBus0RecSendCount &= 0xf0;                     //重新进入数据帧的发送阶段
+ 352   6                                                      byBus0State0 &= (~BUS0_SEND_CON);
+ 353   6                                                      byBus0SendStopCount = 240;
+ 354   6                                                      byBus0State1 |= BUS0_SEND_FINISH;                                                               
+ 355   6                                                      byBus0DisableCount = 10;                                                
+ 356   6                                              }
+ 357   5                                              else
+ 358   5                                              {                                               
+ 359   6                                                      byBus0SendStopCount = 10;
+ 360   6                                                      bBus0ReqSend = 1;
+ 361   6                                              }
+ 362   5                                              EnableBus0RecInt();                                             //再次使能接收中断
+ 363   5                                      }
+ 364   4                                      else
+C51 COMPILER V9.00   单譥线接口                                                            04/30/2019 16:04:01 PAGE 7   
+
+ 365   4                                      {
+ 366   5                                              if(byBus0SendBuf & 0x01)
+ 367   5                                              {       //发送高电平
+ 368   6                                                      bBus0SendBit = 1;
+ 369   6                                                      Bus0SendPin = 0;                                        
+ 370   6                                              }
+ 371   5                                              else
+ 372   5                                              {       //发送低电平
+ 373   6                                                      bBus0SendBit = 0;
+ 374   6                                                      Bus0SendPin = 1;
+ 375   6                                              }
+ 376   5                                              byBus0SendBuf >>= 1;                                    //发送数据位移位操作
+ 377   5                                      }
+ 378   4                              }
+ 379   3                      }
+ 380   2      /*              else
+ 381   2                      {       //不相同,发送失败                                                               
+ 382   2                              byBus0State0 &= ~BUS0_SEND_CON;
+ 383   2                              byBus0RecSendCount &= 0xf0;
+ 384   2                              bBus0SendError = 1;                                     
+ 385   2                              Bus0SendPin = 0; 
+ 386   2                              byBus0SendStopCount = 240;
+ 387   2                      }*/
+ 388   2              }       
+ 389   1              /*******************************总线0控制处理***********************************/
+ 390   1              if(0 == (byBus0State0 & BUS0_ON_REC))
+ 391   1              {       
+ 392   2                      if(byBus0SendStopCount != 0)
+ 393   2                      {
+ 394   3                              if((--byBus0SendStopCount) == 0)
+ 395   3                              {                               
+ 396   4                                      bBus0Enable = 1;                                                                
+ 397   4                              }
+ 398   3                      }               
+ 399   2                      if(bBus0Error)
+ 400   2                      {                                                               
+ 401   3                              bBus0Enable = 0;                        
+ 402   3                              if(bBus0RecBit)
+ 403   3                              {                               
+ 404   4                                      bBus0Error = 0;
+ 405   4                                      EnableBus0RecInt();
+ 406   4                                      byBus0SendStopCount = 240;
+ 407   4                              }
+ 408   3                      }
+ 409   2              }       
+ 410   1              /*******************************总线0超时处理***********************************/
+ 411   1              if(byBus0RecTimeOut != 0)
+ 412   1              {
+ 413   2                      if(--byBus0RecTimeOut == 0)                                                     
+ 414   2                      {       //接收超时到
+ 415   3                              byBus0RecSendCount &= 0x0f;                     
+ 416   3                      }
+ 417   2              }
+ 418   1              if(byBus0DisableCount != 0)
+ 419   1              {
+ 420   2                      if(--byBus0DisableCount == 0)                                           
+ 421   2                      {       //禁止超时到            
+ 422   3                              bBus0Disable = 0;
+ 423   3                      }
+ 424   2              }       
+ 425   1              /***********总线0自动发送管理**********/         
+ 426   1              if((byBus0State0 & BUS0_ON_WORK) == 0x00)                               
+C51 COMPILER V9.00   单譥线接口                                                            04/30/2019 16:04:01 PAGE 8   
+
+ 427   1              {       //总线0没有工作                         
+ 428   2                      if(bBus0SendError)                                              
+ 429   2                      {       //产生了发送错误,自动重发                                                               
+ 430   3                              bBus0SendError = 0;                             
+ 431   3                              byBus0State0 |= BUS0_REQ_SEND;          
+ 432   3                      }
+ 433   2                      else                                                                    
+ 434   2                      {       //总线0无发送错误               
+ 435   3                              if(!(bBus0SendFinish|bBus0Disable))
+ 436   3                              {       //总线0没有禁止使用,且发送结束处理已经完成
+ 437   4                                      if(Bus0TxBuffLen() >= BUS0_FREQ_SIZE)
+ 438   4                                      {       //有一帧完整的数据在发送队列中                                                                                                                                          
+ 439   5                                              byBus0SendData[0] = byBus0TxQ[byBus0TxHead];
+ 440   5                                              IncBus0TxPtr(byBus0TxHead);
+ 441   5                                              byBus0SendData[1] = byBus0TxQ[byBus0TxHead];
+ 442   5                                              IncBus0TxPtr(byBus0TxHead);
+ 443   5                                              byBus0SendData[2] = byBus0TxQ[byBus0TxHead];
+ 444   5                                              IncBus0TxPtr(byBus0TxHead);
+ 445   5                                              byBus0SendData[3] = byBus0TxQ[byBus0TxHead];
+ 446   5                                              IncBus0TxPtr(byBus0TxHead);
+ 447   5                                              byBus0SendData[4] = byBus0TxQ[byBus0TxHead];
+ 448   5                                              IncBus0TxPtr(byBus0TxHead);
+ 449   5                                              byBus0SendData[5] = byBus0TxQ[byBus0TxHead];
+ 450   5                                              IncBus0TxPtr(byBus0TxHead);
+ 451   5                                              byBus0SendData[6] = byBus0TxQ[byBus0TxHead];
+ 452   5                                              IncBus0TxPtr(byBus0TxHead);     
+ 453   5                                              byBus0State0 |= BUS0_REQ_SEND;                                          
+ 454   5                                      }
+ 455   4                                      else
+ 456   4                                      {       //没有一帧完整的数据在发送队列中了
+ 457   5                                              byBus0TxHead = byBus0TxTail = 0;
+ 458   5                                      }                                                               
+ 459   4                              }
+ 460   3                      }
+ 461   2              }       
+ 462   1      }
+ 463          
+ 464          /**********************************************************
+ 465          *函数名称                       :Bus0OutputData 
+ 466          *函数描述               :单总线0将待发送数据放入缓冲区
+ 467          *输入参数               :pbyData:待发送的数据指针
+ 468          *返回值                         :TRUE:发送成功,FALSE:队列满,发送失败    
+ 469          *全局变量                       :
+ 470          *调用模块                       :
+ 471          ***********************************************************
+ 472          *创建人                 :尹运同
+ 473          *创建日期                       :2008-9-22
+ 474          ***********************************************************
+ 475          *修改人                         :
+ 476          *修改日期               :
+ 477          *注释                   :
+ 478          **********************************************************/
+ 479          unsigned char Bus0OutputData(unsigned char* pbyData)
+ 480          {
+ 481   1              unsigned char byTemp = BUS0_FREQ_SIZE;
+ 482   1              EA=0;
+ 483   1              if(Bus0TxBuffLen() >= (BUS0_TX_Q_ZISE - 1))
+ 484   1              {       //没有空间存储了,失败   
+ 485   2                      EA=1;
+ 486   2                      return(FALSE);
+ 487   2              }       
+ 488   1              while(byTemp--)
+C51 COMPILER V9.00   单譥线接口                                                            04/30/2019 16:04:01 PAGE 9   
+
+ 489   1              {       //数据入发送队列
+ 490   2                      byBus0TxQ[byBus0TxTail] = *pbyData++;
+ 491   2                      IncBus0TxPtr(byBus0TxTail);
+ 492   2              }
+ 493   1              EA=1;   
+ 494   1              return(TRUE);   
+ 495   1      }
+ 496          
+ 497          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1204    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     95    ----
+   PDATA SIZE       =   ----       4
+   DATA SIZE        =      4    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,19 @@
+---- BL_ON Matches (18 in 5 files) ----
+LCD.c (Usr):void BL_ON(void);
+LCD.c (Usr):void BL_ON(void)
+LCD.c (Usr):	BL_ON();
+LCD.h (Usr):extern void BL_ON(void);
+main.c (Usr):										BL_ON();
+main.c (Usr):										BL_ON();
+SingleBus.c (Usr):							BL_ON();
+SingleBus.c (Usr):				BL_ON();
+SingleBus.c (Usr):			 BL_ON();
+SingleBus.c (Usr):			BL_ON();
+SingleBus.c (Usr):				 BL_ON();
+SingleBus.c (Usr):			 BL_ON();
+SingleBus.c (Usr):			 BL_ON();
+SingleBus.c (Usr):				BL_ON();
+SingleBus.c (Usr):					BL_ON();
+SingleBus.c (Usr):				BL_ON();
+SingleBus.c (Usr):			BL_ON();
+Uart.c (Usr):				BL_ON();

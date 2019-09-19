@@ -1,0 +1,319 @@
+C51 COMPILER V9.00   OS_MEM                                                                02/18/2019 16:52:21 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE OS_MEM
+OBJECT MODULE PLACED IN .\OS_MEM.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ..\OS\OS_MEM.C LARGE BROWSE DEBUG OBJECTEXTEND PRINT(.\OS_MEM.lst) OBJECT(.
+                    -\OS_MEM.obj)
+
+line level    source
+
+   1          /*********************************************************************************************************
+   2          **                                                             Small RTOS(51)
+   3          **                                   The Real-Time Kernel(For Keil c51)
+   4          **
+   5          **                                  (c) Copyright 2002-2003, chenmingji
+   6          **                                           All Rights Reserved
+   7          **
+   8          **                                                  V1.20.0
+   9          **
+  10          **
+  11          **--------------文件信息--------------------------------------------------------------------------------
+  12          **文   件   名: OS_mem.c
+  13          **创   建   人: 陈明计
+  14          **最后修改日期:  2003年8月3日
+  15          **描　     述: 内存动态分配模块，可以在非Small RTOS(51)下使用。在Small RTOS(51)
+  16          **             下必须配置为支持重入栈。
+  17          **--------------历史版本信息----------------------------------------------------------------------------
+  18          ** 创建人: 陈明计
+  19          ** 版  本: V1.20.0
+  20          ** 日　期: 2003年8月3日
+  21          ** 描　述: 原始版本
+  22          **
+  23          **------------------------------------------------------------------------------------------------------
+  24          **--------------当前版本修订------------------------------------------------------------------------------
+  25          ** 修改人: 
+  26          ** 日　期:
+  27          ** 描　述:
+  28          **
+  29          **------------------------------------------------------------------------------------------------------
+  30          ********************************************************************************************************/
+  31          #define IN_OS_MEM
+  32          #include "config.h"
+  33          
+  34          #ifndef EN_OS_MEM
+              #define EN_OS_MEM       1
+              #endif
+  37          
+  38          #if EN_OS_MEM > 0
+  39          static struct _FreeMem xdata *OSFreeMem;                /* 自由内存块的双向链表的头 */
+  40          
+  41          //static struct _FreeMem xdata * xdata OSFreeMem;                /* 自由内存块的双向链表的头 */
+  42          
+  43          /*********************************************************************************************************
+  44          ** 函数名称: UserMemChkErr
+  45          ** 功能描述: 内存回收时出错处理函数，将EN_UserMemChkErr定义为1时,用户可以自己定义这个函数。
+  46          ** 输　入: Addr: 应当回收的内存块
+  47          ** 输　出: 无
+  48          ** 全局变量: 无
+  49          ** 调用模块: 无
+  50          **
+  51          ** 作　者: 陈明计
+  52          ** 日　期: 2003年8月3日
+  53          **-------------------------------------------------------------------------------------------------------
+  54          ** 修改人:
+C51 COMPILER V9.00   OS_MEM                                                                02/18/2019 16:52:21 PAGE 2   
+
+  55          ** 日　期:
+  56          **------------------------------------------------------------------------------------------------------
+  57          ********************************************************************************************************/
+  58          #if EN_OS_MEM_CHK > 0 && EN_UserMemChkErr == 0
+  59          //        void UserMemChkErr(void xdata *Addr) reentrant
+  60          void UserMemChkErr(void xdata *Addr) 
+  61          {
+  62   1          Addr = Addr;
+  63   1          while (1);
+  64   1      }
+  65          #endif
+  66          
+  67          /*********************************************************************************************************
+  68          ** 函数名称: OSMemInit
+  69          ** 功能描述: 初始化动态内存分配模块。
+  70          ** 输　入: Addr: 指向空闲空间起始位置的指针
+  71          **        MemSize: 空闲空间的大小 
+  72          ** 输　出: TRUE: 成功
+  73          **        FALSE: 失败
+  74          ** 全局变量: 无
+  75          ** 调用模块: 无
+  76          **
+  77          ** 作　者: 陈明计
+  78          ** 日　期: 2003年8月3日
+  79          **-------------------------------------------------------------------------------------------------------
+  80          ** 修改人:
+  81          ** 日　期:
+  82          **------------------------------------------------------------------------------------------------------
+  83          ********************************************************************************************************/
+  84                  uint8 OSMemInit(void xdata *Addr, unsigned int MemSize)
+  85          {
+  86   1       //   struct _FreeMem xdata *MemFree;
+  87   1          struct _FreeMem xdata *MemFree;
+  88   1             
+  89   1          MemSize = MemSize & ~(sizeof(int) - 1);     /* 内存按照字(word)为单位分配 */
+  90   1                                                      /* 调整MemSize为字(word)的整数倍 */
+  91   1      
+  92   1          /* 判断自由空间是否有效 */
+  93   1          if (Addr != NULL && MemSize > sizeof(struct _UsingMem))
+  94   1          {
+  95   2              /* 建立只有一个节点的双向队列 */
+  96   2              OS_ENTER_CRITICAL();
+  97   2              MemFree = (struct _FreeMem xdata *)Addr;
+  98   2              OSFreeMem = MemFree;
+  99   2              MemFree->Size = MemSize;
+ 100   2              MemFree->Next = NULL;
+ 101   2              MemFree->Last = NULL;
+ 102   2              OS_EXIT_CRITICAL();
+ 103   2              return TRUE;
+ 104   2          }
+ 105   1          else
+ 106   1          {
+ 107   2              return FALSE;
+ 108   2          }
+ 109   1      }
+ 110          
+ 111          /*********************************************************************************************************
+ 112          ** 函数名称: OSMemNew
+ 113          ** 功能描述: 分配内存。
+ 114          ** 输　入: Size: 所需内存的大小
+ 115          ** 输　出: 指向已分配的内存开始的地址的指针，NULL为失败。
+ 116          ** 全局变量: 无
+C51 COMPILER V9.00   OS_MEM                                                                02/18/2019 16:52:21 PAGE 3   
+
+ 117          ** 调用模块: 无
+ 118          **
+ 119          ** 作　者: 陈明计
+ 120          ** 日　期: 2003年8月3日
+ 121          **-------------------------------------------------------------------------------------------------------
+ 122          ** 修改人:
+ 123          ** 日　期:
+ 124          **------------------------------------------------------------------------------------------------------
+ 125          ********************************************************************************************************/
+ 126          //        void xdata *OSMemNew(unsigned int Size) reentrant
+ 127          void xdata *OSMemNew(unsigned int Size) 
+ 128          {
+ 129   1          struct _FreeMem xdata * xdata ThisFreeMem;
+ 130   1          struct _UsingMem xdata * xdata Rt;
+ 131   1          
+ 132   1          OS_ENTER_CRITICAL();
+ 133   1          ThisFreeMem = OSFreeMem;
+ 134   1          
+ 135   1          /* 调整应当分配的大小（必须为字(word)）的整数倍，且要加入分配给头的空间 */
+ 136   1          Size = ((Size + sizeof(int) - 1) & ~(sizeof(int) - 1)) + 
+ 137   1                 sizeof(struct _UsingMem);
+ 138   1          
+ 139   1          /* 查找足够大的自由内存块 */
+ 140   1          while(ThisFreeMem != NULL)
+ 141   1          {
+ 142   2              if ((ThisFreeMem->Size) >= Size)
+ 143   2              {
+ 144   3                  break;
+ 145   3              }
+ 146   2              ThisFreeMem = ThisFreeMem->Next;
+ 147   2          }
+ 148   1          if (ThisFreeMem != NULL)
+ 149   1          {
+ 150   2              if ((ThisFreeMem->Size) < (Size + sizeof(struct _FreeMem)))
+ 151   2              {
+ 152   3                  /* 分配后剩余内存太小则整块自由内存分配出去 */
+ 153   3                  /* 即在双向链表中删除这个节点 */
+ 154   3                  if (ThisFreeMem->Next != NULL)
+ 155   3                  {
+ 156   4                      (ThisFreeMem->Next)->Last = ThisFreeMem->Last;
+ 157   4                  }
+ 158   3                  if (ThisFreeMem->Last)
+ 159   3                  {
+ 160   4                      (ThisFreeMem->Last)->Next = ThisFreeMem->Next;
+ 161   4                  }
+ 162   3                  Size = ThisFreeMem->Size;
+ 163   3                  Rt = (struct _UsingMem xdata *)(ThisFreeMem);
+ 164   3              }
+ 165   2              else
+ 166   2              {
+ 167   3                  /* 否则从自由内存块的高地址端分配一块内存 */
+ 168   3                  /* 即仅仅调整这个节点的内容 */
+ 169   3                  ThisFreeMem->Size -= Size;
+ 170   3                  Rt = (struct _UsingMem xdata *)((uint8 xdata *)ThisFreeMem + 
+ 171   3                                                   ThisFreeMem->Size);
+ 172   3              }
+ 173   2      #if EN_OS_MEM_CHK > 0
+ 174   2              Rt->HeadChk = 0xa55a;
+ 175   2              Rt->EndChk = 0x5aa5;
+ 176   2      #endif
+ 177   2              Rt->Size = Size;
+ 178   2              OS_EXIT_CRITICAL();
+C51 COMPILER V9.00   OS_MEM                                                                02/18/2019 16:52:21 PAGE 4   
+
+ 179   2              return ( void *)((uint8 xdata *)Rt + sizeof(struct _UsingMem));
+ 180   2          }
+ 181   1          else
+ 182   1          {
+ 183   2              OS_EXIT_CRITICAL();
+ 184   2              return NULL;
+ 185   2          }
+ 186   1          
+ 187   1      }
+ 188          
+ 189          /*********************************************************************************************************
+ 190          ** 函数名称: OSMemFree
+ 191          ** 功能描述: 把由OSMemNew分配的空间归还给系统
+ 192          ** 输　入: Addr: 由指OSMemNew返回的指针
+ 193          ** 输　出: 无
+ 194          ** 全局变量: 无
+ 195          ** 调用模块: 无
+ 196          **
+ 197          ** 作　者: 陈明计
+ 198          ** 日　期: 2003年8月3日
+ 199          **-------------------------------------------------------------------------------------------------------
+ 200          ** 修改人:
+ 201          ** 日　期:
+ 202          **------------------------------------------------------------------------------------------------------
+ 203          ********************************************************************************************************/
+ 204          #ifndef EN_OS_MEM_FREE
+              #define EN_OS_MEM_FREE      1
+              #endif
+ 207          
+ 208          #if EN_OS_MEM_FREE > 0
+ 209          
+ 210          //        void OSMemFree(void xdata *Addr) reentrant
+ 211          void OSMemFree(void xdata *Addr) 
+ 212          
+ 213          {
+ 214   1          struct _FreeMem xdata * xdata ThisFreeMem;
+ 215   1          struct _UsingMem xdata * xdata UserMem;
+ 216   1          unsigned int Size;
+ 217   1      
+ 218   1          OS_ENTER_CRITICAL();
+ 219   1          
+ 220   1          ThisFreeMem = OSFreeMem;
+ 221   1          /* 找到内存块的开始位置 */
+ 222   1          UserMem = (struct _UsingMem xdata *)((uint8 xdata *)Addr - 
+ 223   1                                                sizeof(struct _UsingMem));
+ 224   1      #if EN_OS_MEM_CHK > 0
+ 225   1          if (UserMem->HeadChk != 0xa55a || UserMem->EndChk != 0x5aa5)
+ 226   1          {
+ 227   2              UserMemChkErr(Addr);
+ 228   2              OS_EXIT_CRITICAL();
+ 229   2              return;
+ 230   2          }
+ 231   1      #endif
+ 232   1          /* 查找这块内存应当在双向链表中插入的位置 */    
+ 233   1          /* 双向链表以内存块首地址的大小顺序为节点的链接顺序 */
+ 234   1          while (1)
+ 235   1          {
+ 236   2              if (ThisFreeMem > (struct _FreeMem xdata *)UserMem)
+ 237   2              {
+ 238   3                  ThisFreeMem = ThisFreeMem->Last;
+ 239   3                  break;
+ 240   3              }
+C51 COMPILER V9.00   OS_MEM                                                                02/18/2019 16:52:21 PAGE 5   
+
+ 241   2              if (ThisFreeMem->Next == NULL)
+ 242   2              {
+ 243   3                  break;
+ 244   3              }
+ 245   2              
+ 246   2              ThisFreeMem = ThisFreeMem->Next;
+ 247   2          }
+ 248   1      
+ 249   1          if (((uint8 xdata *)ThisFreeMem + (ThisFreeMem->Size)) == (uint8 xdata *)UserMem)
+ 250   1          {
+ 251   2              /* 回收的内存块与这一个自由内存块相邻，则直接修改这个节点内容 */
+ 252   2              ThisFreeMem->Size += UserMem->Size;
+ 253   2          }
+ 254   1          else
+ 255   1          {
+ 256   2              /* 否则插入一个节点 */
+ 257   2              Size = UserMem->Size;
+ 258   2              ((struct _FreeMem xdata *)UserMem)->Last = ThisFreeMem;
+ 259   2              ((struct _FreeMem xdata *)UserMem)->Next = ThisFreeMem->Next;
+ 260   2              ((struct _FreeMem xdata *)UserMem)->Size = Size;
+ 261   2              ThisFreeMem->Next = (struct _FreeMem xdata *)UserMem;
+ 262   2              ThisFreeMem = (struct _FreeMem xdata *)UserMem;
+ 263   2              if (ThisFreeMem->Next != NULL)
+ 264   2              {
+ 265   3                  (ThisFreeMem->Next)->Last = ThisFreeMem;
+ 266   3              }
+ 267   2          }
+ 268   1          if (((uint8 xdata *)ThisFreeMem + (ThisFreeMem->Size)) ==
+ 269   1               (uint8 xdata *)(ThisFreeMem->Next))
+ 270   1          {
+ 271   2              /* 如果这两个内存块相邻，则合并之 */
+ 272   2              ThisFreeMem->Size += (ThisFreeMem->Next)->Size;
+ 273   2              ThisFreeMem->Next = (ThisFreeMem->Next)->Next;
+ 274   2              if(ThisFreeMem->Next != NULL)
+ 275   2              {
+ 276   3                  (ThisFreeMem->Next)->Last = ThisFreeMem;
+ 277   3              }
+ 278   2          }
+ 279   1          OS_EXIT_CRITICAL();
+ 280   1          return;
+ 281   1      }
+ 282          #endif
+ 283          #endif
+ 284          /*********************************************************************************************************
+ 285          **                            End Of File
+ 286          ********************************************************************************************************/
+ 287          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    944    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      2       8
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
